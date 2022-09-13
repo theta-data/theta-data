@@ -30,7 +30,7 @@ const guard_1 = require("./guard");
 const logger_module_1 = require("./logger/logger.module");
 const logger_middleware_1 = require("./logger/logger.middleware");
 const nft_statistics_module_1 = require("./statistics/nft/nft-statistics.module");
-const config = require('config');
+const const_1 = require("./const");
 let AppModule = class AppModule {
     configure(consumer) {
         consumer.apply(logger_middleware_1.LoggerMiddleware).forRoutes('*');
@@ -39,17 +39,17 @@ let AppModule = class AppModule {
 AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            typeorm_1.TypeOrmModule.forRoot(Object.assign(Object.assign({}, config.get('ORM_CONFIG')), { database: config.get('ORM_CONFIG')['database'] + 'contact.sqlite', name: 'contact', entities: [] })),
-            typeorm_1.TypeOrmModule.forRoot(Object.assign(Object.assign({}, config.get('ORM_CONFIG')), { database: config.get('ORM_CONFIG')['database'] + 'analyse.sqlite', name: 'analyse', entities: [] })),
-            typeorm_1.TypeOrmModule.forRoot(Object.assign(Object.assign({}, config.get('ORM_CONFIG')), { database: config.get('ORM_CONFIG')['database'] + 'smart_contract/smart_contract.sqlite', name: 'smart_contract', entities: [] })),
-            typeorm_1.TypeOrmModule.forRoot(Object.assign(Object.assign({}, config.get('ORM_CONFIG')), { database: config.get('ORM_CONFIG')['database'] + 'nft/nft.sqlite', name: 'nft', entities: [] })),
-            typeorm_1.TypeOrmModule.forRoot(Object.assign(Object.assign({}, config.get('ORM_CONFIG')), { database: config.get('ORM_CONFIG')['database'] + 'stake/stake.sqlite', name: 'stake', entities: [] })),
-            typeorm_1.TypeOrmModule.forRoot(Object.assign(Object.assign({}, config.get('ORM_CONFIG')), { database: config.get('ORM_CONFIG')['database'] + 'tx/tx.sqlite', name: 'tx', entities: [] })),
-            typeorm_1.TypeOrmModule.forRoot(Object.assign(Object.assign({}, config.get('ORM_CONFIG')), { database: config.get('ORM_CONFIG')['database'] + 'wallet/wallet.sqlite', name: 'wallet', entities: [] })),
-            typeorm_1.TypeOrmModule.forRoot(Object.assign(Object.assign({}, config.get('ORM_CONFIG')), { database: config.get('ORM_CONFIG')['database'] + 'logger/index.sqlite', name: 'logger', entities: [] })),
-            typeorm_1.TypeOrmModule.forRoot(Object.assign(Object.assign({}, config.get('ORM_CONFIG')), { database: config.get('ORM_CONFIG')['database'] + 'nft-statistics/nft-statistics.sqlite', name: 'nft-statistics', entities: [] })),
-            typeorm_1.TypeOrmModule.forRoot(Object.assign(Object.assign({}, config.get('ORM_CONFIG')), { database: config.get('ORM_CONFIG')['database'] + 'explorer/data.sqlite', name: 'explorer', entities: [] })),
-            typeorm_1.TypeOrmModule.forRoot(Object.assign(Object.assign({}, config.get('ORM_CONFIG')), { database: config.get('ORM_CONFIG')['database'] + 'wallet-tx-history/index.sqlite', name: 'wallet-tx-history', entities: [] })),
+            typeorm_1.TypeOrmModule.forRoot(Object.assign(Object.assign({}, const_1.config.get('ORM_CONFIG')), { database: const_1.config.get('ORM_CONFIG')['database'] + 'contact.sqlite', name: 'contact', entities: [] })),
+            typeorm_1.TypeOrmModule.forRoot(Object.assign(Object.assign({}, const_1.config.get('ORM_CONFIG')), { database: const_1.config.get('ORM_CONFIG')['database'] + 'analyse.sqlite', name: 'analyse', entities: [] })),
+            typeorm_1.TypeOrmModule.forRoot(Object.assign(Object.assign({}, const_1.config.get('ORM_CONFIG')), { database: const_1.config.get('ORM_CONFIG')['database'] + 'smart_contract/smart_contract.sqlite', name: 'smart_contract', entities: [] })),
+            typeorm_1.TypeOrmModule.forRoot(Object.assign(Object.assign({}, const_1.config.get('ORM_CONFIG')), { database: const_1.config.get('ORM_CONFIG')['database'] + 'nft/nft.sqlite', name: 'nft', entities: [] })),
+            typeorm_1.TypeOrmModule.forRoot(Object.assign(Object.assign({}, const_1.config.get('ORM_CONFIG')), { database: const_1.config.get('ORM_CONFIG')['database'] + 'stake/stake.sqlite', name: 'stake', entities: [] })),
+            typeorm_1.TypeOrmModule.forRoot(Object.assign(Object.assign({}, const_1.config.get('ORM_CONFIG')), { database: const_1.config.get('ORM_CONFIG')['database'] + 'tx/tx.sqlite', name: 'tx', entities: [] })),
+            typeorm_1.TypeOrmModule.forRoot(Object.assign(Object.assign({}, const_1.config.get('ORM_CONFIG')), { database: const_1.config.get('ORM_CONFIG')['database'] + 'wallet/wallet.sqlite', name: 'wallet', entities: [] })),
+            typeorm_1.TypeOrmModule.forRoot(Object.assign(Object.assign({}, const_1.config.get('ORM_CONFIG')), { database: const_1.config.get('ORM_CONFIG')['database'] + 'logger/index.sqlite', name: 'logger', entities: [] })),
+            typeorm_1.TypeOrmModule.forRoot(Object.assign(Object.assign({}, const_1.config.get('ORM_CONFIG')), { database: const_1.config.get('ORM_CONFIG')['database'] + 'nft-statistics/nft-statistics.sqlite', name: 'nft-statistics', entities: [] })),
+            typeorm_1.TypeOrmModule.forRoot(Object.assign(Object.assign({}, const_1.config.get('ORM_CONFIG')), { database: const_1.config.get('ORM_CONFIG')['database'] + 'explorer/data.sqlite', name: 'explorer', entities: [] })),
+            typeorm_1.TypeOrmModule.forRoot(Object.assign(Object.assign({}, const_1.config.get('ORM_CONFIG')), { database: const_1.config.get('ORM_CONFIG')['database'] + 'wallet-tx-history/index.sqlite', name: 'wallet-tx-history', entities: [] })),
             graphql_1.GraphQLModule.forRoot({
                 driver: apollo_1.ApolloDriver,
                 installSubscriptionHandlers: true,
@@ -64,8 +64,8 @@ AppModule = __decorate([
             }),
             schedule_1.ScheduleModule.forRoot(),
             throttler_1.ThrottlerModule.forRoot({
-                ttl: config.get('RATE_LIMIT')['ttl'],
-                limit: config.get('RATE_LIMIT')['limit']
+                ttl: const_1.config.get('RATE_LIMIT')['ttl'],
+                limit: const_1.config.get('RATE_LIMIT')['limit']
             }),
             event_emitter_1.EventEmitterModule.forRoot(),
             tx_module_1.TxModule,

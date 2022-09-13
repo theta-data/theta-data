@@ -20,7 +20,7 @@ const smart_contract_entity_1 = require("./smart-contract.entity");
 const utils_service_1 = require("../../common/utils.service");
 const smart_contract_service_1 = require("./smart-contract.service");
 const cross_fetch_1 = require("cross-fetch");
-const config = require('config');
+const const_1 = require("../../const");
 const moment = require('moment');
 const fs = require('fs');
 let SmartContractAnalyseService = class SmartContractAnalyseService {
@@ -32,9 +32,9 @@ let SmartContractAnalyseService = class SmartContractAnalyseService {
         this.analyseKey = 'under_analyse';
         this.counter = 0;
         this.startTimestamp = 0;
-        this.heightConfigFile = config.get('ORM_CONFIG')['database'] + 'smart_contract/record.height';
+        this.heightConfigFile = const_1.config.get('ORM_CONFIG')['database'] + 'smart_contract/record.height';
         this.smartContractList = [];
-        this.logger.debug(config.get('SMART_CONTRACT.THETA_NODE_HOST'));
+        this.logger.debug(const_1.config.get('SMART_CONTRACT.THETA_NODE_HOST'));
     }
     async analyseData() {
         try {
@@ -44,8 +44,8 @@ let SmartContractAnalyseService = class SmartContractAnalyseService {
             let height = 0;
             const lastfinalizedHeight = Number((await theta_ts_sdk_1.thetaTsSdk.blockchain.getStatus()).result.latest_finalized_block_height);
             height = lastfinalizedHeight - 1000;
-            if (config.get('SMART_CONTRACT.START_HEIGHT')) {
-                height = config.get('SMART_CONTRACT.START_HEIGHT');
+            if (const_1.config.get('SMART_CONTRACT.START_HEIGHT')) {
+                height = const_1.config.get('SMART_CONTRACT.START_HEIGHT');
             }
             if (!fs.existsSync(this.heightConfigFile)) {
                 this.logger.debug('read height');
@@ -74,7 +74,7 @@ let SmartContractAnalyseService = class SmartContractAnalyseService {
                 return;
             }
             let endHeight = lastfinalizedHeight;
-            const analyseNumber = config.get('SMART_CONTRACT.ANALYSE_NUMBER');
+            const analyseNumber = const_1.config.get('SMART_CONTRACT.ANALYSE_NUMBER');
             if (lastfinalizedHeight - height > analyseNumber) {
                 endHeight = height + analyseNumber;
             }
@@ -104,12 +104,12 @@ let SmartContractAnalyseService = class SmartContractAnalyseService {
             this.logger.error(e.message);
             this.logger.error('rollback');
             await this.smartContractConnection.rollbackTransaction();
-            (0, utils_service_1.writeFailExcuteLog)(config.get('SMART_CONTRACT.MONITOR_PATH'));
+            (0, utils_service_1.writeFailExcuteLog)(const_1.config.get('SMART_CONTRACT.MONITOR_PATH'));
         }
         finally {
             await this.smartContractConnection.release();
             this.logger.debug('release success');
-            (0, utils_service_1.writeSucessExcuteLog)(config.get('SMART_CONTRACT.MONITOR_PATH'));
+            (0, utils_service_1.writeSucessExcuteLog)(const_1.config.get('SMART_CONTRACT.MONITOR_PATH'));
         }
     }
     async handleOrderCreatedEvent(block, latestFinalizedBlockHeight) {
@@ -125,7 +125,7 @@ let SmartContractAnalyseService = class SmartContractAnalyseService {
                     const smartContract = await this.smartContractConnection.manager.findOne(smart_contract_entity_1.SmartContractEntity, {
                         contract_address: transaction.receipt.ContractAddress
                     });
-                    if (smartContract.call_times > config.get('SMART_CONTRACT_VERIFY_DETECT_TIMES') &&
+                    if (smartContract.call_times > const_1.config.get('SMART_CONTRACT_VERIFY_DETECT_TIMES') &&
                         !smartContract.verified &&
                         moment().unix() - smartContract.verification_check_timestamp > 3600 * 24 * 30) {
                         const checkInfo = await this.verifyWithThetaExplorer(smartContract.contract_address);
@@ -138,7 +138,7 @@ let SmartContractAnalyseService = class SmartContractAnalyseService {
                         }
                         await this.smartContractConnection.manager.save(smart_contract_entity_1.SmartContractEntity, smartContract);
                     }
-                    if (config.get('CONFLICT_TRANSACTIONS').indexOf(transaction.hash) !== -1)
+                    if (const_1.config.get('CONFLICT_TRANSACTIONS').indexOf(transaction.hash) !== -1)
                         break;
                     await this.smartContractConnection.manager.insert(smart_contract_call_record_entity_1.SmartContractCallRecordEntity, {
                         timestamp: Number(block.timestamp),

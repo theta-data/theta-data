@@ -14,7 +14,7 @@ const moment = require('moment')
 const nftLogoConfig = JSON.parse(fs.readFileSync('resources/nft-logo.json'))
 const nftIgnore = JSON.parse(fs.readFileSync('resources/nft-ignore.json'))
 import fetch from 'cross-fetch'
-const config = require('config')
+import { config } from 'src/const'
 @Injectable()
 export class NftStatisticsAnalyseService {
   private readonly logger = new Logger('nft statistics analyse service')

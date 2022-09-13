@@ -5,8 +5,8 @@ import { THETA_BLOCK_INTERFACE } from 'theta-ts-sdk/src/types/interface'
 import { LoggerService } from 'src/common/logger.service'
 import { WalletEntity } from 'src/block-chain/wallet/wallet.entity'
 import { UtilsService, writeFailExcuteLog, writeSucessExcuteLog } from 'src/common/utils.service'
+import { config } from 'src/const'
 
-const config = require('config')
 const moment = require('moment')
 @Injectable()
 export class WalletsAnalyseService {

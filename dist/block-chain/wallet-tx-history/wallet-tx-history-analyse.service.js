@@ -16,13 +16,13 @@ const utils_service_1 = require("../../common/utils.service");
 const typeorm_1 = require("typeorm");
 const theta_enum_1 = require("../tx/theta.enum");
 const wallet_tx_history_entity_1 = require("./wallet-tx-history.entity");
+const const_1 = require("../../const");
 const fs = require('fs');
-const config = require('config');
 let WalletTxHistoryAnalyseService = class WalletTxHistoryAnalyseService {
     constructor(utilsService) {
         this.utilsService = utilsService;
         this.logger = new common_1.Logger('wallet tx history analyse service');
-        this.heightConfigFile = config.get('ORM_CONFIG')['database'] + 'wallet-tx-history/record.height';
+        this.heightConfigFile = const_1.config.get('ORM_CONFIG')['database'] + 'wallet-tx-history/record.height';
     }
     async analyseData() {
         try {
@@ -48,7 +48,7 @@ let WalletTxHistoryAnalyseService = class WalletTxHistoryAnalyseService {
                 where: {
                     id: (0, typeorm_1.MoreThan)(startId)
                 },
-                take: config.get('WALLET-TX-HISTORY.ANALYSE_NUMBER'),
+                take: const_1.config.get('WALLET-TX-HISTORY.ANALYSE_NUMBER'),
                 order: { id: 'ASC' }
             });
             const walletToUpdates = {};
@@ -70,13 +70,13 @@ let WalletTxHistoryAnalyseService = class WalletTxHistoryAnalyseService {
             this.logger.error(e.message);
             this.logger.error('rollback');
             await this.walletTxHistoryConnection.rollbackTransaction();
-            (0, utils_service_1.writeFailExcuteLog)(config.get('WALLET-TX-HISTORY.MONITOR_PATH'));
+            (0, utils_service_1.writeFailExcuteLog)(const_1.config.get('WALLET-TX-HISTORY.MONITOR_PATH'));
         }
         finally {
             await this.walletTxHistoryConnection.release();
             this.logger.debug('end analyse');
             this.logger.debug('release success');
-            (0, utils_service_1.writeSucessExcuteLog)(config.get('WALLET-TX-HISTORY.MONITOR_PATH'));
+            (0, utils_service_1.writeSucessExcuteLog)(const_1.config.get('WALLET-TX-HISTORY.MONITOR_PATH'));
         }
     }
     async addWallet(record, walletsToupdate) {

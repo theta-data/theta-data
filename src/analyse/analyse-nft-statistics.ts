@@ -3,7 +3,7 @@ import { NestFactory } from '@nestjs/core'
 import { AppModule } from 'src/app.module'
 import { NftStatisticsAnalyseService } from 'src/statistics/nft/nft-statistics-analyse.service'
 import { NftStatisticsModule } from 'src/statistics/nft/nft-statistics.module'
-const config = require('config')
+import { config } from 'src/const'
 
 async function bootstrap() {
   try {

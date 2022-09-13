@@ -21,7 +21,9 @@ import { GqlThrottlerGuard } from './guard'
 import { LoggerModule } from './logger/logger.module'
 import { LoggerMiddleware } from './logger/logger.middleware'
 import { NftStatisticsModule } from './statistics/nft/nft-statistics.module'
-const config = require('config')
+import { config } from './const'
+// const config = require('config')
+// var _ = require('lodash')
 
 @Module({
   imports: [

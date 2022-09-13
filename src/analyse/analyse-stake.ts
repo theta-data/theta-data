@@ -3,7 +3,7 @@ import { NestFactory } from '@nestjs/core'
 import { AppModule } from 'src/app.module'
 import { StakeAnalyseService } from 'src/block-chain/stake/stake-analyse.service'
 import { StakeModule } from 'src/block-chain/stake/stake.module'
-const config = require('config')
+import { config } from 'src/const'
 async function bootstrap() {
   try {
     while (1) {

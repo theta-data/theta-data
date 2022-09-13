@@ -16,7 +16,7 @@ const enum_1 = require("theta-ts-sdk/dist/types/enum");
 const theta_ts_sdk_1 = require("theta-ts-sdk");
 const bignumber_js_1 = require("bignumber.js");
 const utils_service_1 = require("../../common/utils.service");
-const config = require('config');
+const const_1 = require("../../const");
 const moment = require('moment');
 let TxAnalyseService = class TxAnalyseService {
     constructor(utilsService) {
@@ -24,8 +24,8 @@ let TxAnalyseService = class TxAnalyseService {
         this.logger = new common_1.Logger('tx analyse service');
         this.analyseKey = 'under_analyse';
         this.counter = 0;
-        this.heightConfigFile = config.get('ORM_CONFIG')['database'] + 'tx/record.height';
-        this.logger.debug(config.get('THETA_NODE_HOST'));
+        this.heightConfigFile = const_1.config.get('ORM_CONFIG')['database'] + 'tx/record.height';
+        this.logger.debug(const_1.config.get('THETA_NODE_HOST'));
     }
     async analyseData() {
         try {
@@ -35,8 +35,8 @@ let TxAnalyseService = class TxAnalyseService {
             let height = 0;
             const lastfinalizedHeight = Number((await theta_ts_sdk_1.thetaTsSdk.blockchain.getStatus()).result.latest_finalized_block_height);
             height = lastfinalizedHeight - 1000;
-            if (config.get('TX.START_HEIGHT')) {
-                height = config.get('TX.START_HEIGHT');
+            if (const_1.config.get('TX.START_HEIGHT')) {
+                height = const_1.config.get('TX.START_HEIGHT');
             }
             const recordHeight = this.utilsService.getRecordHeight(this.heightConfigFile);
             height = recordHeight > height ? recordHeight : height;
@@ -47,7 +47,7 @@ let TxAnalyseService = class TxAnalyseService {
                 return;
             }
             let endHeight = lastfinalizedHeight;
-            const analyseNumber = config.get('TX.ANALYSE_NUMBER');
+            const analyseNumber = const_1.config.get('TX.ANALYSE_NUMBER');
             if (lastfinalizedHeight - height > analyseNumber) {
                 endHeight = height + analyseNumber;
             }
@@ -73,12 +73,12 @@ let TxAnalyseService = class TxAnalyseService {
             this.logger.error(e.message);
             this.logger.error('rollback');
             await this.txConnection.rollbackTransaction();
-            (0, utils_service_1.writeFailExcuteLog)(config.get('TX.MONITOR_PATH'));
+            (0, utils_service_1.writeFailExcuteLog)(const_1.config.get('TX.MONITOR_PATH'));
         }
         finally {
             await this.txConnection.release();
             this.logger.debug('release success');
-            (0, utils_service_1.writeSucessExcuteLog)(config.get('TX.MONITOR_PATH'));
+            (0, utils_service_1.writeSucessExcuteLog)(const_1.config.get('TX.MONITOR_PATH'));
         }
     }
     async handleOrderCreatedEvent(block, latestFinalizedBlockHeight) {

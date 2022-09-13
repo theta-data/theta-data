@@ -10,7 +10,7 @@ import { StakeRewardEntity } from '../../block-chain/stake/stake-reward.entity'
 import { SmartContractEntity } from 'src/block-chain/smart-contract/smart-contract.entity'
 import { UtilsService, writeFailExcuteLog, writeSucessExcuteLog } from 'src/common/utils.service'
 import { STAKE_NODE_TYPE_ENUM } from './stake.entity'
-const config = require('config')
+import { config } from 'src/const'
 const moment = require('moment')
 @Injectable()
 export class StakeAnalyseService {

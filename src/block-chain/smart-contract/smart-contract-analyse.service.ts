@@ -9,7 +9,7 @@ import { SmartContractEntity } from 'src/block-chain/smart-contract/smart-contra
 import { UtilsService, writeFailExcuteLog, writeSucessExcuteLog } from 'src/common/utils.service'
 import { SmartContractService } from 'src/block-chain/smart-contract/smart-contract.service'
 import fetch from 'cross-fetch'
-const config = require('config')
+import { config } from 'src/const'
 const moment = require('moment')
 const fs = require('fs')
 @Injectable()

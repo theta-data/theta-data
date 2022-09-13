@@ -5,8 +5,8 @@ import { getConnection, MoreThan, QueryRunner } from 'typeorm'
 import { THETA_TRANSACTION_TYPE_ENUM } from '../tx/theta.enum'
 import { WalletTxHistoryEntity } from './wallet-tx-history.entity'
 import { id } from 'ethers/lib/utils'
+import { config } from 'src/const'
 const fs = require('fs')
-const config = require('config')
 @Injectable()
 export class WalletTxHistoryAnalyseService {
   private readonly logger = new Logger('wallet tx history analyse service')

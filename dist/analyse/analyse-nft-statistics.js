@@ -5,7 +5,7 @@ const core_1 = require("@nestjs/core");
 const app_module_1 = require("../app.module");
 const nft_statistics_analyse_service_1 = require("../statistics/nft/nft-statistics-analyse.service");
 const nft_statistics_module_1 = require("../statistics/nft/nft-statistics.module");
-const config = require('config');
+const const_1 = require("../const");
 async function bootstrap() {
     try {
         while (1) {
@@ -24,13 +24,13 @@ async function bootstrap() {
                 })
             ]);
             console.log('finish');
-            await new Promise((resolve) => setTimeout(resolve, config.get('NFT_STATISTICS.ANALYSE_INTERVAL')));
+            await new Promise((resolve) => setTimeout(resolve, const_1.config.get('NFT_STATISTICS.ANALYSE_INTERVAL')));
             app.close();
             console.log('app close');
         }
     }
     catch (e) {
-        (0, utils_service_1.writeFailExcuteLog)(config.get('NFT_STATISTICS.MONITOR_PATH'));
+        (0, utils_service_1.writeFailExcuteLog)(const_1.config.get('NFT_STATISTICS.MONITOR_PATH'));
         console.log(e);
         process.exit();
     }

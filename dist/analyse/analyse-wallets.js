@@ -5,7 +5,7 @@ const app_module_1 = require("../app.module");
 const wallet_module_1 = require("../block-chain/wallet/wallet.module");
 const wallets_analyse_service_1 = require("../block-chain/wallet/wallets-analyse.service");
 const utils_service_1 = require("../common/utils.service");
-const config = require('config');
+const const_1 = require("../const");
 async function bootstrap() {
     try {
         while (1) {
@@ -20,13 +20,13 @@ async function bootstrap() {
                     }, 1000 * 60 * 5);
                 })
             ]);
-            await new Promise((resolve) => setTimeout(resolve, config.get('WALLET.ANALYSE_INTERVAL')));
+            await new Promise((resolve) => setTimeout(resolve, const_1.config.get('WALLET.ANALYSE_INTERVAL')));
             app.close();
         }
     }
     catch (e) {
         console.log(e);
-        (0, utils_service_1.writeFailExcuteLog)(config.get('WALLET.MONITOR_PATH'));
+        (0, utils_service_1.writeFailExcuteLog)(const_1.config.get('WALLET.MONITOR_PATH'));
         process.exit();
     }
 }

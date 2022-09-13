@@ -5,7 +5,7 @@ const app_module_1 = require("../app.module");
 const smart_contract_analyse_service_1 = require("../block-chain/smart-contract/smart-contract-analyse.service");
 const smart_contract_module_1 = require("../block-chain/smart-contract/smart-contract.module");
 const utils_service_1 = require("../common/utils.service");
-const config = require('config');
+const const_1 = require("../const");
 async function bootstrap() {
     try {
         while (1) {
@@ -22,13 +22,13 @@ async function bootstrap() {
                     }, 1000 * 60 * 5);
                 })
             ]);
-            await new Promise((resolve) => setTimeout(resolve, config.get('SMART_CONTRACT.ANALYSE_INTERVAL')));
+            await new Promise((resolve) => setTimeout(resolve, const_1.config.get('SMART_CONTRACT.ANALYSE_INTERVAL')));
             app.close();
         }
     }
     catch (e) {
         console.log(e);
-        (0, utils_service_1.writeSucessExcuteLog)(config.get('SMART_CONTRACT.MONITOR_PATH'));
+        (0, utils_service_1.writeSucessExcuteLog)(const_1.config.get('SMART_CONTRACT.MONITOR_PATH'));
         process.exit();
     }
 }

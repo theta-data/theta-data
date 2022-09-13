@@ -3,7 +3,7 @@ import { AppModule } from 'src/app.module'
 import { WalletModule } from 'src/block-chain/wallet/wallet.module'
 import { WalletsAnalyseService } from 'src/block-chain/wallet/wallets-analyse.service'
 import { writeFailExcuteLog } from 'src/common/utils.service'
-const config = require('config')
+import { config } from 'src/const'
 async function bootstrap() {
   try {
     while (1) {
