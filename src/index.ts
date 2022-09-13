@@ -1,5 +1,5 @@
 import { analyseBootstrap } from 'src/analyse'
-import { bootstrap } from 'src/main'
+import { bootstrap } from 'src/serve'
 // thetaData ={}
 // export default function () {
 //   return {
