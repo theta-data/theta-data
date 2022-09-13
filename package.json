@@ -2,8 +2,7 @@
   "name": "theta-data",
   "version": "0.0.1",
   "description": "",
-  "author": "",
-  "private": true,
+  "author": "larry",
   "license": "UNLICENSED",
   "scripts": {
     "prebuild": "rimraf dist",
