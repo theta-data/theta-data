@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Theta Data Docs</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="description" content="Theta Data Docs" />
+    <link rel="shortcut icon" type="image/png" href="/img/icon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0" />
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css" />
+    <!-- <link
+      rel="stylesheet"
+      href="//cdn.jsdelivr.net/npm/docsify-darklight-theme@latest/dist/style.min.css"
+      title="docsify-darklight-theme"
+      type="text/css"
+    /> -->
+  </head>
+  <body>
+    <!-- <nav>
+     <a href="#/">EN</a>
+     <a href="#/chs/">中文</a>
+    </nav> -->
+    <div id="app"></div>
+    <script>
+      const isLocal = window.location.hostname === 'localhost'
+      const search = {
+        // 完整配置参数
+        maxAge: 86400000, // 过期时间，单位毫秒，默认一天
+        paths: 'auto', // or 'auto'
+        placeholder: 'Type to search',
+
+        // 支持本地化
+        placeholder: {
+          '/chs/': '搜索',
+          '/': 'Type to search'
+        },
+
+        noData: 'No Results!',
+
+        // 支持本地化
+        noData: {
+          '/chs/': '找不到结果',
+          '/': 'No Results'
+        },
+
+        // 搜索标题的最大层级, 1 - 6
+        depth: 3,
+
+        hideOtherSidebarContent: false, // 是否隐藏其他侧边栏内容
+
+        // 避免搜索索引冲突
+        // 同一域下的多个网站之间
+        namespace: 'theta-data-api',
+
+        // 使用不同的索引作为路径前缀（namespaces）
+        // 注意：仅适用于 paths: 'auto' 模式
+        //
+        // 初始化索引时，我们从侧边栏查找第一个路径
+        // 如果它与列表中的前缀匹配，我们将切换到相应的索引
+        pathNamespaces: ['/chs']
+
+        // 您可以提供一个正则表达式来匹配前缀。在这种情况下，
+        // 匹配到的字符串将被用来识别索引
+        // pathNamespaces: /^(\/(zh-cn))?(\/(v1|v2))?/
+      }
+      const copyCode = {
+        buttonText: {
+          '/chs/': '点击复制',
+          '/': 'Copy to clipboard'
+        },
+        errorText: {
+          '/chs/': '错误',
+          '/': 'Error'
+        },
+        successText: {
+          '/chs/': '复制成功',
+          '/': 'Copied'
+        }
+      }
+      window.$docsify = {
+        name: 'Theta Data Docs',
+        repo: 'https://www.github.com/theta-data/theta-data-api',
+        loadSidebar: true,
+        subMaxLevel: 2,
+        coverpage: false,
+        logo: '/img/logo.png',
+        repo: 'theta-data/theta-data-api',
+        auto2top: true,
+        homepage: 'introduction.md',
+        nameLink: {
+          '/chs/': isLocal ? '#/chs/' : '/chs/',
+          '/': isLocal ? '#/' : '/'
+        },
+        onlyCover: true,
+        copyCode,
+        // themeColor: '#65EE85',
+        routerMode: isLocal ? 'hash' : 'history',
+        search
+      }
+    </script>
+    <!-- Docsify v4 -->
+    <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/zoom-image.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify-pagination/dist/docsify-pagination.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-graphql.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js"></script>
+    <!-- <script
+      src="//cdn.jsdelivr.net/npm/docsify-darklight-theme@latest/dist/index.min.js"
+      type="text/javascript"
+    ></script> -->
+  </body>
+</html>
