@@ -7,8 +7,6 @@ import * as bodyParser from 'body-parser'
 export async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, { cors: true })
   app.set('trust proxy', true)
-  // const logger = new LoggerMiddleware()
-  // app.use(logger)
   app.use(
     bodyParser.json({
       limit: '50mb'
