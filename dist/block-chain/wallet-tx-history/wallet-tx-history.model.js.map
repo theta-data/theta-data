@@ -1,0 +1,1 @@
+{"version":3,"file":"wallet-tx-history.model.js","sourceRoot":"","sources":["../../../src/block-chain/wallet-tx-history/wallet-tx-history.model.ts"],"names":[],"mappings":";;;;;;;;;AAAA,yEAAoE;AACpE,4DAAmD;AACnD,6CAA4C;AAG5C,IAAa,4BAA4B,GAAzC,MAAa,4BAA6B,SAAQ,IAAA,wBAAS,EAAC,sCAAiB,CAAC;CAAG,CAAA;AAApE,4BAA4B;IADxC,IAAA,oBAAU,GAAE;GACA,4BAA4B,CAAwC;AAApE,oEAA4B"}
