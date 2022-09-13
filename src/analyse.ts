@@ -39,7 +39,7 @@ export async function analyseBootstrap() {
       .get(WalletTxHistoryAnalyseService, { strict: true })
 
     // console.log('do while')
-    await tx.analyseData()
+    // await tx.analyseData()
     await smartContract.analyseData()
     await explorer.analyseData()
     await wallet.analyseData()
