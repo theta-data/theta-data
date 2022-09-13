@@ -37,7 +37,6 @@ async function analyseBootstrap() {
         const walletTxHistory = app
             .select(wallet_tx_history_module_1.WalletTxHistoryModule)
             .get(wallet_tx_history_analyse_service_1.WalletTxHistoryAnalyseService, { strict: true });
-        await tx.analyseData();
         await smartContract.analyseData();
         await explorer.analyseData();
         await wallet.analyseData();

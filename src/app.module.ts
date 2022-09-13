@@ -29,19 +29,19 @@ import { config } from './const'
   imports: [
     TypeOrmModule.forRoot({
       ...config.get('ORM_CONFIG'),
-      database: config.get('ORM_CONFIG')['database'] + 'contact.sqlite',
+      database: config.get('ORM_CONFIG')['database'] + 'contact/index.sqlite',
       name: 'contact',
       entities: []
     }),
     TypeOrmModule.forRoot({
       ...config.get('ORM_CONFIG'),
-      database: config.get('ORM_CONFIG')['database'] + 'analyse.sqlite',
+      database: config.get('ORM_CONFIG')['database'] + 'analyse/index.sqlite',
       name: 'analyse',
       entities: []
     }),
     TypeOrmModule.forRoot({
       ...config.get('ORM_CONFIG'),
-      database: config.get('ORM_CONFIG')['database'] + 'smart_contract/smart_contract.sqlite',
+      database: config.get('ORM_CONFIG')['database'] + 'smart_contract/index.sqlite',
       name: 'smart_contract',
       // prepareDatabase: (obj) => {
       //   obj.pragma('journal_size_limit', { journal_size_limit: 1024 * 1024 * 100 })
@@ -51,25 +51,25 @@ import { config } from './const'
     }),
     TypeOrmModule.forRoot({
       ...config.get('ORM_CONFIG'),
-      database: config.get('ORM_CONFIG')['database'] + 'nft/nft.sqlite',
+      database: config.get('ORM_CONFIG')['database'] + 'nft/index.sqlite',
       name: 'nft',
       entities: []
     }),
     TypeOrmModule.forRoot({
       ...config.get('ORM_CONFIG'),
-      database: config.get('ORM_CONFIG')['database'] + 'stake/stake.sqlite',
+      database: config.get('ORM_CONFIG')['database'] + 'stake/index.sqlite',
       name: 'stake',
       entities: []
     }),
     TypeOrmModule.forRoot({
       ...config.get('ORM_CONFIG'),
-      database: config.get('ORM_CONFIG')['database'] + 'tx/tx.sqlite',
+      database: config.get('ORM_CONFIG')['database'] + 'tx/index.sqlite',
       name: 'tx',
       entities: []
     }),
     TypeOrmModule.forRoot({
       ...config.get('ORM_CONFIG'),
-      database: config.get('ORM_CONFIG')['database'] + 'wallet/wallet.sqlite',
+      database: config.get('ORM_CONFIG')['database'] + 'wallet/index.sqlite',
       name: 'wallet',
       entities: []
     }),
@@ -81,13 +81,13 @@ import { config } from './const'
     }),
     TypeOrmModule.forRoot({
       ...config.get('ORM_CONFIG'),
-      database: config.get('ORM_CONFIG')['database'] + 'nft-statistics/nft-statistics.sqlite',
+      database: config.get('ORM_CONFIG')['database'] + 'nft-statistics/index.sqlite',
       name: 'nft-statistics',
       entities: []
     }),
     TypeOrmModule.forRoot({
       ...config.get('ORM_CONFIG'),
-      database: config.get('ORM_CONFIG')['database'] + 'explorer/data.sqlite',
+      database: config.get('ORM_CONFIG')['database'] + 'explorer/index.sqlite',
       name: 'explorer',
       entities: []
     }),
