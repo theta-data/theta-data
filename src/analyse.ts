@@ -11,11 +11,11 @@ import { NftStatisticsModule } from './statistics/nft/nft-statistics.module'
 import { ExplorerAnalyseService } from './block-chain/explorer/explorer-analyse.service'
 import { ExplorerModule } from './block-chain/explorer/explorer.module'
 import { NestFactory } from '@nestjs/core'
-import { AppModule } from 'src/app.module'
-import { TxAnalyseService } from 'src/block-chain/tx/tx-analyse.service'
-import { TxModule } from 'src/block-chain/tx/tx.module'
-import { WalletModule } from 'src/block-chain/wallet/wallet.module'
-import { WalletTxHistoryAnalyseService } from 'src/block-chain/wallet-tx-history/wallet-tx-history-analyse.service'
+import { AppModule } from './app.module'
+import { TxAnalyseService } from './block-chain/tx/tx-analyse.service'
+import { TxModule } from './block-chain/tx/tx.module'
+import { WalletModule } from './block-chain/wallet/wallet.module'
+import { WalletTxHistoryAnalyseService } from './block-chain/wallet-tx-history/wallet-tx-history-analyse.service'
 
 export async function analyseBootstrap() {
   let i = 0
