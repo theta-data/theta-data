@@ -22,6 +22,7 @@ import { LoggerModule } from './logger/logger.module'
 import { LoggerMiddleware } from './logger/logger.middleware'
 import { NftStatisticsModule } from './statistics/nft/nft-statistics.module'
 import { config } from './const'
+import { ThetaTxNumByHoursEntity } from './block-chain/tx/theta-tx-num-by-hours.entity'
 // const config = require('config')
 // var _ = require('lodash')
 
@@ -51,6 +52,12 @@ import { config } from './const'
     }),
     TypeOrmModule.forRoot({
       ...config.get('ORM_CONFIG'),
+      database: config.get('ORM_CONFIG')['database'] + 'tx/index.sqlite',
+      name: 'tx',
+      entities: []
+    }),
+    TypeOrmModule.forRoot({
+      ...config.get('ORM_CONFIG'),
       database: config.get('ORM_CONFIG')['database'] + 'nft/index.sqlite',
       name: 'nft',
       entities: []
@@ -61,12 +68,7 @@ import { config } from './const'
       name: 'stake',
       entities: []
     }),
-    TypeOrmModule.forRoot({
-      ...config.get('ORM_CONFIG'),
-      database: config.get('ORM_CONFIG')['database'] + 'tx/index.sqlite',
-      name: 'tx',
-      entities: []
-    }),
+
     TypeOrmModule.forRoot({
       ...config.get('ORM_CONFIG'),
       database: config.get('ORM_CONFIG')['database'] + 'wallet/index.sqlite',

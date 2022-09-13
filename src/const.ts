@@ -16,7 +16,7 @@ export const DEFAULT_CONFIG = {
   THETA_NODE_HOST: 'https://theta-bridge-rpc.thetatoken.org/rpc',
   LOG_PATH: '/home/ubuntu/theta-data/logs/',
   ANALYSE_INTERVAL: 1000,
-  ANALYSE_NUMBER: 100,
+  ANALYSE_NUMBER: 1000,
   IGNORE: false,
   RATE_LIMIT: {
     ttl: 60,
@@ -25,6 +25,7 @@ export const DEFAULT_CONFIG = {
   SMART_CONTRACT_VERIFY_DETECT_TIMES: 0,
   RE_SYNC_BALANCE: false,
   STAKE_ANALYSE_START_HEIGHT: 16403700,
+
   CONFLICT_TRANSACTIONS: [
     '0x4a9c74bf71ac6a3591672d67e975887ef8374ba34b45342305e656666d9cdcf1',
     '0x82236267393c31c17bf4e79fb14f9fc0396c05821ebd357e6b420a43933d64db'
@@ -33,38 +34,51 @@ export const DEFAULT_CONFIG = {
     ANALYSE_NUMBER: 100,
     ANALYSE_INTERVAL: 1000,
     DL_ALL_NFT_IMG: false,
-    STATIC_PATH: '../static/'
+    STATIC_PATH: '../static/',
+    MONITOR_PATH: '../database/monitor/nft/'
   },
   SMART_CONTRACT: {
     ANALYSE_NUMBER: 100,
     ANALYSE_INTERVAL: 1000,
     THETA_NODE_HOST: 'https://theta-bridge-rpc.thetatoken.org/rpc',
-    START_HEIGHT: 14590900
+    START_HEIGHT: 14590900,
+    MONITOR_PATH: '../database/monitor/smart-contract/'
   },
   NFT_STATISTICS: {
     ANALYSE_NUMBER: 100,
     ANALYSE_INTERVAL: 1000,
-    STATIC_PATH: '../static/'
+    STATIC_PATH: '../static/',
+    MONITOR_PATH: '../database/monitor/nft-statistics/'
   },
   EXPLORER: {
     ANALYSE_NUMBER: 100,
     ANALYSE_INTERVAL: 1000,
-    START_HEIGHT: 8000000
+    START_HEIGHT: 8000000,
+    MONITOR_PATH: '../database/monitor/explorer/'
   },
   STAKE: {
     ANALYSE_NUMBER: 100,
     ANALYSE_INTERVAL: 1000,
-    START_HEIGHT: 16515100
+    START_HEIGHT: 16515100,
+    MONITOR_PATH: '../database/monitor/stake/'
   },
   TX: {
     ANALYSE_NUMBER: 100,
     ANALYSE_INTERVAL: 1000,
-    START_HEIGHT: 8000000
+    START_HEIGHT: 8000000,
+    MONITOR_PATH: '../database/monitor/tx/'
   },
   WALLET: {
     START_HEIGHT: 8000000,
     ANALYSE_NUMBER: 100,
-    ANALYSE_INTERVAL: 1000
+    ANALYSE_INTERVAL: 1000,
+    MONITOR_PATH: '../database/monitor/wallet/'
+  },
+  WALLET_TX_HISTORY: {
+    START_HEIGHT: 8000000,
+    ANALYSE_NUMBER: 100,
+    ANALYSE_INTERVAL: 1000,
+    MONITOR_PATH: '../database/monitor/wallet-tx-history/'
   }
 }
 const fs = require('fs')

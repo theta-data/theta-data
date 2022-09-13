@@ -1,5 +1,5 @@
 import { Injectable, Logger, SerializeOptions } from '@nestjs/common'
-import { getConnection, QueryRunner } from 'typeorm'
+import { Connection, getConnection, getConnectionManager, QueryRunner } from 'typeorm'
 import { THETA_TRANSACTION_TYPE_ENUM } from 'theta-ts-sdk/dist/types/enum'
 import { thetaTsSdk } from 'theta-ts-sdk'
 import { THETA_BLOCK_INTERFACE } from 'theta-ts-sdk/src/types/interface'
@@ -7,8 +7,11 @@ import BigNumber from 'bignumber.js'
 import { SmartContractEntity } from 'src/block-chain/smart-contract/smart-contract.entity'
 import { UtilsService, writeFailExcuteLog, writeSucessExcuteLog } from 'src/common/utils.service'
 import { config } from 'src/const'
+import { getConnectionName, InjectConnection } from '@nestjs/typeorm'
+import { createConnection } from 'net'
 // const config = require('config')
 const moment = require('moment')
+
 @Injectable()
 export class TxAnalyseService {
   private readonly logger = new Logger('tx analyse service')
@@ -17,15 +20,27 @@ export class TxAnalyseService {
 
   private txConnection: QueryRunner
   private heightConfigFile = config.get('ORM_CONFIG')['database'] + 'tx/record.height'
-  constructor(private utilsService: UtilsService) {
-    // thetaTsSdk.blockchain.setUrl(config.get('THETA_NODE_HOST'))
-    this.logger.debug(config.get('THETA_NODE_HOST'))
+  constructor(
+    private utilsService: UtilsService,
+    @InjectConnection('tx')
+    private readonly connection: Connection
+  ) {
+    thetaTsSdk.blockchain.setUrl(config.get('THETA_NODE_HOST'))
+    // this.logger.debug(config.get('THETA_NODE_HOST'))
   }
 
   public async analyseData() {
     try {
-      this.txConnection = getConnection('tx').createQueryRunner()
-
+      // this.logger.debug(getConnectionName())
+      // await createConnection({
+      //   ...config.get('ORM_CONFIG'),
+      //   database: config.get('ORM_CONFIG')['database'] + 'tx/index.sqlite',
+      //   name: 'tx',
+      //   entities: []
+      // })
+      // console.log(this.connection)
+      // this.txConnection = getConnectionManager().get('tx').createQueryRunner()
+      this.txConnection = this.connection.createQueryRunner()
       await this.txConnection.connect()
       await this.txConnection.startTransaction()
 

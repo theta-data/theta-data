@@ -8,6 +8,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TxAnalyseService = void 0;
 const common_1 = require("@nestjs/common");
@@ -17,19 +20,21 @@ const theta_ts_sdk_1 = require("theta-ts-sdk");
 const bignumber_js_1 = require("bignumber.js");
 const utils_service_1 = require("../../common/utils.service");
 const const_1 = require("../../const");
+const typeorm_2 = require("@nestjs/typeorm");
 const moment = require('moment');
 let TxAnalyseService = class TxAnalyseService {
-    constructor(utilsService) {
+    constructor(utilsService, connection) {
         this.utilsService = utilsService;
+        this.connection = connection;
         this.logger = new common_1.Logger('tx analyse service');
         this.analyseKey = 'under_analyse';
         this.counter = 0;
         this.heightConfigFile = const_1.config.get('ORM_CONFIG')['database'] + 'tx/record.height';
-        this.logger.debug(const_1.config.get('THETA_NODE_HOST'));
     }
     async analyseData() {
         try {
-            this.txConnection = (0, typeorm_1.getConnection)('tx').createQueryRunner();
+            console.log(this.connection);
+            this.txConnection = this.connection.createQueryRunner();
             await this.txConnection.connect();
             await this.txConnection.startTransaction();
             let height = 0;
@@ -157,7 +162,9 @@ let TxAnalyseService = class TxAnalyseService {
 };
 TxAnalyseService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [utils_service_1.UtilsService])
+    __param(1, (0, typeorm_2.InjectConnection)('tx')),
+    __metadata("design:paramtypes", [utils_service_1.UtilsService,
+        typeorm_1.Connection])
 ], TxAnalyseService);
 exports.TxAnalyseService = TxAnalyseService;
 //# sourceMappingURL=tx-analyse.service.js.map
