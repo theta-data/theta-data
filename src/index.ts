@@ -1,7 +1,11 @@
 import { analyseBootstrap } from 'src/analyse'
 import { bootstrap } from 'src/main'
-
-export const thetaData = {
-  analyse: analyseBootstrap,
-  server: bootstrap
-}
+// thetaData ={}
+// export default function () {
+//   return {
+//     analyse: analyseBootstrap,
+//     server: bootstrap
+//   }
+// }
+export const analyse = analyseBootstrap
+export const serve = bootstrap

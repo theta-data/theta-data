@@ -3,7 +3,8 @@ import { AppModule } from 'src/app.module'
 import { TxAnalyseService } from 'src/block-chain/tx/tx-analyse.service'
 import { TxModule } from 'src/block-chain/tx/tx.module'
 import { writeFailExcuteLog } from 'src/common/utils.service'
-const config = require('config')
+import { config } from 'src/const'
+// const config = require('config')
 async function bootstrap() {
   try {
     while (1) {

@@ -9,8 +9,8 @@ import { thetaTsSdk } from 'theta-ts-sdk'
 import { THETA_BLOCK_INTERFACE } from 'theta-ts-sdk/dist/types/interface'
 import BigNumber from 'bignumber.js'
 import { THETA_TRANSACTION_TYPE_ENUM } from 'theta-ts-sdk/dist/types/enum'
+import { config } from 'src/const'
 
-const config = require('config')
 const path = require('path')
 // console.log('get path', path.basename(path.resolve(process.cwd())))
 

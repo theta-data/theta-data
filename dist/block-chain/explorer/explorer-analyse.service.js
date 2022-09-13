@@ -20,13 +20,13 @@ const common_1 = require("@nestjs/common");
 const theta_ts_sdk_1 = require("theta-ts-sdk");
 const bignumber_js_1 = require("bignumber.js");
 const enum_1 = require("theta-ts-sdk/dist/types/enum");
-const config = require('config');
+const const_2 = require("../../const");
 const path = require('path');
 let ExplorerAnalyseService = class ExplorerAnalyseService {
     constructor(utilsService) {
         this.utilsService = utilsService;
         this.logger = new common_1.Logger('explorer analyse service');
-        this.heightConfigFile = config.get('ORM_CONFIG')['database'] + 'explorer/record.height';
+        this.heightConfigFile = const_2.config.get('ORM_CONFIG')['database'] + 'explorer/record.height';
         this.current = {};
         this.transactionNum = 0;
     }
@@ -34,9 +34,9 @@ let ExplorerAnalyseService = class ExplorerAnalyseService {
         let height = 0;
         this.logger.debug(this.heightConfigFile);
         const lastfinalizedHeight = Number((await theta_ts_sdk_1.thetaTsSdk.blockchain.getStatus()).result.latest_finalized_block_height);
-        this.logger.debug(JSON.stringify(config.get(configPath.toUpperCase() + '.START_HEIGHT')));
-        if (config.get(configPath.toUpperCase() + '.START_HEIGHT')) {
-            height = config.get(configPath.toUpperCase() + '.START_HEIGHT');
+        this.logger.debug(JSON.stringify(const_2.config.get(configPath.toUpperCase() + '.START_HEIGHT')));
+        if (const_2.config.get(configPath.toUpperCase() + '.START_HEIGHT')) {
+            height = const_2.config.get(configPath.toUpperCase() + '.START_HEIGHT');
         }
         const recordHeight = this.utilsService.getRecordHeight(this.heightConfigFile);
         height = recordHeight > height ? recordHeight : height;
@@ -46,7 +46,7 @@ let ExplorerAnalyseService = class ExplorerAnalyseService {
             return [0, 0];
         }
         let endHeight = lastfinalizedHeight;
-        const analyseNumber = config.get(configPath.toUpperCase() + '.ANALYSE_NUMBER');
+        const analyseNumber = const_2.config.get(configPath.toUpperCase() + '.ANALYSE_NUMBER');
         if (lastfinalizedHeight - height > analyseNumber) {
             endHeight = height + analyseNumber;
         }
@@ -107,11 +107,11 @@ let ExplorerAnalyseService = class ExplorerAnalyseService {
             this.logger.debug(JSON.stringify(this.current));
             await this.explorerConnection.rollbackTransaction();
             await this.explorerConnection.release();
-            (0, utils_service_1.writeFailExcuteLog)(config.get('EXPLORER.MONITOR_PATH'));
+            (0, utils_service_1.writeFailExcuteLog)(const_2.config.get('EXPLORER.MONITOR_PATH'));
         }
         finally {
             await this.explorerConnection.release();
-            (0, utils_service_1.writeSucessExcuteLog)(config.get('EXPLORER.MONITOR_PATH'));
+            (0, utils_service_1.writeSucessExcuteLog)(const_2.config.get('EXPLORER.MONITOR_PATH'));
         }
     }
     async handleData(block) {
@@ -176,7 +176,7 @@ let ExplorerAnalyseService = class ExplorerAnalyseService {
             }
             const gasPrice = transaction.raw.gas_price;
             const gasLimit = transaction.raw.gas_limit;
-            if (config.get('CONFLICT_TRANSACTIONS').indexOf(transaction.hash) !== -1) {
+            if (const_2.config.get('CONFLICT_TRANSACTIONS').indexOf(transaction.hash) !== -1) {
                 continue;
             }
             else {

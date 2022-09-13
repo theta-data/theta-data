@@ -16,7 +16,7 @@ const theta_ts_sdk_1 = require("theta-ts-sdk");
 const logger_service_1 = require("../../common/logger.service");
 const wallet_entity_1 = require("./wallet.entity");
 const utils_service_1 = require("../../common/utils.service");
-const config = require('config');
+const const_1 = require("../../const");
 const moment = require('moment');
 let WalletsAnalyseService = class WalletsAnalyseService {
     constructor(loggerService, utilsService) {
@@ -26,8 +26,8 @@ let WalletsAnalyseService = class WalletsAnalyseService {
         this.analyseKey = 'under_analyse';
         this.counter = 0;
         this.startTimestamp = 0;
-        this.heightConfigFile = config.get('ORM_CONFIG')['database'] + 'wallet/record.height';
-        this.logger.debug(config.get('THETA_NODE_HOST'));
+        this.heightConfigFile = const_1.config.get('ORM_CONFIG')['database'] + 'wallet/record.height';
+        this.logger.debug(const_1.config.get('THETA_NODE_HOST'));
     }
     async analyseData() {
         try {
@@ -37,8 +37,8 @@ let WalletsAnalyseService = class WalletsAnalyseService {
             let height = 0;
             const lastfinalizedHeight = Number((await theta_ts_sdk_1.thetaTsSdk.blockchain.getStatus()).result.latest_finalized_block_height);
             height = lastfinalizedHeight - 1000;
-            if (config.get('WALLET.START_HEIGHT')) {
-                height = config.get('WALLET.START_HEIGHT');
+            if (const_1.config.get('WALLET.START_HEIGHT')) {
+                height = const_1.config.get('WALLET.START_HEIGHT');
             }
             const recordHeight = this.utilsService.getRecordHeight(this.heightConfigFile);
             height = recordHeight > height ? recordHeight : height;
@@ -49,7 +49,7 @@ let WalletsAnalyseService = class WalletsAnalyseService {
                 return;
             }
             let endHeight = lastfinalizedHeight;
-            const analyseNumber = config.get('WALLET.ANALYSE_NUMBER');
+            const analyseNumber = const_1.config.get('WALLET.ANALYSE_NUMBER');
             if (lastfinalizedHeight - height > analyseNumber) {
                 endHeight = height + analyseNumber;
             }
@@ -80,14 +80,14 @@ let WalletsAnalyseService = class WalletsAnalyseService {
             if (blockList.result.length > 0) {
                 this.utilsService.updateRecordHeight(this.heightConfigFile, actualEndHeight);
             }
-            (0, utils_service_1.writeSucessExcuteLog)(config.get('WALLET.MONITOR_PATH'));
+            (0, utils_service_1.writeSucessExcuteLog)(const_1.config.get('WALLET.MONITOR_PATH'));
         }
         catch (e) {
             console.error(e.message);
             this.logger.error(e.message);
             this.logger.error('rollback');
             await this.walletConnection.rollbackTransaction();
-            (0, utils_service_1.writeFailExcuteLog)(config.get('WALLET.MONITOR_PATH'));
+            (0, utils_service_1.writeFailExcuteLog)(const_1.config.get('WALLET.MONITOR_PATH'));
         }
         finally {
             await this.walletConnection.release();
@@ -230,7 +230,7 @@ let WalletsAnalyseService = class WalletsAnalyseService {
         }
     }
     async snapShotActiveWallets(timestamp) {
-        if (config.get('IGNORE'))
+        if (const_1.config.get('IGNORE'))
             return false;
         const hhTimestamp = moment(moment(timestamp * 1000).format('YYYY-MM-DD HH:00:00')).unix();
         const statisticsStartTimeStamp = moment(hhTimestamp * 1000)

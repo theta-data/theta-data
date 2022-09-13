@@ -3,7 +3,7 @@ import { NestFactory } from '@nestjs/core'
 import { AppModule } from 'src/app.module'
 import { NftAnalyseService } from 'src/block-chain/smart-contract/nft/nft-analyse.service'
 import { NftModule } from 'src/block-chain/smart-contract/nft/nft.module'
-const config = require('config')
+import { config } from 'src/const'
 
 async function bootstrap() {
   let i = 0

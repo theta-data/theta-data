@@ -20,7 +20,7 @@ const stake_statistics_entity_1 = require("../../block-chain/stake/stake-statist
 const stake_reward_entity_1 = require("../../block-chain/stake/stake-reward.entity");
 const utils_service_1 = require("../../common/utils.service");
 const stake_entity_1 = require("./stake.entity");
-const config = require('config');
+const const_1 = require("../../const");
 const moment = require('moment');
 let StakeAnalyseService = class StakeAnalyseService {
     constructor(utilsService) {
@@ -28,8 +28,8 @@ let StakeAnalyseService = class StakeAnalyseService {
         this.logger = new common_1.Logger('stake analyse service');
         this.analyseKey = 'under_analyse';
         this.counter = 0;
-        this.heightConfigFile = config.get('ORM_CONFIG')['database'] + 'stake/record.height';
-        this.logger.debug(config.get('THETA_NODE_HOST'));
+        this.heightConfigFile = const_1.config.get('ORM_CONFIG')['database'] + 'stake/record.height';
+        this.logger.debug(const_1.config.get('THETA_NODE_HOST'));
     }
     async analyseData() {
         try {
@@ -39,8 +39,8 @@ let StakeAnalyseService = class StakeAnalyseService {
             let height = 0;
             const lastfinalizedHeight = Number((await theta_ts_sdk_1.thetaTsSdk.blockchain.getStatus()).result.latest_finalized_block_height);
             height = lastfinalizedHeight - 1000;
-            if (config.get('STAKE.START_HEIGHT')) {
-                height = config.get('STAKE.START_HEIGHT');
+            if (const_1.config.get('STAKE.START_HEIGHT')) {
+                height = const_1.config.get('STAKE.START_HEIGHT');
             }
             const recordHeight = this.utilsService.getRecordHeight(this.heightConfigFile);
             height = recordHeight > height ? recordHeight : height;
@@ -50,7 +50,7 @@ let StakeAnalyseService = class StakeAnalyseService {
                 return await this.stakeConnection.commitTransaction();
             }
             let endHeight = lastfinalizedHeight;
-            const analyseNumber = config.get('STAKE.ANALYSE_NUMBER');
+            const analyseNumber = const_1.config.get('STAKE.ANALYSE_NUMBER');
             if (lastfinalizedHeight - height > analyseNumber) {
                 endHeight = height + analyseNumber;
             }
@@ -77,14 +77,14 @@ let StakeAnalyseService = class StakeAnalyseService {
             await this.stakeConnection.commitTransaction();
             this.logger.debug('commit success');
             this.utilsService.updateRecordHeight(this.heightConfigFile, Number(blockList.result[blockList.result.length - 1].height));
-            (0, utils_service_1.writeSucessExcuteLog)(config.get('STAKE.MONITOR_PATH'));
+            (0, utils_service_1.writeSucessExcuteLog)(const_1.config.get('STAKE.MONITOR_PATH'));
         }
         catch (e) {
             console.error(e.message);
             this.logger.error(e.message);
             this.logger.error('rollback');
             await this.stakeConnection.rollbackTransaction();
-            (0, utils_service_1.writeFailExcuteLog)(config.get('STAKE.MONITOR_PATH'));
+            (0, utils_service_1.writeFailExcuteLog)(const_1.config.get('STAKE.MONITOR_PATH'));
         }
         finally {
             await this.stakeConnection.release();

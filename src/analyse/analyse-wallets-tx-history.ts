@@ -3,7 +3,7 @@ import { WalletTxHistoryModule } from './../block-chain/wallet-tx-history/wallet
 import { NestFactory } from '@nestjs/core'
 import { AppModule } from 'src/app.module'
 import { writeFailExcuteLog } from 'src/common/utils.service'
-const config = require('config')
+import { config } from 'src/const'
 async function bootstrap() {
   try {
     while (1) {

@@ -52,4 +52,4 @@ export async function analyseBootstrap() {
     i++
   }
 }
-// bootstrap()
+// analyseBootstrap()

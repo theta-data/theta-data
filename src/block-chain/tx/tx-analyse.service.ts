@@ -6,7 +6,8 @@ import { THETA_BLOCK_INTERFACE } from 'theta-ts-sdk/src/types/interface'
 import BigNumber from 'bignumber.js'
 import { SmartContractEntity } from 'src/block-chain/smart-contract/smart-contract.entity'
 import { UtilsService, writeFailExcuteLog, writeSucessExcuteLog } from 'src/common/utils.service'
-const config = require('config')
+import { config } from 'src/const'
+// const config = require('config')
 const moment = require('moment')
 @Injectable()
 export class TxAnalyseService {

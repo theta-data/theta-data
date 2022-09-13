@@ -1,6 +1,6 @@
 {
   "name": "theta-data",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "",
   "author": "larry",
   "license": "UNLICENSED",
@@ -41,6 +41,7 @@
     "graphql": "^16.3.0",
     "graphql-fields-list": "^2.2.4",
     "js-sha3": "^0.8.0",
+    "lodash": "^4.17.21",
     "memorystream": "^0.3.1",
     "mysql2": "^2.3.3",
     "path": "^0.12.7",

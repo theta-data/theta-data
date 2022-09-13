@@ -5,9 +5,9 @@ import { getConnection, MoreThan, QueryRunner } from 'typeorm'
 import { SmartContractCallRecordEntity } from 'src/block-chain/smart-contract/smart-contract-call-record.entity'
 import { NftService } from 'src/block-chain/smart-contract/nft/nft.service'
 import { UtilsService, writeFailExcuteLog, writeSucessExcuteLog } from 'src/common/utils.service'
-const config = require('config')
 const fs = require('fs')
 import fetch from 'cross-fetch'
+import { config } from 'src/const'
 
 @Injectable()
 export class NftAnalyseService {

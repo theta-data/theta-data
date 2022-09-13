@@ -3,7 +3,7 @@ import { AppModule } from 'src/app.module'
 import { SmartContractAnalyseService } from 'src/block-chain/smart-contract/smart-contract-analyse.service'
 import { SmartContractModule } from 'src/block-chain/smart-contract/smart-contract.module'
 import { writeSucessExcuteLog } from 'src/common/utils.service'
-const config = require('config')
+import { config } from 'src/const'
 
 async function bootstrap() {
   try {

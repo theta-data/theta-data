@@ -5,7 +5,7 @@ const explorer_analyse_service_1 = require("./../block-chain/explorer/explorer-a
 const explorer_module_1 = require("./../block-chain/explorer/explorer.module");
 const core_1 = require("@nestjs/core");
 const app_module_1 = require("../app.module");
-const config = require('config');
+const const_1 = require("../const");
 async function bootstrap() {
     try {
         while (1) {
@@ -20,13 +20,13 @@ async function bootstrap() {
                     }, 1000 * 60 * 5);
                 })
             ]);
-            await new Promise((resolve) => setTimeout(resolve, config.get('EXPLORER.ANALYSE_INTERVAL')));
+            await new Promise((resolve) => setTimeout(resolve, const_1.config.get('EXPLORER.ANALYSE_INTERVAL')));
             app.close();
         }
     }
     catch (e) {
         console.log(e);
-        (0, utils_service_1.writeFailExcuteLog)(config.get('EXPLORER.MONITOR_PATH'));
+        (0, utils_service_1.writeFailExcuteLog)(const_1.config.get('EXPLORER.MONITOR_PATH'));
         process.exit();
     }
 }

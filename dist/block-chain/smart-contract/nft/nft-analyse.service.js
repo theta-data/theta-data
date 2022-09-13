@@ -17,16 +17,16 @@ const typeorm_1 = require("typeorm");
 const smart_contract_call_record_entity_1 = require("../smart-contract-call-record.entity");
 const nft_service_1 = require("./nft.service");
 const utils_service_1 = require("../../../common/utils.service");
-const config = require('config');
 const fs = require('fs');
 const cross_fetch_1 = require("cross-fetch");
+const const_1 = require("../../../const");
 let NftAnalyseService = class NftAnalyseService {
     constructor(nftService, utilsService) {
         this.nftService = nftService;
         this.utilsService = utilsService;
         this.logger = new common_1.Logger('nft analyse service');
         this.analyseKey = 'under_analyse';
-        this.heightConfigFile = config.get('ORM_CONFIG')['database'] + 'nft/record.height';
+        this.heightConfigFile = const_1.config.get('ORM_CONFIG')['database'] + 'nft/record.height';
     }
     async analyseData(loop) {
         try {
@@ -50,7 +50,7 @@ let NftAnalyseService = class NftAnalyseService {
                 where: {
                     id: (0, typeorm_1.MoreThan)(startId)
                 },
-                take: config.get('NFT.ANALYSE_NUMBER'),
+                take: const_1.config.get('NFT.ANALYSE_NUMBER'),
                 order: { id: 'ASC' }
             });
             const promiseArr = [];
@@ -59,7 +59,7 @@ let NftAnalyseService = class NftAnalyseService {
                 await Promise.all(promiseArr);
             }
             this.logger.debug('start update calltimes by period');
-            if (config.get('NFT.DL_ALL_NFT_IMG') == true) {
+            if (const_1.config.get('NFT.DL_ALL_NFT_IMG') == true) {
                 await this.downloadAllImg(loop);
             }
             await this.nftConnection.commitTransaction();
@@ -74,11 +74,11 @@ let NftAnalyseService = class NftAnalyseService {
             this.logger.error(e.message);
             this.logger.error('rollback');
             await this.nftConnection.rollbackTransaction();
-            (0, utils_service_1.writeFailExcuteLog)(config.get('NFT.MONITOR_PATH'));
+            (0, utils_service_1.writeFailExcuteLog)(const_1.config.get('NFT.MONITOR_PATH'));
         }
         finally {
             await this.nftConnection.release();
-            (0, utils_service_1.writeSucessExcuteLog)(config.get('NFT.MONITOR_PATH'));
+            (0, utils_service_1.writeSucessExcuteLog)(const_1.config.get('NFT.MONITOR_PATH'));
             this.logger.debug('end analyse nft data');
             this.logger.debug('release success');
         }
@@ -129,7 +129,7 @@ let NftAnalyseService = class NftAnalyseService {
             }
             else {
                 const detail = JSON.parse(item.detail);
-                const imgStorePath = await this.utilsService.getPath(detail.image, config.get('NFT.STATIC_PATH'));
+                const imgStorePath = await this.utilsService.getPath(detail.image, const_1.config.get('NFT.STATIC_PATH'));
                 if (item.name == detail.name && item.img_uri == imgStorePath) {
                     this.logger.debug('img is ok');
                     continue;
@@ -139,7 +139,7 @@ let NftAnalyseService = class NftAnalyseService {
                     item.img_uri = detail.image;
                 }
             }
-            const imgPath = await this.utilsService.downloadImage(item.img_uri, config.get('NFT.STATIC_PATH'));
+            const imgPath = await this.utilsService.downloadImage(item.img_uri, const_1.config.get('NFT.STATIC_PATH'));
             this.logger.debug('loop ' + loop + ': ' + item.img_uri + ' ' + imgPath);
             item.img_uri = imgPath;
             await this.nftConnection.manager.save(item);

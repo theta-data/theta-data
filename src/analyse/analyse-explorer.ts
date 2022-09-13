@@ -3,7 +3,7 @@ import { ExplorerAnalyseService } from './../block-chain/explorer/explorer-analy
 import { ExplorerModule } from './../block-chain/explorer/explorer.module'
 import { NestFactory } from '@nestjs/core'
 import { AppModule } from 'src/app.module'
-const config = require('config')
+import { config } from 'src/const'
 
 async function bootstrap() {
   try {
