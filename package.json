@@ -1,6 +1,6 @@
 {
   "name": "theta-data",
-  "version": "0.0.92",
+  "version": "0.0.93",
   "description": "",
   "author": "larry",
   "license": "UNLICENSED",
@@ -46,9 +46,10 @@
     "mysql2": "^2.3.3",
     "path": "^0.12.7",
     "reflect-metadata": "^0.1.13",
+    "require-from-string": "^2.0.2",
     "rimraf": "^3.0.2",
     "rxjs": "^7.2.0",
-    "solc": "^0.8.12",
+    "solc": "^0.8.17",
     "sqlite3": "^5.0.2",
     "theta-ts-sdk": "^0.2.79",
     "typeorm": "^0.2.44"

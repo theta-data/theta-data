@@ -7,7 +7,7 @@ export declare class TxAnalyseService {
     private readonly logger;
     analyseKey: string;
     private counter;
-    private txConnection;
+    private txConnectionRunner;
     private heightConfigFile;
     constructor(utilsService: UtilsService, connection: Connection);
     analyseData(): Promise<void>;

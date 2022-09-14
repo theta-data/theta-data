@@ -1,6 +1,6 @@
 import { LatestStakeInfoEntity } from './latest-stake-info.entity'
 import { Injectable, Logger, SerializeOptions } from '@nestjs/common'
-import { getConnection, LessThan, MoreThan, QueryRunner } from 'typeorm'
+import { Connection, getConnection, LessThan, MoreThan, QueryRunner } from 'typeorm'
 import { THETA_TRANSACTION_TYPE_ENUM } from 'theta-ts-sdk/dist/types/enum'
 import { thetaTsSdk } from 'theta-ts-sdk'
 import { THETA_BLOCK_INTERFACE } from 'theta-ts-sdk/src/types/interface'
@@ -11,6 +11,7 @@ import { SmartContractEntity } from 'src/block-chain/smart-contract/smart-contra
 import { UtilsService, writeFailExcuteLog, writeSucessExcuteLog } from 'src/common/utils.service'
 import { STAKE_NODE_TYPE_ENUM } from './stake.entity'
 import { config } from 'src/const'
+import { InjectConnection } from '@nestjs/typeorm'
 const moment = require('moment')
 @Injectable()
 export class StakeAnalyseService {
@@ -19,22 +20,21 @@ export class StakeAnalyseService {
   private counter = 0
   // private startTimestamp = 0
 
-  private stakeConnection: QueryRunner
+  private stakeConnectionRunner: QueryRunner
   private heightConfigFile = config.get('ORM_CONFIG')['database'] + 'stake/record.height'
 
   constructor(
     // private loggerService: LoggerService,
-    private utilsService: UtilsService
+    private utilsService: UtilsService,
+    @InjectConnection('stake') private stakeConnectionInjected: Connection
   ) {
     this.logger.debug(config.get('THETA_NODE_HOST'))
   }
 
   public async analyseData() {
     try {
-      this.stakeConnection = getConnection('stake').createQueryRunner()
-
-      await this.stakeConnection.connect()
-      await this.stakeConnection.startTransaction()
+      this.stakeConnectionRunner = this.stakeConnectionInjected.createQueryRunner()
+      await this.stakeConnectionRunner.startTransaction()
 
       let height: number = 0
       const lastfinalizedHeight = Number(
@@ -50,7 +50,7 @@ export class StakeAnalyseService {
       if (height >= lastfinalizedHeight) {
         this.logger.debug('commit success')
         this.logger.debug('no height to analyse')
-        return await this.stakeConnection.commitTransaction()
+        return await this.stakeConnectionRunner.commitTransaction()
       }
       // await this.
       let endHeight = lastfinalizedHeight
@@ -67,11 +67,14 @@ export class StakeAnalyseService {
       this.logger.debug('block list length:' + blockList.result.length)
       this.counter = blockList.result.length
       this.logger.debug('init counter', this.counter)
-      const lastAnalyseHeight = await this.stakeConnection.manager.findOne(StakeRewardEntity, {
-        order: {
-          id: 'DESC'
+      const lastAnalyseHeight = await this.stakeConnectionRunner.manager.findOne(
+        StakeRewardEntity,
+        {
+          order: {
+            id: 'DESC'
+          }
         }
-      })
+      )
       for (let i = 0; i < blockList.result.length; i++) {
         const block = blockList.result[i]
         if (lastAnalyseHeight && lastAnalyseHeight.reward_height >= Number(block.height)) {
@@ -82,7 +85,7 @@ export class StakeAnalyseService {
         await this.handleOrderCreatedEvent(block, lastfinalizedHeight)
       }
       this.logger.debug('start update calltimes by period')
-      await this.stakeConnection.commitTransaction()
+      await this.stakeConnectionRunner.commitTransaction()
       this.logger.debug('commit success')
       // if (blockList.result.length > 0) {
       this.utilsService.updateRecordHeight(
@@ -96,11 +99,11 @@ export class StakeAnalyseService {
       console.error(e.message)
       this.logger.error(e.message)
       this.logger.error('rollback')
-      await this.stakeConnection.rollbackTransaction()
+      await this.stakeConnectionRunner.rollbackTransaction()
       writeFailExcuteLog(config.get('STAKE.MONITOR_PATH'))
       // process.exit(0)
     } finally {
-      await this.stakeConnection.release()
+      await this.stakeConnectionRunner.release()
       this.logger.debug('release success')
     }
   }
@@ -133,7 +136,7 @@ export class StakeAnalyseService {
               timestamp: Number(block.timestamp)
             })
             if (transacitonToBeUpserted.length > 900) {
-              await this.stakeConnection.manager.insert(
+              await this.stakeConnectionRunner.manager.insert(
                 StakeRewardEntity,
                 transacitonToBeUpserted
                 // ['wallet_address', 'reward_height']
@@ -143,7 +146,10 @@ export class StakeAnalyseService {
               transacitonToBeUpserted.length = 0
             }
           }
-          await this.stakeConnection.manager.insert(StakeRewardEntity, transacitonToBeUpserted)
+          await this.stakeConnectionRunner.manager.insert(
+            StakeRewardEntity,
+            transacitonToBeUpserted
+          )
 
           this.logger.debug(height + ' end upsert stake reward')
           // }
@@ -179,7 +185,7 @@ export class StakeAnalyseService {
         BigNumber,
         BigNumber
       ] = eenpRes
-      let res = await this.stakeConnection.manager.findOne(StakeStatisticsEntity, {
+      let res = await this.stakeConnectionRunner.manager.findOne(StakeStatisticsEntity, {
         block_height: Number(block.height)
       })
       if (!res) {
@@ -213,7 +219,7 @@ export class StakeAnalyseService {
         }
         this.logger.debug('insert stake statistics info', JSON.stringify(stakeStatisticsInfo))
         try {
-          return await this.stakeConnection.manager.insert(
+          return await this.stakeConnectionRunner.manager.insert(
             StakeStatisticsEntity,
             stakeStatisticsInfo
           )
@@ -243,17 +249,17 @@ export class StakeAnalyseService {
       return false
       // throw new Error('no validator BlockHashVcpPairs')
     }
-    const latestVa = await this.stakeConnection.manager.findOne(LatestStakeInfoEntity, {
+    const latestVa = await this.stakeConnectionRunner.manager.findOne(LatestStakeInfoEntity, {
       node_type: STAKE_NODE_TYPE_ENUM.validator
     })
     if (!latestVa) {
-      await this.stakeConnection.manager.insert(LatestStakeInfoEntity, {
+      await this.stakeConnectionRunner.manager.insert(LatestStakeInfoEntity, {
         height: Number(block.height),
         node_type: STAKE_NODE_TYPE_ENUM.validator,
         holder: JSON.stringify(validatorList)
       })
     } else {
-      await this.stakeConnection.manager.update(
+      await this.stakeConnectionRunner.manager.update(
         LatestStakeInfoEntity,
         {
           node_type: STAKE_NODE_TYPE_ENUM.validator
@@ -299,17 +305,17 @@ export class StakeAnalyseService {
       return false
       // throw new Error('no validator BlockHashVcpPairs')
     }
-    const latestGn = await this.stakeConnection.manager.findOne(LatestStakeInfoEntity, {
+    const latestGn = await this.stakeConnectionRunner.manager.findOne(LatestStakeInfoEntity, {
       node_type: STAKE_NODE_TYPE_ENUM.guardian
     })
     if (!latestGn) {
-      await this.stakeConnection.manager.insert(LatestStakeInfoEntity, {
+      await this.stakeConnectionRunner.manager.insert(LatestStakeInfoEntity, {
         height: Number(block.height),
         node_type: STAKE_NODE_TYPE_ENUM.guardian,
         holder: JSON.stringify(gcpList)
       })
     } else {
-      await this.stakeConnection.manager.update(
+      await this.stakeConnectionRunner.manager.update(
         LatestStakeInfoEntity,
         { node_type: STAKE_NODE_TYPE_ENUM.guardian },
         {
@@ -357,17 +363,17 @@ export class StakeAnalyseService {
       // return false
       // throw new Error('no validator BlockHashVcpPairs')
     }
-    const een = await this.stakeConnection.manager.findOne(LatestStakeInfoEntity, {
+    const een = await this.stakeConnectionRunner.manager.findOne(LatestStakeInfoEntity, {
       node_type: STAKE_NODE_TYPE_ENUM.edge_cache
     })
     if (!een) {
-      await this.stakeConnection.manager.insert(LatestStakeInfoEntity, {
+      await this.stakeConnectionRunner.manager.insert(LatestStakeInfoEntity, {
         height: Number(block.height),
         node_type: STAKE_NODE_TYPE_ENUM.edge_cache,
         holder: JSON.stringify(eenpList)
       })
     } else {
-      await this.stakeConnection.manager.update(
+      await this.stakeConnectionRunner.manager.update(
         LatestStakeInfoEntity,
         { node_type: STAKE_NODE_TYPE_ENUM.edge_cache },
         {

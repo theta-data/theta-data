@@ -23,7 +23,10 @@ const nft_service_1 = require("./nft/nft.service");
 const solc_service_1 = require("../../common/solc.service");
 const utils_service_1 = require("../../common/utils.service");
 const cross_fetch_1 = require("cross-fetch");
+var requireFromString = require('require-from-string');
 const moment = require('moment');
+const fs = require('fs');
+const solc = require('solc');
 let SmartContractService = class SmartContractService {
     constructor(smartContractRepository, smartContractRecordRepository, nftService, solcService, utilsService) {
         this.smartContractRepository = smartContractRepository;
@@ -31,7 +34,7 @@ let SmartContractService = class SmartContractService {
         this.nftService = nftService;
         this.solcService = solcService;
         this.utilsService = utilsService;
-        this.logger = new common_1.Logger();
+        this.logger = new common_1.Logger('smart contract service');
     }
     async getSmartContract(rankBy, max = 500) {
         switch (rankBy) {
@@ -114,7 +117,6 @@ let SmartContractService = class SmartContractService {
             if (contract.verified)
                 return contract;
         }
-        const solc = require('solc');
         const fs = require('fs');
         address = this.utilsService.normalize(address.toLowerCase());
         optimizerRuns = +optimizerRuns;
@@ -156,7 +158,7 @@ let SmartContractService = class SmartContractService {
             }
             console.log(`Download solc-js file takes: ${(+new Date() - start) / 1000} seconds`);
             start = +new Date();
-            const solcjs = solc.setupMethods(require('../../.' + fileName));
+            const solcjs = solc.setupMethods(requireFromString(fs.readFileSync(fileName, 'utf8')));
             console.log(`load solc-js version takes: ${(+new Date() - start) / 1000} seconds`);
             start = +new Date();
             console.log('input', input);
@@ -267,8 +269,8 @@ let SmartContractService = class SmartContractService {
         return await this.smartContractRepository.save(contract);
     }
     async getVerifyInfo(address, sourceCode, byteCode, version, versionFullName, optimizer, optimizerRuns) {
-        const solc = require('solc');
         const fs = require('fs');
+        const solc = require('solc');
         address = this.utilsService.normalize(address.toLowerCase());
         optimizerRuns = +optimizerRuns;
         if (Number.isNaN(optimizerRuns))
@@ -293,19 +295,20 @@ let SmartContractService = class SmartContractService {
                 }
             }
         };
+        console.log(input);
         var output = '';
         const prefix = './libs';
         const fileName = prefix + '/' + versionFullName;
         if (!fs.existsSync(fileName)) {
             this.logger.debug(`file ${fileName} does not exsit, downloading`);
             await this.solcService.downloadByVersion(version, './libs');
+            this.logger.debug(`Download solc-js file takes: ${(+new Date() - start) / 1000} seconds`);
         }
         else {
             this.logger.debug(`file ${fileName} exsits, skip download process`);
         }
-        this.logger.debug(`Download solc-js file takes: ${(+new Date() - start) / 1000} seconds`);
         start = +new Date();
-        const solcjs = solc.setupMethods(require('../../.' + fileName));
+        const solcjs = solc.setupMethods(requireFromString(fs.readFileSync(fileName, 'utf8')));
         this.logger.debug(`load solc-js version takes: ${(+new Date() - start) / 1000} seconds`);
         start = +new Date();
         output = JSON.parse(solcjs.compile(JSON.stringify(input)));

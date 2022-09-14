@@ -8,11 +8,13 @@ import { NftService } from './nft/nft.service'
 import { SolcService } from 'src/common/solc.service'
 import { UtilsService } from 'src/common/utils.service'
 import fetch from 'cross-fetch'
-
+var requireFromString = require('require-from-string')
 const moment = require('moment')
+const fs = require('fs')
+const solc = require('solc')
 @Injectable()
 export class SmartContractService {
-  logger = new Logger()
+  logger = new Logger('smart contract service')
   constructor(
     @InjectRepository(SmartContractEntity, 'smart_contract')
     private smartContractRepository: Repository<SmartContractEntity>,
@@ -130,7 +132,7 @@ export class SmartContractService {
     }
 
     // const downloader = require('../../helper/solcDownloader')
-    const solc = require('solc')
+    // const solc = require('solc')
     // const helper = require('../../helper/utils')
     const fs = require('fs')
 
@@ -178,7 +180,7 @@ export class SmartContractService {
       }
       console.log(`Download solc-js file takes: ${(+new Date() - start) / 1000} seconds`)
       start = +new Date()
-      const solcjs = solc.setupMethods(require('../../.' + fileName))
+      const solcjs = solc.setupMethods(requireFromString(fs.readFileSync(fileName, 'utf8')))
       console.log(`load solc-js version takes: ${(+new Date() - start) / 1000} seconds`)
       start = +new Date()
       console.log('input', input)
@@ -334,9 +336,9 @@ export class SmartContractService {
     optimizer: boolean,
     optimizerRuns: number
   ) {
-    const solc = require('solc')
     // const helper = require('../../helper/utils')
     const fs = require('fs')
+    const solc = require('solc')
 
     address = this.utilsService.normalize(address.toLowerCase())
     optimizerRuns = +optimizerRuns
@@ -363,7 +365,7 @@ export class SmartContractService {
         }
       }
     }
-    // console.log(input)
+    console.log(input)
     var output: any = ''
     // console.log(`Loading specific version starts.`)
     // console.log(`version: ${version}`)
@@ -372,12 +374,13 @@ export class SmartContractService {
     if (!fs.existsSync(fileName)) {
       this.logger.debug(`file ${fileName} does not exsit, downloading`)
       await this.solcService.downloadByVersion(version, './libs')
+      this.logger.debug(`Download solc-js file takes: ${(+new Date() - start) / 1000} seconds`)
     } else {
       this.logger.debug(`file ${fileName} exsits, skip download process`)
     }
-    this.logger.debug(`Download solc-js file takes: ${(+new Date() - start) / 1000} seconds`)
+
     start = +new Date()
-    const solcjs = solc.setupMethods(require('../../.' + fileName))
+    const solcjs = solc.setupMethods(requireFromString(fs.readFileSync(fileName, 'utf8')))
     this.logger.debug(`load solc-js version takes: ${(+new Date() - start) / 1000} seconds`)
     start = +new Date()
     // console.log('input', input)

@@ -30,13 +30,12 @@ let TxAnalyseService = class TxAnalyseService {
         this.analyseKey = 'under_analyse';
         this.counter = 0;
         this.heightConfigFile = const_1.config.get('ORM_CONFIG')['database'] + 'tx/record.height';
+        theta_ts_sdk_1.thetaTsSdk.blockchain.setUrl(const_1.config.get('THETA_NODE_HOST'));
     }
     async analyseData() {
         try {
-            console.log(this.connection);
-            this.txConnection = this.connection.createQueryRunner();
-            await this.txConnection.connect();
-            await this.txConnection.startTransaction();
+            this.txConnectionRunner = this.connection.createQueryRunner();
+            await this.txConnectionRunner.startTransaction();
             let height = 0;
             const lastfinalizedHeight = Number((await theta_ts_sdk_1.thetaTsSdk.blockchain.getStatus()).result.latest_finalized_block_height);
             height = lastfinalizedHeight - 1000;
@@ -46,7 +45,7 @@ let TxAnalyseService = class TxAnalyseService {
             const recordHeight = this.utilsService.getRecordHeight(this.heightConfigFile);
             height = recordHeight > height ? recordHeight : height;
             if (height >= lastfinalizedHeight) {
-                await this.txConnection.commitTransaction();
+                await this.txConnectionRunner.commitTransaction();
                 this.logger.debug('commit success');
                 this.logger.debug('no height to analyse');
                 return;
@@ -67,7 +66,7 @@ let TxAnalyseService = class TxAnalyseService {
                 await this.handleOrderCreatedEvent(block, lastfinalizedHeight);
             }
             this.logger.debug('start update calltimes by period');
-            await this.txConnection.commitTransaction();
+            await this.txConnectionRunner.commitTransaction();
             this.logger.debug('commit success');
             if (blockList.result.length > 1) {
                 this.utilsService.updateRecordHeight(this.heightConfigFile, Number(blockList.result[blockList.result.length - 1].height));
@@ -77,11 +76,11 @@ let TxAnalyseService = class TxAnalyseService {
             console.error(e.message);
             this.logger.error(e.message);
             this.logger.error('rollback');
-            await this.txConnection.rollbackTransaction();
+            await this.txConnectionRunner.rollbackTransaction();
             (0, utils_service_1.writeFailExcuteLog)(const_1.config.get('TX.MONITOR_PATH'));
         }
         finally {
-            await this.txConnection.release();
+            await this.txConnectionRunner.release();
             this.logger.debug('release success');
             (0, utils_service_1.writeSucessExcuteLog)(const_1.config.get('TX.MONITOR_PATH'));
         }
@@ -154,7 +153,7 @@ let TxAnalyseService = class TxAnalyseService {
         }
         this.logger.debug(height + ' end upsert wallets');
         block_number++;
-        await this.txConnection.query(`INSERT INTO theta_tx_num_by_hours_entity (block_number,theta_fuel_burnt,theta_fuel_burnt_by_smart_contract,theta_fuel_burnt_by_transfers,active_wallet,coin_base_transaction,slash_transaction,send_transaction,reserve_fund_transaction,release_fund_transaction,service_payment_transaction,split_rule_transaction,deposit_stake_transaction,withdraw_stake_transaction,smart_contract_transaction,latest_block_height,timestamp) VALUES (${block_number},${theta_fuel_burnt}, ${theta_fuel_burnt_by_smart_contract},${theta_fuel_burnt_by_transfers},0,${coin_base_transaction},${slash_transaction},${send_transaction},${reserve_fund_transaction},${release_fund_transaction},${service_payment_transaction},${split_rule_transaction},${deposit_stake_transaction},${withdraw_stake_transaction},${smart_contract_transaction},${height},${timestamp})  ON CONFLICT (timestamp) DO UPDATE set block_number=block_number+${block_number},  theta_fuel_burnt=theta_fuel_burnt+${theta_fuel_burnt},theta_fuel_burnt_by_smart_contract=theta_fuel_burnt_by_smart_contract+${theta_fuel_burnt_by_smart_contract},theta_fuel_burnt_by_transfers=theta_fuel_burnt_by_transfers+${theta_fuel_burnt_by_transfers},coin_base_transaction=coin_base_transaction+${coin_base_transaction},slash_transaction=slash_transaction+${slash_transaction},send_transaction=send_transaction+${send_transaction},reserve_fund_transaction=reserve_fund_transaction+${reserve_fund_transaction},release_fund_transaction=release_fund_transaction+${release_fund_transaction},service_payment_transaction=service_payment_transaction+${service_payment_transaction},split_rule_transaction=split_rule_transaction+${split_rule_transaction},deposit_stake_transaction=deposit_stake_transaction+${deposit_stake_transaction},withdraw_stake_transaction=withdraw_stake_transaction+${withdraw_stake_transaction},smart_contract_transaction=smart_contract_transaction+${smart_contract_transaction},latest_block_height=${height};`);
+        await this.txConnectionRunner.query(`INSERT INTO theta_tx_num_by_hours_entity (block_number,theta_fuel_burnt,theta_fuel_burnt_by_smart_contract,theta_fuel_burnt_by_transfers,active_wallet,coin_base_transaction,slash_transaction,send_transaction,reserve_fund_transaction,release_fund_transaction,service_payment_transaction,split_rule_transaction,deposit_stake_transaction,withdraw_stake_transaction,smart_contract_transaction,latest_block_height,timestamp) VALUES (${block_number},${theta_fuel_burnt}, ${theta_fuel_burnt_by_smart_contract},${theta_fuel_burnt_by_transfers},0,${coin_base_transaction},${slash_transaction},${send_transaction},${reserve_fund_transaction},${release_fund_transaction},${service_payment_transaction},${split_rule_transaction},${deposit_stake_transaction},${withdraw_stake_transaction},${smart_contract_transaction},${height},${timestamp})  ON CONFLICT (timestamp) DO UPDATE set block_number=block_number+${block_number},  theta_fuel_burnt=theta_fuel_burnt+${theta_fuel_burnt},theta_fuel_burnt_by_smart_contract=theta_fuel_burnt_by_smart_contract+${theta_fuel_burnt_by_smart_contract},theta_fuel_burnt_by_transfers=theta_fuel_burnt_by_transfers+${theta_fuel_burnt_by_transfers},coin_base_transaction=coin_base_transaction+${coin_base_transaction},slash_transaction=slash_transaction+${slash_transaction},send_transaction=send_transaction+${send_transaction},reserve_fund_transaction=reserve_fund_transaction+${reserve_fund_transaction},release_fund_transaction=release_fund_transaction+${release_fund_transaction},service_payment_transaction=service_payment_transaction+${service_payment_transaction},split_rule_transaction=split_rule_transaction+${split_rule_transaction},deposit_stake_transaction=deposit_stake_transaction+${deposit_stake_transaction},withdraw_stake_transaction=withdraw_stake_transaction+${withdraw_stake_transaction},smart_contract_transaction=smart_contract_transaction+${smart_contract_transaction},latest_block_height=${height};`);
         this.logger.debug(height + ' end update theta tx num by hours');
         this.logger.debug(height + ' end update analyse');
         this.counter--;

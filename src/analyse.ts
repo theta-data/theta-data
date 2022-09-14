@@ -22,31 +22,32 @@ export async function analyseBootstrap() {
   while (1) {
     const app = await NestFactory.createApplicationContext(AppModule)
     const tx = app.select(TxModule).get(TxAnalyseService, { strict: true })
-    // const explorer = app.select(ExplorerModule).get(ExplorerAnalyseService, { strict: true })
-    // const smartContract = app
-    //   .select(SmartContractModule)
-    //   .get(SmartContractAnalyseService, { strict: true })
-    // const nft = app.select(NftModule).get(NftAnalyseService, { strict: true })
-    // const nftStatistics = app
-    //   .select(NftStatisticsModule)
-    //   .get(NftStatisticsAnalyseService, { strict: true })
+    const explorer = app.select(ExplorerModule).get(ExplorerAnalyseService, { strict: true })
+    const smartContract = app
+      .select(SmartContractModule)
+      .get(SmartContractAnalyseService, { strict: true })
+    const wallet = app.select(WalletModule).get(WalletsAnalyseService, { strict: true })
 
-    // const wallet = app.select(WalletModule).get(WalletsAnalyseService, { strict: true })
+    const nft = app.select(NftModule).get(NftAnalyseService, { strict: true })
+    const stake = app.select(StakeModule).get(StakeAnalyseService, { strict: true })
+    const nftStatistics = app
+      .select(NftStatisticsModule)
+      .get(NftStatisticsAnalyseService, { strict: true })
 
-    // const stake = app.select(StakeModule).get(StakeAnalyseService, { strict: true })
-    // const walletTxHistory = app
-    //   .select(WalletTxHistoryModule)
-    //   .get(WalletTxHistoryAnalyseService, { strict: true })
+    const walletTxHistory = app
+      .select(WalletTxHistoryModule)
+      .get(WalletTxHistoryAnalyseService, { strict: true })
 
     // console.log('do while')
     await tx.analyseData()
-    // await smartContract.analyseData()
-    // await explorer.analyseData()
-    // await wallet.analyseData()
-    // await stake.analyseData()
-    // await nft.analyseData(i)
-    // await nftStatistics.analyseData()
-    // await walletTxHistory.analyseData()
+    await explorer.analyseData()
+    await smartContract.analyseData()
+    await wallet.analyseData()
+    await nft.analyseData(i)
+
+    await stake.analyseData()
+    await nftStatistics.analyseData()
+    await walletTxHistory.analyseData()
     await new Promise((resolve) => setTimeout(resolve, 1000))
     app.close()
     i++

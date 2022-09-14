@@ -1,16 +1,18 @@
+import { Connection } from 'typeorm';
 import { THETA_BLOCK_INTERFACE } from 'theta-ts-sdk/src/types/interface';
 import { LoggerService } from 'src/common/logger.service';
 import { UtilsService } from 'src/common/utils.service';
 export declare class WalletsAnalyseService {
     private loggerService;
     private utilsService;
+    private walletConnectionInjected;
     private readonly logger;
     analyseKey: string;
     private counter;
     private startTimestamp;
-    private walletConnection;
+    private walletConnectionRunner;
     private heightConfigFile;
-    constructor(loggerService: LoggerService, utilsService: UtilsService);
+    constructor(loggerService: LoggerService, utilsService: UtilsService, walletConnectionInjected: Connection);
     analyseData(): Promise<void>;
     handleOrderCreatedEvent(block: THETA_BLOCK_INTERFACE, latestFinalizedBlockHeight: number): Promise<void>;
     dealBlocks(blocks: Array<THETA_BLOCK_INTERFACE>): Promise<void>;

@@ -8,6 +8,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WalletTxHistoryAnalyseService = void 0;
 const transaction_entity_1 = require("./../explorer/transaction.entity");
@@ -17,23 +20,25 @@ const typeorm_1 = require("typeorm");
 const theta_enum_1 = require("../tx/theta.enum");
 const wallet_tx_history_entity_1 = require("./wallet-tx-history.entity");
 const const_1 = require("../../const");
+const typeorm_2 = require("@nestjs/typeorm");
 const fs = require('fs');
 let WalletTxHistoryAnalyseService = class WalletTxHistoryAnalyseService {
-    constructor(utilsService) {
+    constructor(utilsService, walletConnectionInjected, explorerConnectionInjected, walletTxHistoryConnectionInjected) {
         this.utilsService = utilsService;
+        this.walletConnectionInjected = walletConnectionInjected;
+        this.explorerConnectionInjected = explorerConnectionInjected;
+        this.walletTxHistoryConnectionInjected = walletTxHistoryConnectionInjected;
         this.logger = new common_1.Logger('wallet tx history analyse service');
         this.heightConfigFile = const_1.config.get('ORM_CONFIG')['database'] + 'wallet-tx-history/record.height';
     }
     async analyseData() {
         try {
             this.logger.debug('start analyse');
-            this.walletConnection = (0, typeorm_1.getConnection)('wallet').createQueryRunner();
-            this.explorerConnection = (0, typeorm_1.getConnection)('explorer').createQueryRunner();
-            this.walletTxHistoryConnection = (0, typeorm_1.getConnection)('wallet-tx-history').createQueryRunner();
-            await this.walletConnection.connect();
-            await this.explorerConnection.connect();
-            await this.walletTxHistoryConnection.connect();
-            await this.walletTxHistoryConnection.startTransaction();
+            this.walletConnectionRunner = this.walletConnectionInjected.createQueryRunner();
+            this.explorerConnectionRunner = this.explorerConnectionInjected.createQueryRunner();
+            this.walletTxHistoryConnectionRunner =
+                this.walletTxHistoryConnectionInjected.createQueryRunner();
+            await this.walletTxHistoryConnectionRunner.startTransaction();
             let startId = 0;
             if (!fs.existsSync(this.heightConfigFile)) {
                 fs.writeFileSync(this.heightConfigFile, '0');
@@ -44,7 +49,7 @@ let WalletTxHistoryAnalyseService = class WalletTxHistoryAnalyseService {
                     startId = Number(data);
                 }
             }
-            const txRecords = await this.explorerConnection.manager.find(transaction_entity_1.TransactionEntity, {
+            const txRecords = await this.explorerConnectionRunner.manager.find(transaction_entity_1.TransactionEntity, {
                 where: {
                     id: (0, typeorm_1.MoreThan)(startId)
                 },
@@ -59,7 +64,7 @@ let WalletTxHistoryAnalyseService = class WalletTxHistoryAnalyseService {
             this.logger.debug('add wallet end');
             await this.updateWalletTxHistory(walletToUpdates);
             this.logger.debug('update wallet end');
-            await this.walletTxHistoryConnection.commitTransaction();
+            await this.walletTxHistoryConnectionRunner.commitTransaction();
             if (txRecords.length > 0) {
                 this.logger.debug('end height:' + Number(txRecords[txRecords.length - 1].height));
                 this.utilsService.updateRecordHeight(this.heightConfigFile, txRecords[txRecords.length - 1].id);
@@ -69,11 +74,11 @@ let WalletTxHistoryAnalyseService = class WalletTxHistoryAnalyseService {
             console.error(e.message);
             this.logger.error(e.message);
             this.logger.error('rollback');
-            await this.walletTxHistoryConnection.rollbackTransaction();
+            await this.walletTxHistoryConnectionRunner.rollbackTransaction();
             (0, utils_service_1.writeFailExcuteLog)(const_1.config.get('WALLET-TX-HISTORY.MONITOR_PATH'));
         }
         finally {
-            await this.walletTxHistoryConnection.release();
+            await this.walletTxHistoryConnectionRunner.release();
             this.logger.debug('end analyse');
             this.logger.debug('release success');
             (0, utils_service_1.writeSucessExcuteLog)(const_1.config.get('WALLET-TX-HISTORY.MONITOR_PATH'));
@@ -113,27 +118,33 @@ let WalletTxHistoryAnalyseService = class WalletTxHistoryAnalyseService {
     async updateWalletTxHistory(walletsToupdate) {
         const wallets = Object.keys(walletsToupdate);
         for (const wallet of wallets) {
-            const tx = await this.walletTxHistoryConnection.manager.findOne(wallet_tx_history_entity_1.WalletTxHistoryEntity, {
+            const tx = await this.walletTxHistoryConnectionRunner.manager.findOne(wallet_tx_history_entity_1.WalletTxHistoryEntity, {
                 where: { wallet: wallet }
             });
             if (tx) {
                 tx.tx_ids = JSON.stringify([
                     ...new Set([...JSON.parse(tx.tx_ids), ...walletsToupdate[wallet]])
                 ]);
-                await this.walletTxHistoryConnection.manager.save(tx);
+                await this.walletTxHistoryConnectionRunner.manager.save(tx);
             }
             else {
                 const newTx = new wallet_tx_history_entity_1.WalletTxHistoryEntity();
                 newTx.wallet = wallet;
                 newTx.tx_ids = JSON.stringify(walletsToupdate[wallet]);
-                await this.walletTxHistoryConnection.manager.save(newTx);
+                await this.walletTxHistoryConnectionRunner.manager.save(newTx);
             }
         }
     }
 };
 WalletTxHistoryAnalyseService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [utils_service_1.UtilsService])
+    __param(1, (0, typeorm_2.InjectConnection)('wallet')),
+    __param(2, (0, typeorm_2.InjectConnection)('explorer')),
+    __param(3, (0, typeorm_2.InjectConnection)('wallet-tx-history')),
+    __metadata("design:paramtypes", [utils_service_1.UtilsService,
+        typeorm_1.Connection,
+        typeorm_1.Connection,
+        typeorm_1.Connection])
 ], WalletTxHistoryAnalyseService);
 exports.WalletTxHistoryAnalyseService = WalletTxHistoryAnalyseService;
 //# sourceMappingURL=wallet-tx-history-analyse.service.js.map

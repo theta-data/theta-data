@@ -7,38 +7,61 @@ import { SmartContractEntity } from 'src/block-chain/smart-contract/smart-contra
 import { UtilsService, writeFailExcuteLog, writeSucessExcuteLog } from 'src/common/utils.service'
 import { SmartContractProtocolEnum } from 'src/contact/contact.entity'
 import { MarketService } from 'src/market/market.service'
-import { getConnection, LessThan, MoreThan, Not, QueryRunner, Repository } from 'typeorm'
+import {
+  Connection,
+  getConnection,
+  LessThan,
+  MoreThan,
+  Not,
+  QueryRunner,
+  Repository
+} from 'typeorm'
 import { NftStatisticsEntity } from './nft-statistics.entity'
 const fs = require('fs')
 const moment = require('moment')
-const nftLogoConfig = JSON.parse(fs.readFileSync('resources/nft-logo.json'))
-const nftIgnore = JSON.parse(fs.readFileSync('resources/nft-ignore.json'))
+let nftLogoConfig = []
+if (fs.existsSync('resources/nft-logo.json')) {
+  nftLogoConfig = JSON.parse(fs.readFileSync('resources/nft-logo.json'))
+}
+let nftIgnore = []
+if (fs.existsSync('resources/nft-ignore.json')) {
+  nftIgnore = JSON.parse(fs.readFileSync('resources/nft-ignore.json'))
+}
 import fetch from 'cross-fetch'
 import { config } from 'src/const'
+import { InjectConnection } from '@nestjs/typeorm'
 @Injectable()
 export class NftStatisticsAnalyseService {
   private readonly logger = new Logger('nft statistics analyse service')
   analyseKey = 'under_analyse'
 
-  private smartContractConnection: QueryRunner
-  private nftConnection: QueryRunner
-  private nftStatisticsConnection: QueryRunner
+  private smartContractConnectionRunner: QueryRunner
+  private nftConnectionRunner: QueryRunner
+  private nftStatisticsConnectionRunner: QueryRunner
   private heightConfigFile = config.get('ORM_CONFIG')['database'] + 'nft-statistics/record.height'
   private tfuelPrice: TokenMarketInformationType
 
-  constructor(private utilsService: UtilsService, private marketService: MarketService) {}
+  constructor(
+    private utilsService: UtilsService,
+    private marketService: MarketService,
+    @InjectConnection('smart_contract')
+    private smartContractConnectionInjected: Connection,
+    @InjectConnection('nft') private nftConnectionInjected: Connection,
+    @InjectConnection('nft-statistics')
+    private nftStatisticsConnectionInjected: Connection
+  ) {}
 
   public async analyseData() {
     try {
       // console.log(config.get('NFT_STATISTICS.ANALYSE_NUMBER'))
       this.logger.debug('start analyse nft data')
-      this.smartContractConnection = getConnection('smart_contract').createQueryRunner()
-      this.nftConnection = getConnection('nft').createQueryRunner()
-      this.nftStatisticsConnection = getConnection('nft-statistics').createQueryRunner()
-      await this.smartContractConnection.connect()
-      await this.nftConnection.connect()
-      await this.nftStatisticsConnection.connect()
-      await this.nftStatisticsConnection.startTransaction()
+      this.smartContractConnectionRunner = this.smartContractConnectionInjected.createQueryRunner()
+      this.nftConnectionRunner = this.nftConnectionInjected.createQueryRunner()
+      this.nftStatisticsConnectionRunner = this.nftStatisticsConnectionInjected.createQueryRunner()
+      // await this.smartContractConnection.connect()
+      // await this.nftConnection.connect()
+      // await this.nftStatisticsConnection.connect()
+      await this.nftStatisticsConnectionRunner.startTransaction()
       let startId: number = 0
       if (!fs.existsSync(this.heightConfigFile)) {
         fs.writeFileSync(this.heightConfigFile, '0')
@@ -50,13 +73,16 @@ export class NftStatisticsAnalyseService {
       }
       this.tfuelPrice = await this.marketService.getThetaFuelMarketInfo()
       let nftList: Array<string> = []
-      const nftTransferRecordList = await this.nftConnection.manager.find(NftTransferRecordEntity, {
-        where: {
-          id: MoreThan(startId)
-        },
-        take: config.get('NFT_STATISTICS.ANALYSE_NUMBER'),
-        order: { id: 'ASC' }
-      })
+      const nftTransferRecordList = await this.nftConnectionRunner.manager.find(
+        NftTransferRecordEntity,
+        {
+          where: {
+            id: MoreThan(startId)
+          },
+          take: config.get('NFT_STATISTICS.ANALYSE_NUMBER'),
+          order: { id: 'ASC' }
+        }
+      )
       await this.setZero()
       // console.log(nftList['a']['b'])
 
@@ -67,7 +93,7 @@ export class NftStatisticsAnalyseService {
           nftList.push(record.smart_contract_address)
         }
       }
-      const top20 = await this.nftStatisticsConnection.manager.find(NftStatisticsEntity, {
+      const top20 = await this.nftStatisticsConnectionRunner.manager.find(NftStatisticsEntity, {
         order: {
           last_24_h_users: 'DESC'
         },
@@ -92,7 +118,7 @@ export class NftStatisticsAnalyseService {
       console.log(333)
 
       // await this.downloadAllImg()
-      await this.nftStatisticsConnection.commitTransaction()
+      await this.nftStatisticsConnectionRunner.commitTransaction()
 
       try {
         if (nftTransferRecordList.length > 0) {
@@ -113,10 +139,10 @@ export class NftStatisticsAnalyseService {
       console.error(e.message)
       this.logger.error(e.message)
       this.logger.error('rollback')
-      await this.nftStatisticsConnection.rollbackTransaction()
+      await this.nftStatisticsConnectionRunner.rollbackTransaction()
       writeFailExcuteLog(config.get('NFT_STATISTICS.MONITOR_PATH'))
     } finally {
-      await this.nftStatisticsConnection.release()
+      await this.nftStatisticsConnectionRunner.release()
       this.logger.debug('end analyse nft data')
       this.logger.debug('release success')
       writeSucessExcuteLog(config.get('NFT_STATISTICS.MONITOR_PATH'))
@@ -129,26 +155,29 @@ export class NftStatisticsAnalyseService {
       this.logger.debug('no nedd analyse:' + smartContractAddress)
       return
     }
-    const smartContract = await this.smartContractConnection.manager.findOne(SmartContractEntity, {
-      contract_address: smartContractAddress
-    })
+    const smartContract = await this.smartContractConnectionRunner.manager.findOne(
+      SmartContractEntity,
+      {
+        contract_address: smartContractAddress
+      }
+    )
     if (!smartContract || smartContract.protocol !== SmartContractProtocolEnum.tnt721) {
       this.logger.debug('no contract or not tnt721 protocol:' + smartContractAddress)
       return
     }
-    const allItems = await this.nftConnection.manager.count(NftBalanceEntity, {
+    const allItems = await this.nftConnectionRunner.manager.count(NftBalanceEntity, {
       where: {
         owner: Not('0x0000000000000000000000000000000000000000'),
         smart_contract_address: smartContractAddress
       }
     })
-    const destroyedItems = await this.nftConnection.manager.count(NftBalanceEntity, {
+    const destroyedItems = await this.nftConnectionRunner.manager.count(NftBalanceEntity, {
       where: {
         owner: '0x0000000000000000000000000000000000000000',
         smart_contract_address: smartContractAddress
       }
     })
-    const uniqueOwners = await this.nftConnection.query(
+    const uniqueOwners = await this.nftConnectionRunner.query(
       `select count(distinct(owner)) as _num from nft_balance_entity where nft_balance_entity.smart_contract_address = '${smartContractAddress}' and nft_balance_entity.owner != '0x0000000000000000000000000000000000000000'`
     )
     // console.log(uniqueOwners)
@@ -161,7 +190,7 @@ export class NftStatisticsAnalyseService {
     //   }
     // }
 
-    const recordList = await this.nftConnection.manager.find(NftTransferRecordEntity, {
+    const recordList = await this.nftConnectionRunner.manager.find(NftTransferRecordEntity, {
       smart_contract_address: smartContractAddress,
       timestamp: MoreThan(moment().subtract(30, 'days').unix())
     })
@@ -287,7 +316,7 @@ export class NftStatisticsAnalyseService {
         transactionCount30D += 1
       }
     }
-    const nft = await this.nftStatisticsConnection.manager.findOne(NftStatisticsEntity, {
+    const nft = await this.nftStatisticsConnectionRunner.manager.findOne(NftStatisticsEntity, {
       smart_contract_address: smartContractAddress
     })
     if (!nft) {
@@ -308,7 +337,7 @@ export class NftStatisticsAnalyseService {
       nftStatistics.unique_owners = uniqueHolders
       nftStatistics.items = allItems
       nftStatistics.destroyed_items = destroyedItems
-      await this.nftStatisticsConnection.manager.save(nftStatistics)
+      await this.nftStatisticsConnectionRunner.manager.save(nftStatistics)
     } else {
       if (nft.contract_uri_update_timestamp < moment().unix() - 24 * 3600) {
         try {
@@ -345,7 +374,7 @@ export class NftStatisticsAnalyseService {
       }
 
       if (!nft.img_uri || !nft.description) {
-        const firstToken = await this.nftConnection.manager.findOne(NftBalanceEntity, {
+        const firstToken = await this.nftConnectionRunner.manager.findOne(NftBalanceEntity, {
           order: { id: 'ASC' },
           where: {
             smart_contract_address: smartContractAddress,
@@ -385,12 +414,12 @@ export class NftStatisticsAnalyseService {
       nft.unique_owners = uniqueHolders
       nft.items = allItems
       nft.destroyed_items = destroyedItems
-      await this.nftStatisticsConnection.manager.save(nft)
+      await this.nftStatisticsConnectionRunner.manager.save(nft)
     }
   }
 
   async setZero() {
-    await this.nftStatisticsConnection.manager.update(
+    await this.nftStatisticsConnectionRunner.manager.update(
       NftStatisticsEntity,
       {
         update_timestamp: LessThan(moment().subtract(1, 'days').unix())
@@ -402,7 +431,7 @@ export class NftStatisticsAnalyseService {
       }
     )
 
-    await this.nftStatisticsConnection.manager.update(
+    await this.nftStatisticsConnectionRunner.manager.update(
       NftStatisticsEntity,
       {
         update_timestamp: LessThan(moment().subtract(7, 'days').unix())
@@ -414,7 +443,7 @@ export class NftStatisticsAnalyseService {
       }
     )
 
-    await this.nftStatisticsConnection.manager.update(
+    await this.nftStatisticsConnectionRunner.manager.update(
       NftStatisticsEntity,
       {
         update_timestamp: LessThan(moment().subtract(30, 'days').unix())
@@ -431,7 +460,7 @@ export class NftStatisticsAnalyseService {
     // this.logger.debug(JSON.stringify(nftLogoConfig))
     for (const logo of nftLogoConfig) {
       if (logo.length < 2) continue
-      const nft = await this.nftStatisticsConnection.manager.findOne(NftStatisticsEntity, {
+      const nft = await this.nftStatisticsConnectionRunner.manager.findOne(NftStatisticsEntity, {
         smart_contract_address: logo[0].toLowerCase()
       })
       if (nft) {
@@ -444,21 +473,24 @@ export class NftStatisticsAnalyseService {
           logo[1],
           config.get('NFT_STATISTICS.STATIC_PATH')
         )
-        await this.nftStatisticsConnection.manager.save(nft)
+        await this.nftStatisticsConnectionRunner.manager.save(nft)
       }
     }
   }
 
   async syncNftInfo(smartContract: SmartContractEntity, nftStatistics: NftStatisticsEntity) {
     if (!smartContract.contract_uri) {
-      const firstTokencontractUri = await this.nftConnection.manager.findOne(NftBalanceEntity, {
-        where: {
-          smart_contract_address: smartContract.contract_address
-        },
-        order: {
-          token_id: 'ASC'
+      const firstTokencontractUri = await this.nftConnectionRunner.manager.findOne(
+        NftBalanceEntity,
+        {
+          where: {
+            smart_contract_address: smartContract.contract_address
+          },
+          order: {
+            token_id: 'ASC'
+          }
         }
-      })
+      )
       if (firstTokencontractUri) {
         nftStatistics.contract_uri = firstTokencontractUri.contract_uri
         nftStatistics.contract_uri_detail = firstTokencontractUri.detail
@@ -533,14 +565,14 @@ export class NftStatisticsAnalyseService {
   // }
 
   async downloadAllImg() {
-    const nfts = await this.nftStatisticsConnection.manager.find(NftStatisticsEntity)
+    const nfts = await this.nftStatisticsConnectionRunner.manager.find(NftStatisticsEntity)
     for (const nft of nfts) {
       if (nft.img_uri) {
         nft.img_uri = await this.utilsService.downloadImage(
           nft.img_uri,
           config.get('NFT_STATISTICS.STATIC_PATH')
         )
-        await this.nftStatisticsConnection.manager.save(nft)
+        await this.nftStatisticsConnectionRunner.manager.save(nft)
       }
     }
   }
