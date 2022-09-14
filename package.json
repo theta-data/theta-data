@@ -1,6 +1,6 @@
 {
   "name": "theta-data",
-  "version": "0.0.93",
+  "version": "0.0.98",
   "description": "",
   "author": "larry",
   "license": "UNLICENSED",
@@ -52,7 +52,7 @@
     "solc": "^0.8.17",
     "sqlite3": "^5.0.2",
     "theta-ts-sdk": "^0.2.79",
-    "typeorm": "^0.2.44"
+    "typeorm": "0.2.44"
   },
   "devDependencies": {
     "@nestjs/cli": "^8.0.0",

@@ -67,7 +67,8 @@ let SmartContractAnalyseService = class SmartContractAnalyseService {
             const latestRecord = await this.smartContractConnectionRunner.manager.findOne(smart_contract_call_record_entity_1.SmartContractCallRecordEntity, {
                 order: {
                     height: 'DESC'
-                }
+                },
+                where: {}
             });
             const latestRecordHeight = latestRecord ? latestRecord.height : 0;
             if (latestRecordHeight >= height) {

@@ -10,7 +10,7 @@ exports.DEFAULT_CONFIG = {
         type: 'better-sqlite3',
         entities: ['src/**/*.entity{.ts,.js}'],
         bigNumberStrings: false,
-        logging: false,
+        logging: true,
         extra: {
             charset: 'utf8mb4_unicode_ci'
         }

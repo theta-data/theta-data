@@ -36,28 +36,6 @@ let ExplorerAnalyseService = class ExplorerAnalyseService {
         this.transactionNum = 0;
         this.utilsService = utilsService;
     }
-    async getInitHeight(configPath) {
-        let height = 0;
-        this.logger.debug(this.heightConfigFile);
-        const lastfinalizedHeight = Number((await theta_ts_sdk_1.thetaTsSdk.blockchain.getStatus()).result.latest_finalized_block_height);
-        this.logger.debug(JSON.stringify(const_2.config.get(configPath.toUpperCase() + '.START_HEIGHT')));
-        if (const_2.config.get(configPath.toUpperCase() + '.START_HEIGHT')) {
-            height = const_2.config.get(configPath.toUpperCase() + '.START_HEIGHT');
-        }
-        const recordHeight = this.utilsService.getRecordHeight(this.heightConfigFile);
-        height = recordHeight > height ? recordHeight : height;
-        if (height >= lastfinalizedHeight) {
-            this.logger.debug('commit success');
-            this.logger.debug('no height to analyse');
-            return [0, 0];
-        }
-        let endHeight = lastfinalizedHeight;
-        const analyseNumber = const_2.config.get(configPath.toUpperCase() + '.ANALYSE_NUMBER');
-        if (lastfinalizedHeight - height > analyseNumber) {
-            endHeight = height + analyseNumber;
-        }
-        return [height, endHeight];
-    }
     async analyseData() {
         try {
             this.explorerConnectionRunner = this.explorerConnectionInjected.createQueryRunner();
@@ -76,7 +54,9 @@ let ExplorerAnalyseService = class ExplorerAnalyseService {
                 await this.handleData(block);
             }
             const tansactionCountEntity = await this.explorerConnectionRunner.manager.findOne(count_entity_1.CountEntity, {
-                key: const_1.TRANSACTION_COUNT_KEY
+                where: {
+                    key: const_1.TRANSACTION_COUNT_KEY
+                }
             });
             if (tansactionCountEntity) {
                 tansactionCountEntity.count += this.transactionNum;
@@ -89,7 +69,7 @@ let ExplorerAnalyseService = class ExplorerAnalyseService {
                 });
             }
             const blockCountEntity = await this.explorerConnectionRunner.manager.findOne(count_entity_1.CountEntity, {
-                key: const_1.BLOCK_COUNT_KEY
+                where: { key: const_1.BLOCK_COUNT_KEY }
             });
             if (blockCountEntity) {
                 blockCountEntity.count += blockList.result.length;
@@ -208,6 +188,28 @@ let ExplorerAnalyseService = class ExplorerAnalyseService {
             tfuel_burnt: tfuelBurnt,
             txns: block.transactions.length
         });
+    }
+    async getInitHeight(configPath) {
+        let height = 0;
+        this.logger.debug(this.heightConfigFile);
+        const lastfinalizedHeight = Number((await theta_ts_sdk_1.thetaTsSdk.blockchain.getStatus()).result.latest_finalized_block_height);
+        this.logger.debug(JSON.stringify(const_2.config.get(configPath.toUpperCase() + '.START_HEIGHT')));
+        if (const_2.config.get(configPath.toUpperCase() + '.START_HEIGHT')) {
+            height = const_2.config.get(configPath.toUpperCase() + '.START_HEIGHT');
+        }
+        const recordHeight = this.utilsService.getRecordHeight(this.heightConfigFile);
+        height = recordHeight > height ? recordHeight : height;
+        if (height >= lastfinalizedHeight) {
+            this.logger.debug('commit success');
+            this.logger.debug('no height to analyse');
+            return [0, 0];
+        }
+        let endHeight = lastfinalizedHeight;
+        const analyseNumber = const_2.config.get(configPath.toUpperCase() + '.ANALYSE_NUMBER');
+        if (lastfinalizedHeight - height > analyseNumber) {
+            endHeight = height + analyseNumber;
+        }
+        return [height, endHeight];
     }
 };
 ExplorerAnalyseService = __decorate([
