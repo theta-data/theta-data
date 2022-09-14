@@ -147,7 +147,7 @@ It is also worth mentioning that Theta Data only returns the data you specify in
 npm i theta-data
 ```
 
-### Run Analyse Server
+### Runnning Analyse Server
 ```javascript
 const thetaData = require("theta-data");
 thetaData.analyse();
