@@ -1,5 +1,5 @@
 import { Injectable, Logger, SerializeOptions } from '@nestjs/common'
-import { getConnection, QueryRunner } from 'typeorm'
+import { Connection, getConnection, getConnectionManager, QueryRunner } from 'typeorm'
 import { THETA_TRANSACTION_TYPE_ENUM } from 'theta-ts-sdk/dist/types/enum'
 import { thetaTsSdk } from 'theta-ts-sdk'
 import { THETA_BLOCK_INTERFACE } from 'theta-ts-sdk/src/types/interface'
@@ -7,27 +7,33 @@ import BigNumber from 'bignumber.js'
 import { SmartContractEntity } from 'src/block-chain/smart-contract/smart-contract.entity'
 import { UtilsService, writeFailExcuteLog, writeSucessExcuteLog } from 'src/common/utils.service'
 import { config } from 'src/const'
+import { getConnectionName, InjectConnection } from '@nestjs/typeorm'
+import { createConnection } from 'net'
 // const config = require('config')
 const moment = require('moment')
+
 @Injectable()
 export class TxAnalyseService {
   private readonly logger = new Logger('tx analyse service')
   analyseKey = 'under_analyse'
   private counter = 0
 
-  private txConnection: QueryRunner
+  private txConnectionRunner: QueryRunner
   private heightConfigFile = config.get('ORM_CONFIG')['database'] + 'tx/record.height'
-  constructor(private utilsService: UtilsService) {
-    // thetaTsSdk.blockchain.setUrl(config.get('THETA_NODE_HOST'))
-    this.logger.debug(config.get('THETA_NODE_HOST'))
+  constructor(
+    private utilsService: UtilsService,
+    @InjectConnection('tx')
+    private readonly connection: Connection
+  ) {
+    thetaTsSdk.blockchain.setUrl(config.get('THETA_NODE_HOST'))
+    // this.logger.debug(config.get('THETA_NODE_HOST'))
   }
 
   public async analyseData() {
     try {
-      this.txConnection = getConnection('tx').createQueryRunner()
-
-      await this.txConnection.connect()
-      await this.txConnection.startTransaction()
+      this.txConnectionRunner = this.connection.createQueryRunner()
+      // await this.txConnectionRunner.connect()
+      await this.txConnectionRunner.startTransaction()
 
       let height: number = 0
       const lastfinalizedHeight = Number(
@@ -41,7 +47,7 @@ export class TxAnalyseService {
       const recordHeight = this.utilsService.getRecordHeight(this.heightConfigFile)
       height = recordHeight > height ? recordHeight : height
       if (height >= lastfinalizedHeight) {
-        await this.txConnection.commitTransaction()
+        await this.txConnectionRunner.commitTransaction()
         this.logger.debug('commit success')
         this.logger.debug('no height to analyse')
         return
@@ -67,7 +73,7 @@ export class TxAnalyseService {
         await this.handleOrderCreatedEvent(block, lastfinalizedHeight)
       }
       this.logger.debug('start update calltimes by period')
-      await this.txConnection.commitTransaction()
+      await this.txConnectionRunner.commitTransaction()
       this.logger.debug('commit success')
       if (blockList.result.length > 1) {
         this.utilsService.updateRecordHeight(
@@ -80,11 +86,11 @@ export class TxAnalyseService {
       console.error(e.message)
       this.logger.error(e.message)
       this.logger.error('rollback')
-      await this.txConnection.rollbackTransaction()
+      await this.txConnectionRunner.rollbackTransaction()
       writeFailExcuteLog(config.get('TX.MONITOR_PATH'))
       // process.exit(0)
     } finally {
-      await this.txConnection.release()
+      await this.txConnectionRunner.release()
       this.logger.debug('release success')
       writeSucessExcuteLog(config.get('TX.MONITOR_PATH'))
     }
@@ -181,7 +187,7 @@ export class TxAnalyseService {
     }
     this.logger.debug(height + ' end upsert wallets')
     block_number++
-    await this.txConnection.query(
+    await this.txConnectionRunner.query(
       `INSERT INTO theta_tx_num_by_hours_entity (block_number,theta_fuel_burnt,theta_fuel_burnt_by_smart_contract,theta_fuel_burnt_by_transfers,active_wallet,coin_base_transaction,slash_transaction,send_transaction,reserve_fund_transaction,release_fund_transaction,service_payment_transaction,split_rule_transaction,deposit_stake_transaction,withdraw_stake_transaction,smart_contract_transaction,latest_block_height,timestamp) VALUES (${block_number},${theta_fuel_burnt}, ${theta_fuel_burnt_by_smart_contract},${theta_fuel_burnt_by_transfers},0,${coin_base_transaction},${slash_transaction},${send_transaction},${reserve_fund_transaction},${release_fund_transaction},${service_payment_transaction},${split_rule_transaction},${deposit_stake_transaction},${withdraw_stake_transaction},${smart_contract_transaction},${height},${timestamp})  ON CONFLICT (timestamp) DO UPDATE set block_number=block_number+${block_number},  theta_fuel_burnt=theta_fuel_burnt+${theta_fuel_burnt},theta_fuel_burnt_by_smart_contract=theta_fuel_burnt_by_smart_contract+${theta_fuel_burnt_by_smart_contract},theta_fuel_burnt_by_transfers=theta_fuel_burnt_by_transfers+${theta_fuel_burnt_by_transfers},coin_base_transaction=coin_base_transaction+${coin_base_transaction},slash_transaction=slash_transaction+${slash_transaction},send_transaction=send_transaction+${send_transaction},reserve_fund_transaction=reserve_fund_transaction+${reserve_fund_transaction},release_fund_transaction=release_fund_transaction+${release_fund_transaction},service_payment_transaction=service_payment_transaction+${service_payment_transaction},split_rule_transaction=split_rule_transaction+${split_rule_transaction},deposit_stake_transaction=deposit_stake_transaction+${deposit_stake_transaction},withdraw_stake_transaction=withdraw_stake_transaction+${withdraw_stake_transaction},smart_contract_transaction=smart_contract_transaction+${smart_contract_transaction},latest_block_height=${height};`
     )
 

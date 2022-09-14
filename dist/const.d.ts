@@ -31,37 +31,50 @@ export declare const DEFAULT_CONFIG: {
         ANALYSE_INTERVAL: number;
         DL_ALL_NFT_IMG: boolean;
         STATIC_PATH: string;
+        MONITOR_PATH: string;
     };
     SMART_CONTRACT: {
         ANALYSE_NUMBER: number;
         ANALYSE_INTERVAL: number;
         THETA_NODE_HOST: string;
         START_HEIGHT: number;
+        MONITOR_PATH: string;
     };
     NFT_STATISTICS: {
         ANALYSE_NUMBER: number;
         ANALYSE_INTERVAL: number;
         STATIC_PATH: string;
+        MONITOR_PATH: string;
     };
     EXPLORER: {
         ANALYSE_NUMBER: number;
         ANALYSE_INTERVAL: number;
         START_HEIGHT: number;
+        MONITOR_PATH: string;
     };
     STAKE: {
         ANALYSE_NUMBER: number;
         ANALYSE_INTERVAL: number;
         START_HEIGHT: number;
+        MONITOR_PATH: string;
     };
     TX: {
         ANALYSE_NUMBER: number;
         ANALYSE_INTERVAL: number;
         START_HEIGHT: number;
+        MONITOR_PATH: string;
     };
     WALLET: {
         START_HEIGHT: number;
         ANALYSE_NUMBER: number;
         ANALYSE_INTERVAL: number;
+        MONITOR_PATH: string;
+    };
+    WALLET_TX_HISTORY: {
+        START_HEIGHT: number;
+        ANALYSE_NUMBER: number;
+        ANALYSE_INTERVAL: number;
+        MONITOR_PATH: string;
     };
 };
 export declare const config: {

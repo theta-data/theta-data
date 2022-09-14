@@ -8,6 +8,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NftAnalyseService = void 0;
 const nft_transfer_record_entity_1 = require("./nft-transfer-record.entity");
@@ -20,10 +23,13 @@ const utils_service_1 = require("../../../common/utils.service");
 const fs = require('fs');
 const cross_fetch_1 = require("cross-fetch");
 const const_1 = require("../../../const");
+const typeorm_2 = require("@nestjs/typeorm");
 let NftAnalyseService = class NftAnalyseService {
-    constructor(nftService, utilsService) {
+    constructor(nftService, utilsService, smartContractConnectionInjected, nftConnectionInjected) {
         this.nftService = nftService;
         this.utilsService = utilsService;
+        this.smartContractConnectionInjected = smartContractConnectionInjected;
+        this.nftConnectionInjected = nftConnectionInjected;
         this.logger = new common_1.Logger('nft analyse service');
         this.analyseKey = 'under_analyse';
         this.heightConfigFile = const_1.config.get('ORM_CONFIG')['database'] + 'nft/record.height';
@@ -31,11 +37,10 @@ let NftAnalyseService = class NftAnalyseService {
     async analyseData(loop) {
         try {
             this.logger.debug(loop + ' start analyse nft data');
-            this.smartContractConnection = (0, typeorm_1.getConnection)('smart_contract').createQueryRunner();
-            this.nftConnection = (0, typeorm_1.getConnection)('nft').createQueryRunner();
-            await this.smartContractConnection.connect();
-            await this.nftConnection.connect();
-            await this.nftConnection.startTransaction();
+            console.log(const_1.config.get('NFT'));
+            this.smartContractConnectionRunner = this.smartContractConnectionInjected.createQueryRunner();
+            this.nftConnectionRunner = this.nftConnectionInjected.createQueryRunner();
+            await this.nftConnectionRunner.startTransaction();
             let startId = 0;
             if (!fs.existsSync(this.heightConfigFile)) {
                 fs.writeFileSync(this.heightConfigFile, '0');
@@ -46,7 +51,7 @@ let NftAnalyseService = class NftAnalyseService {
                     startId = Number(data);
                 }
             }
-            const contractRecordList = await this.smartContractConnection.manager.find(smart_contract_call_record_entity_1.SmartContractCallRecordEntity, {
+            const contractRecordList = await this.smartContractConnectionRunner.manager.find(smart_contract_call_record_entity_1.SmartContractCallRecordEntity, {
                 where: {
                     id: (0, typeorm_1.MoreThan)(startId)
                 },
@@ -55,14 +60,13 @@ let NftAnalyseService = class NftAnalyseService {
             });
             const promiseArr = [];
             for (const record of contractRecordList) {
-                promiseArr.push(this.nftService.updateNftRecord(this.nftConnection, this.smartContractConnection, record));
-                await Promise.all(promiseArr);
+                await this.nftService.updateNftRecord(this.nftConnectionRunner, this.smartContractConnectionRunner, record);
             }
             this.logger.debug('start update calltimes by period');
             if (const_1.config.get('NFT.DL_ALL_NFT_IMG') == true) {
                 await this.downloadAllImg(loop);
             }
-            await this.nftConnection.commitTransaction();
+            await this.nftConnectionRunner.commitTransaction();
             if (contractRecordList.length > 0) {
                 this.logger.debug('end height:' + Number(contractRecordList[contractRecordList.length - 1].height));
                 this.utilsService.updateRecordHeight(this.heightConfigFile, contractRecordList[contractRecordList.length - 1].id);
@@ -73,25 +77,25 @@ let NftAnalyseService = class NftAnalyseService {
             console.error(e.message);
             this.logger.error(e.message);
             this.logger.error('rollback');
-            await this.nftConnection.rollbackTransaction();
+            await this.nftConnectionRunner.rollbackTransaction();
             (0, utils_service_1.writeFailExcuteLog)(const_1.config.get('NFT.MONITOR_PATH'));
         }
         finally {
-            await this.nftConnection.release();
+            await this.nftConnectionRunner.release();
             (0, utils_service_1.writeSucessExcuteLog)(const_1.config.get('NFT.MONITOR_PATH'));
             this.logger.debug('end analyse nft data');
             this.logger.debug('release success');
         }
     }
     async downloadAllImg(loop) {
-        const total = await this.nftConnection.manager.count(nft_balance_entity_1.NftBalanceEntity);
+        const total = await this.nftConnectionRunner.manager.count(nft_balance_entity_1.NftBalanceEntity);
         const pageSize = 100;
         const pageCount = Math.ceil(total / pageSize);
         if (loop > pageCount) {
             this.logger.debug('loop ' + loop + ' page count:' + pageCount);
             return;
         }
-        const list = await this.nftConnection.manager.find(nft_balance_entity_1.NftBalanceEntity, {
+        const list = await this.nftConnectionRunner.manager.find(nft_balance_entity_1.NftBalanceEntity, {
             skip: (loop + 2400) * pageSize,
             take: pageSize,
             order: {
@@ -142,8 +146,8 @@ let NftAnalyseService = class NftAnalyseService {
             const imgPath = await this.utilsService.downloadImage(item.img_uri, const_1.config.get('NFT.STATIC_PATH'));
             this.logger.debug('loop ' + loop + ': ' + item.img_uri + ' ' + imgPath);
             item.img_uri = imgPath;
-            await this.nftConnection.manager.save(item);
-            await this.nftConnection.manager.update(nft_transfer_record_entity_1.NftTransferRecordEntity, {
+            await this.nftConnectionRunner.manager.save(item);
+            await this.nftConnectionRunner.manager.update(nft_transfer_record_entity_1.NftTransferRecordEntity, {
                 smart_contract_address: item.smart_contract_address,
                 token_id: item.token_id
             }, { img_uri: imgPath, name: item.name });
@@ -152,7 +156,12 @@ let NftAnalyseService = class NftAnalyseService {
 };
 NftAnalyseService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [nft_service_1.NftService, utils_service_1.UtilsService])
+    __param(2, (0, typeorm_2.InjectConnection)('smart_contract')),
+    __param(3, (0, typeorm_2.InjectConnection)('nft')),
+    __metadata("design:paramtypes", [nft_service_1.NftService,
+        utils_service_1.UtilsService,
+        typeorm_1.Connection,
+        typeorm_1.Connection])
 ], NftAnalyseService);
 exports.NftAnalyseService = NftAnalyseService;
 //# sourceMappingURL=nft-analyse.service.js.map

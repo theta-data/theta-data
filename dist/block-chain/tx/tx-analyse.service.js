@@ -8,6 +8,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TxAnalyseService = void 0;
 const common_1 = require("@nestjs/common");
@@ -17,21 +20,22 @@ const theta_ts_sdk_1 = require("theta-ts-sdk");
 const bignumber_js_1 = require("bignumber.js");
 const utils_service_1 = require("../../common/utils.service");
 const const_1 = require("../../const");
+const typeorm_2 = require("@nestjs/typeorm");
 const moment = require('moment');
 let TxAnalyseService = class TxAnalyseService {
-    constructor(utilsService) {
+    constructor(utilsService, connection) {
         this.utilsService = utilsService;
+        this.connection = connection;
         this.logger = new common_1.Logger('tx analyse service');
         this.analyseKey = 'under_analyse';
         this.counter = 0;
         this.heightConfigFile = const_1.config.get('ORM_CONFIG')['database'] + 'tx/record.height';
-        this.logger.debug(const_1.config.get('THETA_NODE_HOST'));
+        theta_ts_sdk_1.thetaTsSdk.blockchain.setUrl(const_1.config.get('THETA_NODE_HOST'));
     }
     async analyseData() {
         try {
-            this.txConnection = (0, typeorm_1.getConnection)('tx').createQueryRunner();
-            await this.txConnection.connect();
-            await this.txConnection.startTransaction();
+            this.txConnectionRunner = this.connection.createQueryRunner();
+            await this.txConnectionRunner.startTransaction();
             let height = 0;
             const lastfinalizedHeight = Number((await theta_ts_sdk_1.thetaTsSdk.blockchain.getStatus()).result.latest_finalized_block_height);
             height = lastfinalizedHeight - 1000;
@@ -41,7 +45,7 @@ let TxAnalyseService = class TxAnalyseService {
             const recordHeight = this.utilsService.getRecordHeight(this.heightConfigFile);
             height = recordHeight > height ? recordHeight : height;
             if (height >= lastfinalizedHeight) {
-                await this.txConnection.commitTransaction();
+                await this.txConnectionRunner.commitTransaction();
                 this.logger.debug('commit success');
                 this.logger.debug('no height to analyse');
                 return;
@@ -62,7 +66,7 @@ let TxAnalyseService = class TxAnalyseService {
                 await this.handleOrderCreatedEvent(block, lastfinalizedHeight);
             }
             this.logger.debug('start update calltimes by period');
-            await this.txConnection.commitTransaction();
+            await this.txConnectionRunner.commitTransaction();
             this.logger.debug('commit success');
             if (blockList.result.length > 1) {
                 this.utilsService.updateRecordHeight(this.heightConfigFile, Number(blockList.result[blockList.result.length - 1].height));
@@ -72,11 +76,11 @@ let TxAnalyseService = class TxAnalyseService {
             console.error(e.message);
             this.logger.error(e.message);
             this.logger.error('rollback');
-            await this.txConnection.rollbackTransaction();
+            await this.txConnectionRunner.rollbackTransaction();
             (0, utils_service_1.writeFailExcuteLog)(const_1.config.get('TX.MONITOR_PATH'));
         }
         finally {
-            await this.txConnection.release();
+            await this.txConnectionRunner.release();
             this.logger.debug('release success');
             (0, utils_service_1.writeSucessExcuteLog)(const_1.config.get('TX.MONITOR_PATH'));
         }
@@ -149,7 +153,7 @@ let TxAnalyseService = class TxAnalyseService {
         }
         this.logger.debug(height + ' end upsert wallets');
         block_number++;
-        await this.txConnection.query(`INSERT INTO theta_tx_num_by_hours_entity (block_number,theta_fuel_burnt,theta_fuel_burnt_by_smart_contract,theta_fuel_burnt_by_transfers,active_wallet,coin_base_transaction,slash_transaction,send_transaction,reserve_fund_transaction,release_fund_transaction,service_payment_transaction,split_rule_transaction,deposit_stake_transaction,withdraw_stake_transaction,smart_contract_transaction,latest_block_height,timestamp) VALUES (${block_number},${theta_fuel_burnt}, ${theta_fuel_burnt_by_smart_contract},${theta_fuel_burnt_by_transfers},0,${coin_base_transaction},${slash_transaction},${send_transaction},${reserve_fund_transaction},${release_fund_transaction},${service_payment_transaction},${split_rule_transaction},${deposit_stake_transaction},${withdraw_stake_transaction},${smart_contract_transaction},${height},${timestamp})  ON CONFLICT (timestamp) DO UPDATE set block_number=block_number+${block_number},  theta_fuel_burnt=theta_fuel_burnt+${theta_fuel_burnt},theta_fuel_burnt_by_smart_contract=theta_fuel_burnt_by_smart_contract+${theta_fuel_burnt_by_smart_contract},theta_fuel_burnt_by_transfers=theta_fuel_burnt_by_transfers+${theta_fuel_burnt_by_transfers},coin_base_transaction=coin_base_transaction+${coin_base_transaction},slash_transaction=slash_transaction+${slash_transaction},send_transaction=send_transaction+${send_transaction},reserve_fund_transaction=reserve_fund_transaction+${reserve_fund_transaction},release_fund_transaction=release_fund_transaction+${release_fund_transaction},service_payment_transaction=service_payment_transaction+${service_payment_transaction},split_rule_transaction=split_rule_transaction+${split_rule_transaction},deposit_stake_transaction=deposit_stake_transaction+${deposit_stake_transaction},withdraw_stake_transaction=withdraw_stake_transaction+${withdraw_stake_transaction},smart_contract_transaction=smart_contract_transaction+${smart_contract_transaction},latest_block_height=${height};`);
+        await this.txConnectionRunner.query(`INSERT INTO theta_tx_num_by_hours_entity (block_number,theta_fuel_burnt,theta_fuel_burnt_by_smart_contract,theta_fuel_burnt_by_transfers,active_wallet,coin_base_transaction,slash_transaction,send_transaction,reserve_fund_transaction,release_fund_transaction,service_payment_transaction,split_rule_transaction,deposit_stake_transaction,withdraw_stake_transaction,smart_contract_transaction,latest_block_height,timestamp) VALUES (${block_number},${theta_fuel_burnt}, ${theta_fuel_burnt_by_smart_contract},${theta_fuel_burnt_by_transfers},0,${coin_base_transaction},${slash_transaction},${send_transaction},${reserve_fund_transaction},${release_fund_transaction},${service_payment_transaction},${split_rule_transaction},${deposit_stake_transaction},${withdraw_stake_transaction},${smart_contract_transaction},${height},${timestamp})  ON CONFLICT (timestamp) DO UPDATE set block_number=block_number+${block_number},  theta_fuel_burnt=theta_fuel_burnt+${theta_fuel_burnt},theta_fuel_burnt_by_smart_contract=theta_fuel_burnt_by_smart_contract+${theta_fuel_burnt_by_smart_contract},theta_fuel_burnt_by_transfers=theta_fuel_burnt_by_transfers+${theta_fuel_burnt_by_transfers},coin_base_transaction=coin_base_transaction+${coin_base_transaction},slash_transaction=slash_transaction+${slash_transaction},send_transaction=send_transaction+${send_transaction},reserve_fund_transaction=reserve_fund_transaction+${reserve_fund_transaction},release_fund_transaction=release_fund_transaction+${release_fund_transaction},service_payment_transaction=service_payment_transaction+${service_payment_transaction},split_rule_transaction=split_rule_transaction+${split_rule_transaction},deposit_stake_transaction=deposit_stake_transaction+${deposit_stake_transaction},withdraw_stake_transaction=withdraw_stake_transaction+${withdraw_stake_transaction},smart_contract_transaction=smart_contract_transaction+${smart_contract_transaction},latest_block_height=${height};`);
         this.logger.debug(height + ' end update theta tx num by hours');
         this.logger.debug(height + ' end update analyse');
         this.counter--;
@@ -157,7 +161,9 @@ let TxAnalyseService = class TxAnalyseService {
 };
 TxAnalyseService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [utils_service_1.UtilsService])
+    __param(1, (0, typeorm_2.InjectConnection)('tx')),
+    __metadata("design:paramtypes", [utils_service_1.UtilsService,
+        typeorm_1.Connection])
 ], TxAnalyseService);
 exports.TxAnalyseService = TxAnalyseService;
 //# sourceMappingURL=tx-analyse.service.js.map

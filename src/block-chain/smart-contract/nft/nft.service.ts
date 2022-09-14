@@ -19,11 +19,12 @@ import { NftTransferRecordEntity } from './nft-transfer-record.entity'
 import fetch from 'cross-fetch'
 import { UtilsService } from 'src/common/utils.service'
 import BigNumber from 'bignumber.js'
-const config = require('config')
+import { config } from 'src/const'
+// const config = require('config')
 
 @Injectable()
 export class NftService {
-  logger = new Logger()
+  logger = new Logger('nft service')
   constructor(
     @InjectRepository(NftTransferRecordEntity, 'nft')
     private nftTransferRecordRepository: Repository<NftTransferRecordEntity>,

@@ -1,22 +1,27 @@
+import { Connection } from 'typeorm';
 import { THETA_BLOCK_INTERFACE } from 'theta-ts-sdk/src/types/interface';
 import { LoggerService } from 'src/common/logger.service';
 import { UtilsService } from 'src/common/utils.service';
 import { SmartContractService } from 'src/block-chain/smart-contract/smart-contract.service';
+import { SolcService } from 'src/common/solc.service';
 export declare class SmartContractAnalyseService {
     private loggerService;
     private utilsService;
     private smartContractService;
+    private solcService;
+    private smartContractConnectionInjected;
     private readonly logger;
     analyseKey: string;
     private counter;
     private startTimestamp;
-    private smartContractConnection;
+    private smartContractConnectionRunner;
     private heightConfigFile;
     private smartContractList;
-    constructor(loggerService: LoggerService, utilsService: UtilsService, smartContractService: SmartContractService);
+    constructor(loggerService: LoggerService, utilsService: UtilsService, smartContractService: SmartContractService, solcService: SolcService, smartContractConnectionInjected: Connection);
     analyseData(): Promise<void>;
     handleOrderCreatedEvent(block: THETA_BLOCK_INTERFACE, latestFinalizedBlockHeight: number): Promise<void>;
     verifyWithThetaExplorer(address: string): Promise<any>;
     updateCallTimesByPeriod(contractAddress: string): Promise<void>;
     clearCallTimeByPeriod(): Promise<void>;
+    getVerifyInfo(address: string, sourceCode: string, byteCode: string, version: string, versionFullName: string, optimizer: boolean, optimizerRuns: number): Promise<any>;
 }

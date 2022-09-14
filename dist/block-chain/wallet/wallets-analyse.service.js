@@ -8,6 +8,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WalletsAnalyseService = void 0;
 const common_1 = require("@nestjs/common");
@@ -17,11 +20,13 @@ const logger_service_1 = require("../../common/logger.service");
 const wallet_entity_1 = require("./wallet.entity");
 const utils_service_1 = require("../../common/utils.service");
 const const_1 = require("../../const");
+const typeorm_2 = require("@nestjs/typeorm");
 const moment = require('moment');
 let WalletsAnalyseService = class WalletsAnalyseService {
-    constructor(loggerService, utilsService) {
+    constructor(loggerService, utilsService, walletConnectionInjected) {
         this.loggerService = loggerService;
         this.utilsService = utilsService;
+        this.walletConnectionInjected = walletConnectionInjected;
         this.logger = new common_1.Logger('wallet analyse service');
         this.analyseKey = 'under_analyse';
         this.counter = 0;
@@ -31,9 +36,8 @@ let WalletsAnalyseService = class WalletsAnalyseService {
     }
     async analyseData() {
         try {
-            this.walletConnection = (0, typeorm_1.getConnection)('wallet').createQueryRunner();
-            await this.walletConnection.connect();
-            await this.walletConnection.startTransaction();
+            this.walletConnectionRunner = this.walletConnectionInjected.createQueryRunner();
+            await this.walletConnectionRunner.startTransaction();
             let height = 0;
             const lastfinalizedHeight = Number((await theta_ts_sdk_1.thetaTsSdk.blockchain.getStatus()).result.latest_finalized_block_height);
             height = lastfinalizedHeight - 1000;
@@ -43,7 +47,7 @@ let WalletsAnalyseService = class WalletsAnalyseService {
             const recordHeight = this.utilsService.getRecordHeight(this.heightConfigFile);
             height = recordHeight > height ? recordHeight : height;
             if (height >= lastfinalizedHeight) {
-                await this.walletConnection.commitTransaction();
+                await this.walletConnectionRunner.commitTransaction();
                 this.logger.debug(height + ': commit success');
                 this.logger.debug('no height to analyse');
                 return;
@@ -75,7 +79,7 @@ let WalletsAnalyseService = class WalletsAnalyseService {
             for (const blocks of blocksToDeal) {
                 await this.dealBlocks(blocks);
             }
-            await this.walletConnection.commitTransaction();
+            await this.walletConnectionRunner.commitTransaction();
             this.logger.debug('commit success');
             if (blockList.result.length > 0) {
                 this.utilsService.updateRecordHeight(this.heightConfigFile, actualEndHeight);
@@ -86,11 +90,11 @@ let WalletsAnalyseService = class WalletsAnalyseService {
             console.error(e.message);
             this.logger.error(e.message);
             this.logger.error('rollback');
-            await this.walletConnection.rollbackTransaction();
+            await this.walletConnectionRunner.rollbackTransaction();
             (0, utils_service_1.writeFailExcuteLog)(const_1.config.get('WALLET.MONITOR_PATH'));
         }
         finally {
-            await this.walletConnection.release();
+            await this.walletConnectionRunner.release();
             this.logger.debug('release success');
         }
     }
@@ -125,13 +129,13 @@ let WalletsAnalyseService = class WalletsAnalyseService {
         const walletsToUpdate = Object.values(wallets);
         this.logger.debug('wallets length: ' + walletsToUpdate.length);
         for (let i = 0; i < walletsToUpdate.length; i++) {
-            const wallet = await this.walletConnection.manager.findOne(wallet_entity_1.WalletEntity, {
+            const wallet = await this.walletConnectionRunner.manager.findOne(wallet_entity_1.WalletEntity, {
                 where: {
                     address: walletsToUpdate[i].address
                 }
             });
             if (!wallet) {
-                await this.walletConnection.manager.insert(wallet_entity_1.WalletEntity, {
+                await this.walletConnectionRunner.manager.insert(wallet_entity_1.WalletEntity, {
                     address: walletsToUpdate[i].address,
                     latest_active_time: walletsToUpdate[i].latest_active_time,
                     txs_hash_list: JSON.stringify(walletsToUpdate[i].hashs)
@@ -146,7 +150,7 @@ let WalletsAnalyseService = class WalletsAnalyseService {
                     }
                 }
                 wallet.txs_hash_list = JSON.stringify(hashList);
-                await this.walletConnection.manager.save(wallet);
+                await this.walletConnectionRunner.manager.save(wallet);
             }
         }
         this.logger.debug(height + ' end upsert wallets');
@@ -188,13 +192,13 @@ let WalletsAnalyseService = class WalletsAnalyseService {
         const walletsToUpdate = Object.values(wallets);
         this.logger.debug('wallets length: ' + walletsToUpdate.length);
         for (let i = 0; i < walletsToUpdate.length; i++) {
-            const wallet = await this.walletConnection.manager.findOne(wallet_entity_1.WalletEntity, {
+            const wallet = await this.walletConnectionRunner.manager.findOne(wallet_entity_1.WalletEntity, {
                 where: {
                     address: walletsToUpdate[i].address
                 }
             });
             if (!wallet) {
-                await this.walletConnection.manager.insert(wallet_entity_1.WalletEntity, {
+                await this.walletConnectionRunner.manager.insert(wallet_entity_1.WalletEntity, {
                     address: walletsToUpdate[i].address,
                     latest_active_time: walletsToUpdate[i].latest_active_time,
                     txs_hash_list: JSON.stringify(walletsToUpdate[i].hashs)
@@ -209,7 +213,7 @@ let WalletsAnalyseService = class WalletsAnalyseService {
                     }
                 }
                 wallet.txs_hash_list = JSON.stringify(hashList);
-                await this.walletConnection.manager.save(wallet);
+                await this.walletConnectionRunner.manager.save(wallet);
             }
             this.logger.debug(walletsToUpdate.length - i + ' upsert left');
         }
@@ -236,20 +240,23 @@ let WalletsAnalyseService = class WalletsAnalyseService {
         const statisticsStartTimeStamp = moment(hhTimestamp * 1000)
             .subtract(24, 'hours')
             .unix();
-        const totalAmount = await this.walletConnection.manager.count(wallet_entity_1.WalletEntity, {
+        const totalAmount = await this.walletConnectionRunner.manager.count(wallet_entity_1.WalletEntity, {
             latest_active_time: (0, typeorm_1.MoreThan)(statisticsStartTimeStamp)
         });
-        const activeWalletLastHour = await this.walletConnection.manager.count(wallet_entity_1.WalletEntity, {
+        const activeWalletLastHour = await this.walletConnectionRunner.manager.count(wallet_entity_1.WalletEntity, {
             latest_active_time: (0, typeorm_1.MoreThan)(moment(hhTimestamp * 1000)
                 .subtract(1, 'hours')
                 .unix())
         });
-        await this.walletConnection.manager.query(`INSERT INTO active_wallets_entity(snapshot_time,active_wallets_amount,active_wallets_amount_last_hour) VALUES(${hhTimestamp}, ${totalAmount}, ${activeWalletLastHour}) ON CONFLICT (snapshot_time) DO UPDATE set active_wallets_amount = ${totalAmount},active_wallets_amount_last_hour=${activeWalletLastHour}`);
+        await this.walletConnectionRunner.manager.query(`INSERT INTO active_wallets_entity(snapshot_time,active_wallets_amount,active_wallets_amount_last_hour) VALUES(${hhTimestamp}, ${totalAmount}, ${activeWalletLastHour}) ON CONFLICT (snapshot_time) DO UPDATE set active_wallets_amount = ${totalAmount},active_wallets_amount_last_hour=${activeWalletLastHour}`);
     }
 };
 WalletsAnalyseService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [logger_service_1.LoggerService, utils_service_1.UtilsService])
+    __param(2, (0, typeorm_2.InjectConnection)('wallet')),
+    __metadata("design:paramtypes", [logger_service_1.LoggerService,
+        utils_service_1.UtilsService,
+        typeorm_1.Connection])
 ], WalletsAnalyseService);
 exports.WalletsAnalyseService = WalletsAnalyseService;
 //# sourceMappingURL=wallets-analyse.service.js.map

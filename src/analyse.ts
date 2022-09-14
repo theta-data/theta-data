@@ -26,25 +26,26 @@ export async function analyseBootstrap() {
     const smartContract = app
       .select(SmartContractModule)
       .get(SmartContractAnalyseService, { strict: true })
+    const wallet = app.select(WalletModule).get(WalletsAnalyseService, { strict: true })
+
     const nft = app.select(NftModule).get(NftAnalyseService, { strict: true })
+    const stake = app.select(StakeModule).get(StakeAnalyseService, { strict: true })
     const nftStatistics = app
       .select(NftStatisticsModule)
       .get(NftStatisticsAnalyseService, { strict: true })
 
-    const wallet = app.select(WalletModule).get(WalletsAnalyseService, { strict: true })
-
-    const stake = app.select(StakeModule).get(StakeAnalyseService, { strict: true })
     const walletTxHistory = app
       .select(WalletTxHistoryModule)
       .get(WalletTxHistoryAnalyseService, { strict: true })
 
     // console.log('do while')
-    // await tx.analyseData()
-    await smartContract.analyseData()
+    await tx.analyseData()
     await explorer.analyseData()
+    await smartContract.analyseData()
     await wallet.analyseData()
-    await stake.analyseData()
     await nft.analyseData(i)
+
+    await stake.analyseData()
     await nftStatistics.analyseData()
     await walletTxHistory.analyseData()
     await new Promise((resolve) => setTimeout(resolve, 1000))

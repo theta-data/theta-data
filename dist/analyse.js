@@ -28,20 +28,21 @@ async function analyseBootstrap() {
         const smartContract = app
             .select(smart_contract_module_1.SmartContractModule)
             .get(smart_contract_analyse_service_1.SmartContractAnalyseService, { strict: true });
+        const wallet = app.select(wallet_module_1.WalletModule).get(wallets_analyse_service_1.WalletsAnalyseService, { strict: true });
         const nft = app.select(nft_module_1.NftModule).get(nft_analyse_service_1.NftAnalyseService, { strict: true });
+        const stake = app.select(stake_module_1.StakeModule).get(stake_analyse_service_1.StakeAnalyseService, { strict: true });
         const nftStatistics = app
             .select(nft_statistics_module_1.NftStatisticsModule)
             .get(nft_statistics_analyse_service_1.NftStatisticsAnalyseService, { strict: true });
-        const wallet = app.select(wallet_module_1.WalletModule).get(wallets_analyse_service_1.WalletsAnalyseService, { strict: true });
-        const stake = app.select(stake_module_1.StakeModule).get(stake_analyse_service_1.StakeAnalyseService, { strict: true });
         const walletTxHistory = app
             .select(wallet_tx_history_module_1.WalletTxHistoryModule)
             .get(wallet_tx_history_analyse_service_1.WalletTxHistoryAnalyseService, { strict: true });
-        await smartContract.analyseData();
+        await tx.analyseData();
         await explorer.analyseData();
+        await smartContract.analyseData();
         await wallet.analyseData();
-        await stake.analyseData();
         await nft.analyseData(i);
+        await stake.analyseData();
         await nftStatistics.analyseData();
         await walletTxHistory.analyseData();
         await new Promise((resolve) => setTimeout(resolve, 1000));

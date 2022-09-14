@@ -3,20 +3,21 @@ import { CountEntity } from './count.entity'
 import { TransactionEntity } from './transaction.entity'
 import { BlokcListEntity } from './block-list.entity'
 import { UtilsService, writeFailExcuteLog, writeSucessExcuteLog } from 'src/common/utils.service'
-import { getConnection, QueryRunner } from 'typeorm'
+import { Connection, getConnection, QueryRunner } from 'typeorm'
 import { Injectable, Logger } from '@nestjs/common'
 import { thetaTsSdk } from 'theta-ts-sdk'
 import { THETA_BLOCK_INTERFACE } from 'theta-ts-sdk/dist/types/interface'
 import BigNumber from 'bignumber.js'
 import { THETA_TRANSACTION_TYPE_ENUM } from 'theta-ts-sdk/dist/types/enum'
 import { config } from 'src/const'
+import { InjectConnection } from '@nestjs/typeorm'
 
 const path = require('path')
 // console.log('get path', path.basename(path.resolve(process.cwd())))
 
 @Injectable()
 export class ExplorerAnalyseService {
-  private explorerConnection: QueryRunner
+  private explorerConnectionRunner: QueryRunner
   private readonly logger = new Logger('explorer analyse service')
 
   private heightConfigFile = config.get('ORM_CONFIG')['database'] + 'explorer/record.height'
@@ -26,7 +27,12 @@ export class ExplorerAnalyseService {
   // private transactionCountKey
   // utilsService: any
 
-  constructor(private utilsService: UtilsService) {}
+  constructor(
+    private utilsService: UtilsService,
+    @InjectConnection('explorer') private explorerConnectionInjected: Connection
+  ) {
+    this.utilsService = utilsService
+  }
 
   async getInitHeight(configPath: string): Promise<[Number, Number]> {
     let height: number = 0
@@ -58,14 +64,14 @@ export class ExplorerAnalyseService {
 
   public async analyseData() {
     try {
-      this.explorerConnection = getConnection('explorer').createQueryRunner()
-      await this.explorerConnection.connect()
-      await this.explorerConnection.startTransaction()
+      this.explorerConnectionRunner = this.explorerConnectionInjected.createQueryRunner()
+      // await this.explorerConnectionInjected.connect()
+      await this.explorerConnectionRunner.startTransaction()
       this.transactionNum = 0
       const [startHeight, endHeight] = await this.getInitHeight('explorer')
       if (endHeight == 0) {
-        await this.explorerConnection.commitTransaction()
-        await this.explorerConnection.release()
+        await this.explorerConnectionRunner.commitTransaction()
+        await this.explorerConnectionRunner.release()
         return
       }
       this.logger.debug(
@@ -80,26 +86,29 @@ export class ExplorerAnalyseService {
       for (const block of blockList.result) {
         await this.handleData(block)
       }
-      const tansactionCountEntity = await this.explorerConnection.manager.findOne(CountEntity, {
-        key: TRANSACTION_COUNT_KEY
-      })
+      const tansactionCountEntity = await this.explorerConnectionRunner.manager.findOne(
+        CountEntity,
+        {
+          key: TRANSACTION_COUNT_KEY
+        }
+      )
       if (tansactionCountEntity) {
         tansactionCountEntity.count += this.transactionNum
-        await this.explorerConnection.manager.save(tansactionCountEntity)
+        await this.explorerConnectionRunner.manager.save(tansactionCountEntity)
       } else {
-        await this.explorerConnection.manager.insert(CountEntity, {
+        await this.explorerConnectionRunner.manager.insert(CountEntity, {
           key: TRANSACTION_COUNT_KEY,
           count: this.transactionNum
         })
       }
-      const blockCountEntity = await this.explorerConnection.manager.findOne(CountEntity, {
+      const blockCountEntity = await this.explorerConnectionRunner.manager.findOne(CountEntity, {
         key: BLOCK_COUNT_KEY
       })
       if (blockCountEntity) {
         blockCountEntity.count += blockList.result.length
-        await this.explorerConnection.manager.save(blockCountEntity)
+        await this.explorerConnectionRunner.manager.save(blockCountEntity)
       } else {
-        await this.explorerConnection.manager.insert(CountEntity, {
+        await this.explorerConnectionRunner.manager.insert(CountEntity, {
           key: BLOCK_COUNT_KEY,
           count: blockList.result.length
         })
@@ -111,17 +120,17 @@ export class ExplorerAnalyseService {
           Number(blockList.result[blockList.result.length - 1].height)
         )
       }
-      await this.explorerConnection.commitTransaction()
+      await this.explorerConnectionRunner.commitTransaction()
     } catch (e) {
       this.logger.error(e)
       console.error(e)
       this.logger.debug(JSON.stringify(this.current))
-      await this.explorerConnection.rollbackTransaction()
-      await this.explorerConnection.release()
+      await this.explorerConnectionRunner.rollbackTransaction()
+      await this.explorerConnectionRunner.release()
       writeFailExcuteLog(config.get('EXPLORER.MONITOR_PATH'))
       // return
     } finally {
-      await this.explorerConnection.release()
+      await this.explorerConnectionRunner.release()
       writeSucessExcuteLog(config.get('EXPLORER.MONITOR_PATH'))
     }
     //  let height: number = 0
@@ -199,7 +208,7 @@ export class ExplorerAnalyseService {
       if (config.get('CONFLICT_TRANSACTIONS').indexOf(transaction.hash) !== -1) {
         continue
       } else {
-        await this.explorerConnection.manager.insert(TransactionEntity, {
+        await this.explorerConnectionRunner.manager.insert(TransactionEntity, {
           tx_hash: transaction.hash,
           height: Number(block.height),
           fee: JSON.stringify(transaction.raw.fee),
@@ -215,7 +224,7 @@ export class ExplorerAnalyseService {
       }
     }
     this.transactionNum += block.transactions.length
-    return await this.explorerConnection.manager.insert(BlokcListEntity, {
+    return await this.explorerConnectionRunner.manager.insert(BlokcListEntity, {
       height: Number(block.height),
       block_hash: block.hash,
       timestamp: Number(block.timestamp),

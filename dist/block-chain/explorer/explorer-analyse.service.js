@@ -8,6 +8,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ExplorerAnalyseService = void 0;
 const const_1 = require("./const");
@@ -21,14 +24,17 @@ const theta_ts_sdk_1 = require("theta-ts-sdk");
 const bignumber_js_1 = require("bignumber.js");
 const enum_1 = require("theta-ts-sdk/dist/types/enum");
 const const_2 = require("../../const");
+const typeorm_2 = require("@nestjs/typeorm");
 const path = require('path');
 let ExplorerAnalyseService = class ExplorerAnalyseService {
-    constructor(utilsService) {
+    constructor(utilsService, explorerConnectionInjected) {
         this.utilsService = utilsService;
+        this.explorerConnectionInjected = explorerConnectionInjected;
         this.logger = new common_1.Logger('explorer analyse service');
         this.heightConfigFile = const_2.config.get('ORM_CONFIG')['database'] + 'explorer/record.height';
         this.current = {};
         this.transactionNum = 0;
+        this.utilsService = utilsService;
     }
     async getInitHeight(configPath) {
         let height = 0;
@@ -54,14 +60,13 @@ let ExplorerAnalyseService = class ExplorerAnalyseService {
     }
     async analyseData() {
         try {
-            this.explorerConnection = (0, typeorm_1.getConnection)('explorer').createQueryRunner();
-            await this.explorerConnection.connect();
-            await this.explorerConnection.startTransaction();
+            this.explorerConnectionRunner = this.explorerConnectionInjected.createQueryRunner();
+            await this.explorerConnectionRunner.startTransaction();
             this.transactionNum = 0;
             const [startHeight, endHeight] = await this.getInitHeight('explorer');
             if (endHeight == 0) {
-                await this.explorerConnection.commitTransaction();
-                await this.explorerConnection.release();
+                await this.explorerConnectionRunner.commitTransaction();
+                await this.explorerConnectionRunner.release();
                 return;
             }
             this.logger.debug('start analyse data, start height:' + startHeight + ', end height:' + endHeight);
@@ -70,28 +75,28 @@ let ExplorerAnalyseService = class ExplorerAnalyseService {
             for (const block of blockList.result) {
                 await this.handleData(block);
             }
-            const tansactionCountEntity = await this.explorerConnection.manager.findOne(count_entity_1.CountEntity, {
+            const tansactionCountEntity = await this.explorerConnectionRunner.manager.findOne(count_entity_1.CountEntity, {
                 key: const_1.TRANSACTION_COUNT_KEY
             });
             if (tansactionCountEntity) {
                 tansactionCountEntity.count += this.transactionNum;
-                await this.explorerConnection.manager.save(tansactionCountEntity);
+                await this.explorerConnectionRunner.manager.save(tansactionCountEntity);
             }
             else {
-                await this.explorerConnection.manager.insert(count_entity_1.CountEntity, {
+                await this.explorerConnectionRunner.manager.insert(count_entity_1.CountEntity, {
                     key: const_1.TRANSACTION_COUNT_KEY,
                     count: this.transactionNum
                 });
             }
-            const blockCountEntity = await this.explorerConnection.manager.findOne(count_entity_1.CountEntity, {
+            const blockCountEntity = await this.explorerConnectionRunner.manager.findOne(count_entity_1.CountEntity, {
                 key: const_1.BLOCK_COUNT_KEY
             });
             if (blockCountEntity) {
                 blockCountEntity.count += blockList.result.length;
-                await this.explorerConnection.manager.save(blockCountEntity);
+                await this.explorerConnectionRunner.manager.save(blockCountEntity);
             }
             else {
-                await this.explorerConnection.manager.insert(count_entity_1.CountEntity, {
+                await this.explorerConnectionRunner.manager.insert(count_entity_1.CountEntity, {
                     key: const_1.BLOCK_COUNT_KEY,
                     count: blockList.result.length
                 });
@@ -99,18 +104,18 @@ let ExplorerAnalyseService = class ExplorerAnalyseService {
             if (blockList.result.length > 0) {
                 this.utilsService.updateRecordHeight(this.heightConfigFile, Number(blockList.result[blockList.result.length - 1].height));
             }
-            await this.explorerConnection.commitTransaction();
+            await this.explorerConnectionRunner.commitTransaction();
         }
         catch (e) {
             this.logger.error(e);
             console.error(e);
             this.logger.debug(JSON.stringify(this.current));
-            await this.explorerConnection.rollbackTransaction();
-            await this.explorerConnection.release();
+            await this.explorerConnectionRunner.rollbackTransaction();
+            await this.explorerConnectionRunner.release();
             (0, utils_service_1.writeFailExcuteLog)(const_2.config.get('EXPLORER.MONITOR_PATH'));
         }
         finally {
-            await this.explorerConnection.release();
+            await this.explorerConnectionRunner.release();
             (0, utils_service_1.writeSucessExcuteLog)(const_2.config.get('EXPLORER.MONITOR_PATH'));
         }
     }
@@ -180,7 +185,7 @@ let ExplorerAnalyseService = class ExplorerAnalyseService {
                 continue;
             }
             else {
-                await this.explorerConnection.manager.insert(transaction_entity_1.TransactionEntity, {
+                await this.explorerConnectionRunner.manager.insert(transaction_entity_1.TransactionEntity, {
                     tx_hash: transaction.hash,
                     height: Number(block.height),
                     fee: JSON.stringify(transaction.raw.fee),
@@ -196,7 +201,7 @@ let ExplorerAnalyseService = class ExplorerAnalyseService {
             }
         }
         this.transactionNum += block.transactions.length;
-        return await this.explorerConnection.manager.insert(block_list_entity_1.BlokcListEntity, {
+        return await this.explorerConnectionRunner.manager.insert(block_list_entity_1.BlokcListEntity, {
             height: Number(block.height),
             block_hash: block.hash,
             timestamp: Number(block.timestamp),
@@ -207,7 +212,9 @@ let ExplorerAnalyseService = class ExplorerAnalyseService {
 };
 ExplorerAnalyseService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [utils_service_1.UtilsService])
+    __param(1, (0, typeorm_2.InjectConnection)('explorer')),
+    __metadata("design:paramtypes", [utils_service_1.UtilsService,
+        typeorm_1.Connection])
 ], ExplorerAnalyseService);
 exports.ExplorerAnalyseService = ExplorerAnalyseService;
 //# sourceMappingURL=explorer-analyse.service.js.map

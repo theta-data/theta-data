@@ -23,7 +23,7 @@ const nft_transfer_record_entity_1 = require("./nft-transfer-record.entity");
 const cross_fetch_1 = require("cross-fetch");
 const utils_service_1 = require("../../../common/utils.service");
 const bignumber_js_1 = require("bignumber.js");
-const config = require('config');
+const const_1 = require("../../../const");
 let NftService = class NftService {
     constructor(nftTransferRecordRepository, nftBalanceRepository, smartContractCallRecordRepository, smartContractRepository, utilsService) {
         this.nftTransferRecordRepository = nftTransferRecordRepository;
@@ -31,7 +31,7 @@ let NftService = class NftService {
         this.smartContractCallRecordRepository = smartContractCallRecordRepository;
         this.smartContractRepository = smartContractRepository;
         this.utilsService = utilsService;
-        this.logger = new common_1.Logger();
+        this.logger = new common_1.Logger('nft service');
     }
     async parseRecordByContractAddress(contractAddress) {
         const contract = await this.smartContractRepository.findOne({
@@ -221,7 +221,7 @@ let NftService = class NftService {
                         if (hasBaseTokenUri) {
                             baseTokenUri = await this.getBaseTokenUri(logContract.contract_address, abiInfo);
                         }
-                        imgUri = await this.utilsService.downloadImage(imgUri, config.get('NFT.STATIC_PATH'));
+                        imgUri = await this.utilsService.downloadImage(imgUri, const_1.config.get('NFT.STATIC_PATH'));
                         await nftConnection.manager.insert(nft_balance_entity_1.NftBalanceEntity, {
                             smart_contract_address: logContract.contract_address,
                             owner: log.decode.result.to.toLowerCase(),

@@ -1,34 +1,38 @@
 import { TransactionEntity } from './../explorer/transaction.entity'
 import { Injectable, Logger } from '@nestjs/common'
 import { UtilsService, writeFailExcuteLog, writeSucessExcuteLog } from 'src/common/utils.service'
-import { getConnection, MoreThan, QueryRunner } from 'typeorm'
+import { Connection, getConnection, MoreThan, QueryRunner } from 'typeorm'
 import { THETA_TRANSACTION_TYPE_ENUM } from '../tx/theta.enum'
 import { WalletTxHistoryEntity } from './wallet-tx-history.entity'
-import { id } from 'ethers/lib/utils'
 import { config } from 'src/const'
+import { InjectConnection } from '@nestjs/typeorm'
 const fs = require('fs')
 @Injectable()
 export class WalletTxHistoryAnalyseService {
   private readonly logger = new Logger('wallet tx history analyse service')
-  private walletConnection: QueryRunner
-  private explorerConnection: QueryRunner
-  private walletTxHistoryConnection: QueryRunner
+  private walletConnectionRunner: QueryRunner
+  private explorerConnectionRunner: QueryRunner
+  private walletTxHistoryConnectionRunner: QueryRunner
   private heightConfigFile =
     config.get('ORM_CONFIG')['database'] + 'wallet-tx-history/record.height'
 
-  constructor(private utilsService: UtilsService) {}
+  constructor(
+    private utilsService: UtilsService,
+    @InjectConnection('wallet') private walletConnectionInjected: Connection,
+    @InjectConnection('explorer') private explorerConnectionInjected: Connection,
+    @InjectConnection('wallet-tx-history') private walletTxHistoryConnectionInjected: Connection
+  ) {}
 
   public async analyseData() {
     try {
       // console.log(config.get('NFT_STATISTICS.ANALYSE_NUMBER'))
       this.logger.debug('start analyse')
-      this.walletConnection = getConnection('wallet').createQueryRunner()
-      this.explorerConnection = getConnection('explorer').createQueryRunner()
-      this.walletTxHistoryConnection = getConnection('wallet-tx-history').createQueryRunner()
-      await this.walletConnection.connect()
-      await this.explorerConnection.connect()
-      await this.walletTxHistoryConnection.connect()
-      await this.walletTxHistoryConnection.startTransaction()
+      this.walletConnectionRunner = this.walletConnectionInjected.createQueryRunner()
+      this.explorerConnectionRunner = this.explorerConnectionInjected.createQueryRunner()
+      this.walletTxHistoryConnectionRunner =
+        this.walletTxHistoryConnectionInjected.createQueryRunner()
+
+      await this.walletTxHistoryConnectionRunner.startTransaction()
       let startId: number = 0
       if (!fs.existsSync(this.heightConfigFile)) {
         fs.writeFileSync(this.heightConfigFile, '0')
@@ -38,7 +42,7 @@ export class WalletTxHistoryAnalyseService {
           startId = Number(data)
         }
       }
-      const txRecords = await this.explorerConnection.manager.find(TransactionEntity, {
+      const txRecords = await this.explorerConnectionRunner.manager.find(TransactionEntity, {
         where: {
           id: MoreThan(startId)
         },
@@ -54,7 +58,7 @@ export class WalletTxHistoryAnalyseService {
       await this.updateWalletTxHistory(walletToUpdates)
       this.logger.debug('update wallet end')
       // await this.downloadAllImg()
-      await this.walletTxHistoryConnection.commitTransaction()
+      await this.walletTxHistoryConnectionRunner.commitTransaction()
 
       // try {
       if (txRecords.length > 0) {
@@ -68,10 +72,10 @@ export class WalletTxHistoryAnalyseService {
       console.error(e.message)
       this.logger.error(e.message)
       this.logger.error('rollback')
-      await this.walletTxHistoryConnection.rollbackTransaction()
+      await this.walletTxHistoryConnectionRunner.rollbackTransaction()
       writeFailExcuteLog(config.get('WALLET-TX-HISTORY.MONITOR_PATH'))
     } finally {
-      await this.walletTxHistoryConnection.release()
+      await this.walletTxHistoryConnectionRunner.release()
       this.logger.debug('end analyse')
       this.logger.debug('release success')
       writeSucessExcuteLog(config.get('WALLET-TX-HISTORY.MONITOR_PATH'))
@@ -115,19 +119,19 @@ export class WalletTxHistoryAnalyseService {
   async updateWalletTxHistory(walletsToupdate: { [index: string]: Array<string> }) {
     const wallets = Object.keys(walletsToupdate)
     for (const wallet of wallets) {
-      const tx = await this.walletTxHistoryConnection.manager.findOne(WalletTxHistoryEntity, {
+      const tx = await this.walletTxHistoryConnectionRunner.manager.findOne(WalletTxHistoryEntity, {
         where: { wallet: wallet }
       })
       if (tx) {
         tx.tx_ids = JSON.stringify([
           ...new Set([...JSON.parse(tx.tx_ids), ...walletsToupdate[wallet]])
         ])
-        await this.walletTxHistoryConnection.manager.save(tx)
+        await this.walletTxHistoryConnectionRunner.manager.save(tx)
       } else {
         const newTx = new WalletTxHistoryEntity()
         newTx.wallet = wallet
         newTx.tx_ids = JSON.stringify(walletsToupdate[wallet])
-        await this.walletTxHistoryConnection.manager.save(newTx)
+        await this.walletTxHistoryConnectionRunner.manager.save(newTx)
       }
     }
   }

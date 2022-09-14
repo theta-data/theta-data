@@ -8,6 +8,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.StakeAnalyseService = void 0;
 const latest_stake_info_entity_1 = require("./latest-stake-info.entity");
@@ -21,10 +24,12 @@ const stake_reward_entity_1 = require("../../block-chain/stake/stake-reward.enti
 const utils_service_1 = require("../../common/utils.service");
 const stake_entity_1 = require("./stake.entity");
 const const_1 = require("../../const");
+const typeorm_2 = require("@nestjs/typeorm");
 const moment = require('moment');
 let StakeAnalyseService = class StakeAnalyseService {
-    constructor(utilsService) {
+    constructor(utilsService, stakeConnectionInjected) {
         this.utilsService = utilsService;
+        this.stakeConnectionInjected = stakeConnectionInjected;
         this.logger = new common_1.Logger('stake analyse service');
         this.analyseKey = 'under_analyse';
         this.counter = 0;
@@ -33,9 +38,8 @@ let StakeAnalyseService = class StakeAnalyseService {
     }
     async analyseData() {
         try {
-            this.stakeConnection = (0, typeorm_1.getConnection)('stake').createQueryRunner();
-            await this.stakeConnection.connect();
-            await this.stakeConnection.startTransaction();
+            this.stakeConnectionRunner = this.stakeConnectionInjected.createQueryRunner();
+            await this.stakeConnectionRunner.startTransaction();
             let height = 0;
             const lastfinalizedHeight = Number((await theta_ts_sdk_1.thetaTsSdk.blockchain.getStatus()).result.latest_finalized_block_height);
             height = lastfinalizedHeight - 1000;
@@ -47,7 +51,7 @@ let StakeAnalyseService = class StakeAnalyseService {
             if (height >= lastfinalizedHeight) {
                 this.logger.debug('commit success');
                 this.logger.debug('no height to analyse');
-                return await this.stakeConnection.commitTransaction();
+                return await this.stakeConnectionRunner.commitTransaction();
             }
             let endHeight = lastfinalizedHeight;
             const analyseNumber = const_1.config.get('STAKE.ANALYSE_NUMBER');
@@ -59,7 +63,7 @@ let StakeAnalyseService = class StakeAnalyseService {
             this.logger.debug('block list length:' + blockList.result.length);
             this.counter = blockList.result.length;
             this.logger.debug('init counter', this.counter);
-            const lastAnalyseHeight = await this.stakeConnection.manager.findOne(stake_reward_entity_1.StakeRewardEntity, {
+            const lastAnalyseHeight = await this.stakeConnectionRunner.manager.findOne(stake_reward_entity_1.StakeRewardEntity, {
                 order: {
                     id: 'DESC'
                 }
@@ -74,7 +78,7 @@ let StakeAnalyseService = class StakeAnalyseService {
                 await this.handleOrderCreatedEvent(block, lastfinalizedHeight);
             }
             this.logger.debug('start update calltimes by period');
-            await this.stakeConnection.commitTransaction();
+            await this.stakeConnectionRunner.commitTransaction();
             this.logger.debug('commit success');
             this.utilsService.updateRecordHeight(this.heightConfigFile, Number(blockList.result[blockList.result.length - 1].height));
             (0, utils_service_1.writeSucessExcuteLog)(const_1.config.get('STAKE.MONITOR_PATH'));
@@ -83,11 +87,11 @@ let StakeAnalyseService = class StakeAnalyseService {
             console.error(e.message);
             this.logger.error(e.message);
             this.logger.error('rollback');
-            await this.stakeConnection.rollbackTransaction();
+            await this.stakeConnectionRunner.rollbackTransaction();
             (0, utils_service_1.writeFailExcuteLog)(const_1.config.get('STAKE.MONITOR_PATH'));
         }
         finally {
-            await this.stakeConnection.release();
+            await this.stakeConnectionRunner.release();
             this.logger.debug('release success');
         }
     }
@@ -108,11 +112,11 @@ let StakeAnalyseService = class StakeAnalyseService {
                             timestamp: Number(block.timestamp)
                         });
                         if (transacitonToBeUpserted.length > 900) {
-                            await this.stakeConnection.manager.insert(stake_reward_entity_1.StakeRewardEntity, transacitonToBeUpserted);
+                            await this.stakeConnectionRunner.manager.insert(stake_reward_entity_1.StakeRewardEntity, transacitonToBeUpserted);
                             transacitonToBeUpserted.length = 0;
                         }
                     }
-                    await this.stakeConnection.manager.insert(stake_reward_entity_1.StakeRewardEntity, transacitonToBeUpserted);
+                    await this.stakeConnectionRunner.manager.insert(stake_reward_entity_1.StakeRewardEntity, transacitonToBeUpserted);
                     this.logger.debug(height + ' end upsert stake reward');
                     break;
                 default:
@@ -141,7 +145,7 @@ let StakeAnalyseService = class StakeAnalyseService {
             if (!eenpRes)
                 return;
             const [eenpTotalNodeNum, eenpEffectiveNodeNum, eenpTotalTfWei, eenpEffectiveTfWei] = eenpRes;
-            let res = await this.stakeConnection.manager.findOne(stake_statistics_entity_1.StakeStatisticsEntity, {
+            let res = await this.stakeConnectionRunner.manager.findOne(stake_statistics_entity_1.StakeStatisticsEntity, {
                 block_height: Number(block.height)
             });
             if (!res) {
@@ -165,7 +169,7 @@ let StakeAnalyseService = class StakeAnalyseService {
                 };
                 this.logger.debug('insert stake statistics info', JSON.stringify(stakeStatisticsInfo));
                 try {
-                    return await this.stakeConnection.manager.insert(stake_statistics_entity_1.StakeStatisticsEntity, stakeStatisticsInfo);
+                    return await this.stakeConnectionRunner.manager.insert(stake_statistics_entity_1.StakeStatisticsEntity, stakeStatisticsInfo);
                 }
                 catch (e) {
                     this.logger.error('insert stake statistics error:' + JSON.stringify(e));
@@ -187,18 +191,18 @@ let StakeAnalyseService = class StakeAnalyseService {
             this.logger.error('no validator BlockHashVcpPairs');
             return false;
         }
-        const latestVa = await this.stakeConnection.manager.findOne(latest_stake_info_entity_1.LatestStakeInfoEntity, {
+        const latestVa = await this.stakeConnectionRunner.manager.findOne(latest_stake_info_entity_1.LatestStakeInfoEntity, {
             node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.validator
         });
         if (!latestVa) {
-            await this.stakeConnection.manager.insert(latest_stake_info_entity_1.LatestStakeInfoEntity, {
+            await this.stakeConnectionRunner.manager.insert(latest_stake_info_entity_1.LatestStakeInfoEntity, {
                 height: Number(block.height),
                 node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.validator,
                 holder: JSON.stringify(validatorList)
             });
         }
         else {
-            await this.stakeConnection.manager.update(latest_stake_info_entity_1.LatestStakeInfoEntity, {
+            await this.stakeConnectionRunner.manager.update(latest_stake_info_entity_1.LatestStakeInfoEntity, {
                 node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.validator
             }, {
                 height: Number(block.height),
@@ -229,18 +233,18 @@ let StakeAnalyseService = class StakeAnalyseService {
             this.logger.error('no guardian BlockHashVcpPairs');
             return false;
         }
-        const latestGn = await this.stakeConnection.manager.findOne(latest_stake_info_entity_1.LatestStakeInfoEntity, {
+        const latestGn = await this.stakeConnectionRunner.manager.findOne(latest_stake_info_entity_1.LatestStakeInfoEntity, {
             node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.guardian
         });
         if (!latestGn) {
-            await this.stakeConnection.manager.insert(latest_stake_info_entity_1.LatestStakeInfoEntity, {
+            await this.stakeConnectionRunner.manager.insert(latest_stake_info_entity_1.LatestStakeInfoEntity, {
                 height: Number(block.height),
                 node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.guardian,
                 holder: JSON.stringify(gcpList)
             });
         }
         else {
-            await this.stakeConnection.manager.update(latest_stake_info_entity_1.LatestStakeInfoEntity, { node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.guardian }, {
+            await this.stakeConnectionRunner.manager.update(latest_stake_info_entity_1.LatestStakeInfoEntity, { node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.guardian }, {
                 height: Number(block.height),
                 node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.guardian,
                 holder: JSON.stringify(gcpList)
@@ -274,18 +278,18 @@ let StakeAnalyseService = class StakeAnalyseService {
             this.logger.error('no guardian BlockHashVcpPairs');
             return false;
         }
-        const een = await this.stakeConnection.manager.findOne(latest_stake_info_entity_1.LatestStakeInfoEntity, {
+        const een = await this.stakeConnectionRunner.manager.findOne(latest_stake_info_entity_1.LatestStakeInfoEntity, {
             node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.edge_cache
         });
         if (!een) {
-            await this.stakeConnection.manager.insert(latest_stake_info_entity_1.LatestStakeInfoEntity, {
+            await this.stakeConnectionRunner.manager.insert(latest_stake_info_entity_1.LatestStakeInfoEntity, {
                 height: Number(block.height),
                 node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.edge_cache,
                 holder: JSON.stringify(eenpList)
             });
         }
         else {
-            await this.stakeConnection.manager.update(latest_stake_info_entity_1.LatestStakeInfoEntity, { node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.edge_cache }, {
+            await this.stakeConnectionRunner.manager.update(latest_stake_info_entity_1.LatestStakeInfoEntity, { node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.edge_cache }, {
                 height: Number(block.height),
                 node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.edge_cache,
                 holder: JSON.stringify(eenpList)
@@ -312,7 +316,9 @@ let StakeAnalyseService = class StakeAnalyseService {
 };
 StakeAnalyseService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [utils_service_1.UtilsService])
+    __param(1, (0, typeorm_2.InjectConnection)('stake')),
+    __metadata("design:paramtypes", [utils_service_1.UtilsService,
+        typeorm_1.Connection])
 ], StakeAnalyseService);
 exports.StakeAnalyseService = StakeAnalyseService;
 //# sourceMappingURL=stake-analyse.service.js.map
