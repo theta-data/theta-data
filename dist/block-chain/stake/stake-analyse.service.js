@@ -66,7 +66,8 @@ let StakeAnalyseService = class StakeAnalyseService {
             const lastAnalyseHeight = await this.stakeConnectionRunner.manager.findOne(stake_reward_entity_1.StakeRewardEntity, {
                 order: {
                     id: 'DESC'
-                }
+                },
+                where: { id: (0, typeorm_1.MoreThan)(0) }
             });
             for (let i = 0; i < blockList.result.length; i++) {
                 const block = blockList.result[i];

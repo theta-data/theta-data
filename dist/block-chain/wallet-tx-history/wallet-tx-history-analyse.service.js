@@ -53,7 +53,7 @@ let WalletTxHistoryAnalyseService = class WalletTxHistoryAnalyseService {
                 where: {
                     id: (0, typeorm_1.MoreThan)(startId)
                 },
-                take: const_1.config.get('WALLET-TX-HISTORY.ANALYSE_NUMBER'),
+                take: const_1.config.get('WWALLET_TX_HISTORY.ANALYSE_NUMBER'),
                 order: { id: 'ASC' }
             });
             const walletToUpdates = {};
@@ -75,13 +75,13 @@ let WalletTxHistoryAnalyseService = class WalletTxHistoryAnalyseService {
             this.logger.error(e.message);
             this.logger.error('rollback');
             await this.walletTxHistoryConnectionRunner.rollbackTransaction();
-            (0, utils_service_1.writeFailExcuteLog)(const_1.config.get('WALLET-TX-HISTORY.MONITOR_PATH'));
+            (0, utils_service_1.writeFailExcuteLog)(const_1.config.get('WALLET_TX_HISTORY.MONITOR_PATH'));
         }
         finally {
             await this.walletTxHistoryConnectionRunner.release();
             this.logger.debug('end analyse');
             this.logger.debug('release success');
-            (0, utils_service_1.writeSucessExcuteLog)(const_1.config.get('WALLET-TX-HISTORY.MONITOR_PATH'));
+            (0, utils_service_1.writeSucessExcuteLog)(const_1.config.get('WALLET_TX_HISTORY.MONITOR_PATH'));
         }
     }
     async addWallet(record, walletsToupdate) {

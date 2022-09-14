@@ -72,7 +72,8 @@ export class StakeAnalyseService {
         {
           order: {
             id: 'DESC'
-          }
+          },
+          where: { id: MoreThan(0) }
         }
       )
       for (let i = 0; i < blockList.result.length; i++) {
