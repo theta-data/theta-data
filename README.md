@@ -142,63 +142,29 @@ It is also worth mentioning that Theta Data only returns the data you specify in
 
 ## Run Theta Data
 
-### Clone
+### Install
 ```bash
-git clone https://github.com/theta-data/theta-data-api.git
+npm i theta-data
 ```
 
-### Installation
-
-```bash
-cd theta-data-api
-npm install
+### Run Analyse Server
+```javascript
+const thetaData = require("theta-data");
+thetaData.analyse();
 ```
 
-
-### Running the analyse server
-```bash
-# graphql api development
-npm run analyse
+### Running The Graphql Api Server
+```javascript
+const thetaData = require("theta-data");
+thetaData.serve();
 ```
 
-### Running the graphql api server
+### PlayGround
 
-```bash
-# graphql api development
-npm run start
-
-```
-
-## PlayGround
-
-you can then open your web browser and navigate to http://localhost:3000 (host and port may vary depending on your configuration). You will then see the GraphQL playground.
+After running the graphql api server.You can then open your web browser and navigate to http://localhost:3000 (host and port may vary depending on your configuration). You will then see the GraphQL playground.
 
 ![avatar](https://github.com/larryro/image/blob/main/playground_20211101112605.png?raw=true)
 
-<!-- ## Test
-
-```bash
-$ npm run test
-``` -->
-
-## Deploy
-
-### Build
-```bash
-# build
-npm run build
-```
-
-### Run analyse server
-```
-node dist/analyse/index
-```
-
-### Run analyse server
-open another terminal
-```
-node dist/main
-```
 
 ## Links
 * Playground - [Playground](http://playground.thetadata.io/)
