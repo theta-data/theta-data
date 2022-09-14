@@ -177,4 +177,4 @@ contact@thetadata.io
 
 ## License
 
-The Theta Data Api is licensed under the [MIT License](https://opensource.org/licenses/MIT).
+Theta Data  is licensed under the [MIT License](https://opensource.org/licenses/MIT).
