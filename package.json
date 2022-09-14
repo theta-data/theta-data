@@ -1,9 +1,9 @@
 {
   "name": "theta-data",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "",
   "author": "larry",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",
@@ -100,5 +100,9 @@
       "node": ">=14.16"
     }
   },
-  "main": "dist/index.js"
+  "main": "dist/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/theta-data/theta-data"
+  }
 }
