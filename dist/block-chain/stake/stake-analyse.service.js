@@ -146,7 +146,7 @@ let StakeAnalyseService = class StakeAnalyseService {
                 return;
             const [eenpTotalNodeNum, eenpEffectiveNodeNum, eenpTotalTfWei, eenpEffectiveTfWei] = eenpRes;
             let res = await this.stakeConnectionRunner.manager.findOne(stake_statistics_entity_1.StakeStatisticsEntity, {
-                block_height: Number(block.height)
+                where: { block_height: Number(block.height) }
             });
             if (!res) {
                 const stakeStatisticsInfo = {
@@ -192,7 +192,7 @@ let StakeAnalyseService = class StakeAnalyseService {
             return false;
         }
         const latestVa = await this.stakeConnectionRunner.manager.findOne(latest_stake_info_entity_1.LatestStakeInfoEntity, {
-            node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.validator
+            where: { node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.validator }
         });
         if (!latestVa) {
             await this.stakeConnectionRunner.manager.insert(latest_stake_info_entity_1.LatestStakeInfoEntity, {
@@ -234,7 +234,7 @@ let StakeAnalyseService = class StakeAnalyseService {
             return false;
         }
         const latestGn = await this.stakeConnectionRunner.manager.findOne(latest_stake_info_entity_1.LatestStakeInfoEntity, {
-            node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.guardian
+            where: { node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.guardian }
         });
         if (!latestGn) {
             await this.stakeConnectionRunner.manager.insert(latest_stake_info_entity_1.LatestStakeInfoEntity, {
@@ -279,7 +279,7 @@ let StakeAnalyseService = class StakeAnalyseService {
             return false;
         }
         const een = await this.stakeConnectionRunner.manager.findOne(latest_stake_info_entity_1.LatestStakeInfoEntity, {
-            node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.edge_cache
+            where: { node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.edge_cache }
         });
         if (!een) {
             await this.stakeConnectionRunner.manager.insert(latest_stake_info_entity_1.LatestStakeInfoEntity, {

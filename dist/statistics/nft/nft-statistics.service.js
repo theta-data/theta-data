@@ -126,7 +126,7 @@ let NftStatisticsService = class NftStatisticsService {
         if (search) {
             totalNftCondition['name'] = (0, typeorm_2.Like)('%' + search + '%');
         }
-        const totalNft = await this.nftStatisticsRepository.count(totalNftCondition);
+        const totalNft = await this.nftStatisticsRepository.count({ where: totalNftCondition });
         let nftList = await this.nftStatisticsRepository.find(condition);
         let hasNextPage = false;
         if (nftList.length > take) {
@@ -356,7 +356,7 @@ let NftStatisticsService = class NftStatisticsService {
     }
     async isNftExist(name) {
         return await this.nftStatisticsRepository.findOne({
-            name: (0, typeorm_2.Like)(`%${name}%`)
+            where: { name: (0, typeorm_2.Like)(`%${name}%`) }
         });
     }
 };

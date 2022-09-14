@@ -43,7 +43,7 @@ let ExplorerService = class ExplorerService {
             condition.where[height] = (0, typeorm_2.LessThan)(height);
         }
         const totalBlock = (await this.countRepository.findOne({
-            key: const_1.BLOCK_COUNT_KEY
+            where: { key: const_1.BLOCK_COUNT_KEY }
         })).count;
         let blockList = await this.blockListRepository.find(condition);
         let hasNextPage = false;
@@ -73,12 +73,14 @@ let ExplorerService = class ExplorerService {
         let totalBlock = 0;
         if (blockHeight) {
             totalBlock = await this.transactionRepository.count({
-                height: blockHeight
+                where: {
+                    height: blockHeight
+                }
             });
         }
         else {
             totalBlock = (await this.countRepository.findOne({
-                key: const_1.TRANSACTION_COUNT_KEY
+                where: { key: const_1.TRANSACTION_COUNT_KEY }
             })).count;
         }
         let blockList = await this.transactionRepository.find(condition);
@@ -91,7 +93,7 @@ let ExplorerService = class ExplorerService {
     }
     async getBlockInfo(heightOrHash) {
         return await this.blockListRepository.findOne({
-            where: [{ height: heightOrHash }, { block_hash: heightOrHash }]
+            where: [{ height: Number(heightOrHash) }, { block_hash: String(heightOrHash) }]
         });
     }
     async getTransactionInfo(hash) {

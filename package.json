@@ -1,6 +1,6 @@
 {
   "name": "theta-data",
-  "version": "0.0.99",
+  "version": "0.1.2",
   "description": "",
   "author": "larry",
   "license": "UNLICENSED",
@@ -21,6 +21,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "typeorm": "0.3.9",
     "@nestjs/apollo": "^10.0.6",
     "@nestjs/common": "^8.0.0",
     "@nestjs/core": "^8.0.0",
@@ -51,8 +52,7 @@
     "rxjs": "^7.2.0",
     "solc": "^0.8.17",
     "sqlite3": "^5.0.2",
-    "theta-ts-sdk": "^0.2.79",
-    "typeorm": "0.2.44"
+    "theta-ts-sdk": "^0.2.79"
   },
   "devDependencies": {
     "@nestjs/cli": "^8.0.0",

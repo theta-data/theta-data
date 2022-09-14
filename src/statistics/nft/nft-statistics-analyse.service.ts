@@ -158,7 +158,7 @@ export class NftStatisticsAnalyseService {
     const smartContract = await this.smartContractConnectionRunner.manager.findOne(
       SmartContractEntity,
       {
-        contract_address: smartContractAddress
+        where: { contract_address: smartContractAddress }
       }
     )
     if (!smartContract || smartContract.protocol !== SmartContractProtocolEnum.tnt721) {
@@ -191,8 +191,10 @@ export class NftStatisticsAnalyseService {
     // }
 
     const recordList = await this.nftConnectionRunner.manager.find(NftTransferRecordEntity, {
-      smart_contract_address: smartContractAddress,
-      timestamp: MoreThan(moment().subtract(30, 'days').unix())
+      where: {
+        smart_contract_address: smartContractAddress,
+        timestamp: MoreThan(moment().subtract(30, 'days').unix())
+      }
     })
 
     const users24H: Array<string> = []
@@ -317,7 +319,7 @@ export class NftStatisticsAnalyseService {
       }
     }
     const nft = await this.nftStatisticsConnectionRunner.manager.findOne(NftStatisticsEntity, {
-      smart_contract_address: smartContractAddress
+      where: { smart_contract_address: smartContractAddress }
     })
     if (!nft) {
       const nftStatistics = new NftStatisticsEntity()
@@ -461,7 +463,7 @@ export class NftStatisticsAnalyseService {
     for (const logo of nftLogoConfig) {
       if (logo.length < 2) continue
       const nft = await this.nftStatisticsConnectionRunner.manager.findOne(NftStatisticsEntity, {
-        smart_contract_address: logo[0].toLowerCase()
+        where: { smart_contract_address: logo[0].toLowerCase() }
       })
       if (nft) {
         const imgUri = await this.utilsService.getPath(
