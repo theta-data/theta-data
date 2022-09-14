@@ -87,26 +87,32 @@ let SmartContractService = class SmartContractService {
     async getOrAddSmartContract(contractAddress, height) {
         await this.smartContractRepository.query(`INSERT INTO smart_contract_entity(contract_address,height) VALUES ('${contractAddress}',${height})  ON CONFLICT (contract_address) DO UPDATE set call_times=call_times+1;`);
         return await this.smartContractRepository.findOne({
-            contract_address: contractAddress
+            where: { contract_address: contractAddress }
         });
     }
     async updateCallTimesByPeriod() {
         let smartContractList = await this.smartContractRepository.find();
         for (const contract of smartContractList) {
             contract.last_24h_call_times = await this.smartContractRecordRepository.count({
-                timestamp: (0, typeorm_2.MoreThan)(moment().subtract(24, 'hours').unix()),
-                contract_id: contract.id
+                where: {
+                    timestamp: (0, typeorm_2.MoreThan)(moment().subtract(24, 'hours').unix()),
+                    contract_id: contract.id
+                }
             });
             contract.last_seven_days_call_times = await this.smartContractRecordRepository.count({
-                timestamp: (0, typeorm_2.MoreThan)(moment().subtract(7, 'days').unix()),
-                contract_id: contract.id
+                where: {
+                    timestamp: (0, typeorm_2.MoreThan)(moment().subtract(7, 'days').unix()),
+                    contract_id: contract.id
+                }
             });
             await this.smartContractRepository.save(contract);
         }
     }
     async verifySmartContract(address, sourceCode, byteCode, version, versionFullName, optimizer, optimizerRuns) {
         let contract = await this.smartContractRepository.findOne({
-            contract_address: address
+            where: {
+                contract_address: address
+            }
         });
         if (!contract) {
             contract = new smart_contract_entity_1.SmartContractEntity();
@@ -234,7 +240,7 @@ let SmartContractService = class SmartContractService {
     }
     async directVerifySmartContract(address, sourceCode, byteCode, optimizer, optimizerRuns, verificationDate, compilerVersion, name, functionHash, constructorArguments, abi) {
         let contract = await this.smartContractRepository.findOne({
-            contract_address: address
+            where: { contract_address: address }
         });
         if (contract.verified)
             return contract;

@@ -90,7 +90,7 @@ let WalletService = class WalletService {
         const eenpStake = [];
         const vcpStake = [];
         const gcpRes = await this.latestStakeInfoRepository.findOne({
-            node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.guardian
+            where: { node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.guardian }
         });
         const gcpList = JSON.parse(gcpRes.holder);
         const thetaPrice = await this.marketInfo.getPrice('theta');
@@ -118,7 +118,7 @@ let WalletService = class WalletService {
             });
         });
         const eenpRes = await this.latestStakeInfoRepository.findOne({
-            node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.edge_cache
+            where: { node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.edge_cache }
         });
         const eenpList = JSON.parse(eenpRes.holder);
         eenpList.result.BlockHashEenpPairs[0].EENs.forEach((een) => {
@@ -143,7 +143,7 @@ let WalletService = class WalletService {
             });
         });
         const vaRes = await this.latestStakeInfoRepository.findOne({
-            node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.validator
+            where: { node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.validator }
         });
         const validatorList = JSON.parse(vaRes.holder);
         validatorList.result.BlockHashVcpPairs[0].Vcp.SortedCandidates.forEach((vcp) => {
@@ -253,12 +253,12 @@ let WalletService = class WalletService {
     }
     async getActiveWallet(startTime) {
         return await this.activeWalletsRepository.find({
-            snapshot_time: (0, typeorm_2.MoreThan)(startTime)
+            where: { snapshot_time: (0, typeorm_2.MoreThan)(startTime) }
         });
     }
     async getWalletByAddress(address) {
         return await this.walletRepository.findOne({
-            address: address.toLowerCase()
+            where: { address: address.toLowerCase() }
         });
     }
 };

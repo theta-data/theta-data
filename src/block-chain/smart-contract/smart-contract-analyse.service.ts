@@ -69,7 +69,8 @@ export class SmartContractAnalyseService {
         {
           order: {
             height: 'DESC'
-          }
+          },
+          where: {}
         }
       )
       const latestRecordHeight = latestRecord ? latestRecord.height : 0
@@ -147,7 +148,7 @@ export class SmartContractAnalyseService {
           const smartContract = await this.smartContractConnectionRunner.manager.findOne(
             SmartContractEntity,
             {
-              contract_address: transaction.receipt.ContractAddress
+              where: { contract_address: transaction.receipt.ContractAddress }
             }
           )
           if (
@@ -255,21 +256,27 @@ export class SmartContractAnalyseService {
     this.logger.debug('start update call times by period')
     // if (config.get('IGNORE')) return false
     const contract = await this.smartContractConnectionRunner.manager.findOne(SmartContractEntity, {
-      contract_address: contractAddress
+      where: {
+        contract_address: contractAddress
+      }
     })
 
     contract.last_24h_call_times = await this.smartContractConnectionRunner.manager.count(
       SmartContractCallRecordEntity,
       {
-        timestamp: MoreThan(moment().subtract(24, 'hours').unix()),
-        contract_id: contract.id
+        where: {
+          timestamp: MoreThan(moment().subtract(24, 'hours').unix()),
+          contract_id: contract.id
+        }
       }
     )
     contract.last_seven_days_call_times = await this.smartContractConnectionRunner.manager.count(
       SmartContractCallRecordEntity,
       {
-        timestamp: MoreThan(moment().subtract(7, 'days').unix()),
-        contract_id: contract.id
+        where: {
+          timestamp: MoreThan(moment().subtract(7, 'days').unix()),
+          contract_id: contract.id
+        }
       }
     )
     await this.smartContractConnectionRunner.manager.save(contract)

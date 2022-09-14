@@ -90,7 +90,7 @@ export class SmartContractService {
       `INSERT INTO smart_contract_entity(contract_address,height) VALUES ('${contractAddress}',${height})  ON CONFLICT (contract_address) DO UPDATE set call_times=call_times+1;`
     )
     return await this.smartContractRepository.findOne({
-      contract_address: contractAddress
+      where: { contract_address: contractAddress }
     })
   }
 
@@ -99,12 +99,16 @@ export class SmartContractService {
     let smartContractList = await this.smartContractRepository.find()
     for (const contract of smartContractList) {
       contract.last_24h_call_times = await this.smartContractRecordRepository.count({
-        timestamp: MoreThan(moment().subtract(24, 'hours').unix()),
-        contract_id: contract.id
+        where: {
+          timestamp: MoreThan(moment().subtract(24, 'hours').unix()),
+          contract_id: contract.id
+        }
       })
       contract.last_seven_days_call_times = await this.smartContractRecordRepository.count({
-        timestamp: MoreThan(moment().subtract(7, 'days').unix()),
-        contract_id: contract.id
+        where: {
+          timestamp: MoreThan(moment().subtract(7, 'days').unix()),
+          contract_id: contract.id
+        }
       })
       await this.smartContractRepository.save(contract)
     }
@@ -121,7 +125,9 @@ export class SmartContractService {
     optimizerRuns: number
   ) {
     let contract = await this.smartContractRepository.findOne({
-      contract_address: address
+      where: {
+        contract_address: address
+      }
     })
     if (!contract) {
       contract = new SmartContractEntity()
@@ -280,7 +286,7 @@ export class SmartContractService {
     abi: string
   ) {
     let contract = await this.smartContractRepository.findOne({
-      contract_address: address
+      where: { contract_address: address }
     })
     if (contract.verified) return contract
     if (!contract) {

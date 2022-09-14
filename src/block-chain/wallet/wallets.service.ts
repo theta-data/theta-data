@@ -105,7 +105,7 @@ export class WalletService {
     const vcpStake: Array<StakeBalanceType> = []
     // const gcpList = await thetaTsSdk.blockchain.getGcpByHeight(latestBlockHeight)
     const gcpRes = await this.latestStakeInfoRepository.findOne({
-      node_type: STAKE_NODE_TYPE_ENUM.guardian
+      where: { node_type: STAKE_NODE_TYPE_ENUM.guardian }
     })
     const gcpList: THETA_GCP_INTERFACE = JSON.parse(gcpRes.holder)
 
@@ -142,7 +142,7 @@ export class WalletService {
 
     // const eenpList = await thetaTsSdk.blockchain.getEenpByHeight(latestBlockHeight)
     const eenpRes = await this.latestStakeInfoRepository.findOne({
-      node_type: STAKE_NODE_TYPE_ENUM.edge_cache
+      where: { node_type: STAKE_NODE_TYPE_ENUM.edge_cache }
     })
     const eenpList: THETA_EENP_INTERFACE = JSON.parse(eenpRes.holder)
 
@@ -172,7 +172,7 @@ export class WalletService {
 
     // const validatorList = await thetaTsSdk.blockchain.getVcpByHeight(latestBlockHeight)
     const vaRes = await this.latestStakeInfoRepository.findOne({
-      node_type: STAKE_NODE_TYPE_ENUM.validator
+      where: { node_type: STAKE_NODE_TYPE_ENUM.validator }
     })
     const validatorList: THETA_VCP_INTERFACE = JSON.parse(vaRes.holder)
 
@@ -293,13 +293,13 @@ export class WalletService {
 
   public async getActiveWallet(startTime) {
     return await this.activeWalletsRepository.find({
-      snapshot_time: MoreThan(startTime)
+      where: { snapshot_time: MoreThan(startTime) }
     })
   }
 
   public async getWalletByAddress(address: string) {
     return await this.walletRepository.findOne({
-      address: address.toLowerCase()
+      where: { address: address.toLowerCase() }
     })
   }
 }

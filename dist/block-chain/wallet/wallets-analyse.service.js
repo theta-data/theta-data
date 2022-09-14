@@ -241,12 +241,14 @@ let WalletsAnalyseService = class WalletsAnalyseService {
             .subtract(24, 'hours')
             .unix();
         const totalAmount = await this.walletConnectionRunner.manager.count(wallet_entity_1.WalletEntity, {
-            latest_active_time: (0, typeorm_1.MoreThan)(statisticsStartTimeStamp)
+            where: { latest_active_time: (0, typeorm_1.MoreThan)(statisticsStartTimeStamp) }
         });
         const activeWalletLastHour = await this.walletConnectionRunner.manager.count(wallet_entity_1.WalletEntity, {
-            latest_active_time: (0, typeorm_1.MoreThan)(moment(hhTimestamp * 1000)
-                .subtract(1, 'hours')
-                .unix())
+            where: {
+                latest_active_time: (0, typeorm_1.MoreThan)(moment(hhTimestamp * 1000)
+                    .subtract(1, 'hours')
+                    .unix())
+            }
         });
         await this.walletConnectionRunner.manager.query(`INSERT INTO active_wallets_entity(snapshot_time,active_wallets_amount,active_wallets_amount_last_hour) VALUES(${hhTimestamp}, ${totalAmount}, ${activeWalletLastHour}) ON CONFLICT (snapshot_time) DO UPDATE set active_wallets_amount = ${totalAmount},active_wallets_amount_last_hour=${activeWalletLastHour}`);
     }

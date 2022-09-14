@@ -35,7 +35,7 @@ let NftService = class NftService {
     }
     async parseRecordByContractAddress(contractAddress) {
         const contract = await this.smartContractRepository.findOne({
-            contract_address: contractAddress
+            where: { contract_address: contractAddress }
         });
         if (!this.utilsService.checkTnt721(JSON.parse(contract.abi))) {
             this.logger.debug('protocol not nft 721');
@@ -134,7 +134,9 @@ let NftService = class NftService {
             }
             else {
                 const tempContract = await smartContractConnection.manager.findOne(smart_contract_entity_1.SmartContractEntity, {
-                    contract_address: log.address
+                    where: {
+                        contract_address: log.address
+                    }
                 });
                 if (!tempContract || !tempContract.verified)
                     continue;
@@ -159,15 +161,17 @@ let NftService = class NftService {
                         transaction_hash: record.transaction_hash
                     }));
                     const logContract = await smartContractConnection.manager.findOne(smart_contract_entity_1.SmartContractEntity, {
-                        contract_address: log.address.toLowerCase()
+                        where: { contract_address: log.address.toLowerCase() }
                     });
                     if (!logContract ||
                         !logContract.verified ||
                         logContract.protocol !== smart_contract_entity_1.SmartContractProtocolEnum.tnt721)
                         continue;
                     const balance = await nftConnection.manager.findOne(nft_balance_entity_1.NftBalanceEntity, {
-                        smart_contract_address: log.address.toLowerCase(),
-                        token_id: Number(log.decode.result.tokenId)
+                        where: {
+                            smart_contract_address: log.address.toLowerCase(),
+                            token_id: Number(log.decode.result.tokenId)
+                        }
                     });
                     if (balance) {
                         imgUri = balance.img_uri;
@@ -236,9 +240,11 @@ let NftService = class NftService {
                         });
                     }
                     const transferRecord = await nftConnection.manager.findOne(nft_transfer_record_entity_1.NftTransferRecordEntity, {
-                        token_id: Number(log.decode.result.tokenId),
-                        smart_contract_address: log.address.toLowerCase(),
-                        timestamp: record.timestamp
+                        where: {
+                            token_id: Number(log.decode.result.tokenId),
+                            smart_contract_address: log.address.toLowerCase(),
+                            timestamp: record.timestamp
+                        }
                     });
                     if (!transferRecord) {
                         this.logger.debug('insert nft transfer record:' +
@@ -293,7 +299,7 @@ let NftService = class NftService {
                         : log.decode.result.owner.toLowerCase();
                     const seller = log.decode.result.seller.toLowerCase();
                     const logContract = await smartContractConnection.manager.findOne(smart_contract_entity_1.SmartContractEntity, {
-                        contract_address: nftContractAddress
+                        where: { contract_address: nftContractAddress }
                     });
                     if (!logContract ||
                         !logContract.verified ||
@@ -306,7 +312,7 @@ let NftService = class NftService {
                         timestamp: record.timestamp
                     };
                     this.logger.debug('search condition: ' + JSON.stringify(searchCondition));
-                    const tradeRecord = await nftConnection.manager.findOne(nft_transfer_record_entity_1.NftTransferRecordEntity, searchCondition);
+                    const tradeRecord = await nftConnection.manager.findOne(nft_transfer_record_entity_1.NftTransferRecordEntity, { where: searchCondition });
                     if (tradeRecord) {
                         this.logger.debug('get nft trade record:' + JSON.stringify(tradeRecord));
                         tradeRecord.payment_token_amount = Number(new bignumber_js_1.default(paymentTokenAmount).dividedBy('1e18').toFixed());
@@ -380,7 +386,9 @@ let NftService = class NftService {
         if (search)
             totalCondition['name'] = (0, typeorm_2.Like)(`%${search}%`);
         this.logger.debug('total count condition', JSON.stringify(totalCondition));
-        const totalNft = await this.nftBalanceRepository.count(totalCondition);
+        const totalNft = await this.nftBalanceRepository.count({
+            where: totalCondition
+        });
         let nftList = await this.nftBalanceRepository.find(condition);
         let hasNextPage = false;
         if (nftList.length > take) {
@@ -408,8 +416,10 @@ let NftService = class NftService {
             condition.where['id'] = (0, typeorm_2.MoreThan)(id);
         }
         const totalNft = await this.nftBalanceRepository.count({
-            smart_contract_address: address,
-            owner: (0, typeorm_2.Not)('0x0000000000000000000000000000000000000000')
+            where: {
+                smart_contract_address: address,
+                owner: (0, typeorm_2.Not)('0x0000000000000000000000000000000000000000')
+            }
         });
         let nftList = await this.nftBalanceRepository.find(condition);
         let hasNextPage = false;
@@ -509,8 +519,10 @@ let NftService = class NftService {
             condition.where['id'] = (0, typeorm_2.MoreThan)(id);
         }
         const totalNft = await this.nftBalanceRepository.count({
-            smart_contract_address: contractAddress,
-            owner: walletAddress
+            where: {
+                smart_contract_address: contractAddress,
+                owner: walletAddress
+            }
         });
         let nftList = await this.nftBalanceRepository.find(condition);
         let hasNextPage = false;
@@ -522,7 +534,7 @@ let NftService = class NftService {
     }
     async getNftTransfersForBlockHeight(height) {
         return await this.nftTransferRecordRepository.find({
-            height: height
+            where: { height: height }
         });
     }
     async getNftByTokenId(tokenId, contractAddress) {
@@ -531,7 +543,9 @@ let NftService = class NftService {
             smart_contract_address: contractAddress
         };
         this.logger.debug('search condtion get nft by token id', JSON.stringify(searchCondition));
-        const nft = await this.nftBalanceRepository.findOne(searchCondition);
+        const nft = await this.nftBalanceRepository.findOne({
+            where: searchCondition
+        });
         this.logger.debug(JSON.stringify(nft));
         if (!nft)
             return undefined;
@@ -552,7 +566,7 @@ let NftService = class NftService {
     }
     async totalAmount(contractAddress) {
         const res = await this.nftBalanceRepository.find({
-            smart_contract_address: contractAddress
+            where: { smart_contract_address: contractAddress }
         });
         const userObj = {};
         let uniqeuHolder = 0;
@@ -582,8 +596,7 @@ let NftService = class NftService {
             condition.where['id'] = (0, typeorm_2.MoreThan)(id);
         }
         const totalNft = await this.smartContractRepository.count({
-            protocol: smart_contract_entity_1.SmartContractProtocolEnum.tnt721,
-            name: (0, typeorm_2.Like)('%' + name + '%')
+            where: { protocol: smart_contract_entity_1.SmartContractProtocolEnum.tnt721, name: (0, typeorm_2.Like)('%' + name + '%') }
         });
         let nftList = await this.smartContractRepository.find(condition);
         let hasNextPage = false;
@@ -595,7 +608,7 @@ let NftService = class NftService {
     }
     async getNftTransferRecordsByTxHash(txHash) {
         return await this.nftTransferRecordRepository.find({
-            transaction_hash: txHash
+            where: { transaction_hash: txHash }
         });
     }
 };

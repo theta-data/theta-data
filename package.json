@@ -1,9 +1,9 @@
 {
   "name": "theta-data",
-  "version": "0.0.93",
-  "description": "",
+  "version": "0.1.5",
+  "description": "Theta Data is a Data Explorer and Analytics Platform for Theta Network. It collects data from Guardian Node, performs analysis and provides data and analysis result through convenient Graphql interfaces. Users can access the data with simple statements and queries.",
   "author": "larry",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",
@@ -21,6 +21,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "typeorm": "0.3.9",
     "@nestjs/apollo": "^10.0.6",
     "@nestjs/common": "^8.0.0",
     "@nestjs/core": "^8.0.0",
@@ -51,8 +52,7 @@
     "rxjs": "^7.2.0",
     "solc": "^0.8.17",
     "sqlite3": "^5.0.2",
-    "theta-ts-sdk": "^0.2.79",
-    "typeorm": "^0.2.44"
+    "theta-ts-sdk": "^0.2.79"
   },
   "devDependencies": {
     "@nestjs/cli": "^8.0.0",
@@ -100,5 +100,9 @@
       "node": ">=14.16"
     }
   },
-  "main": "dist/index.js"
+  "main": "dist/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/theta-data/theta-data"
+  }
 }

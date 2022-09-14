@@ -42,7 +42,7 @@ export class ExplorerService {
     }
     const totalBlock = (
       await this.countRepository.findOne({
-        key: BLOCK_COUNT_KEY
+        where: { key: BLOCK_COUNT_KEY }
       })
     ).count
     let blockList = await this.blockListRepository.find(condition)
@@ -80,12 +80,14 @@ export class ExplorerService {
     let totalBlock = 0
     if (blockHeight) {
       totalBlock = await this.transactionRepository.count({
-        height: blockHeight
+        where: {
+          height: blockHeight
+        }
       })
     } else {
       totalBlock = (
         await this.countRepository.findOne({
-          key: TRANSACTION_COUNT_KEY
+          where: { key: TRANSACTION_COUNT_KEY }
         })
       ).count
     }
@@ -100,7 +102,7 @@ export class ExplorerService {
 
   public async getBlockInfo(heightOrHash: number | string) {
     return await this.blockListRepository.findOne({
-      where: [{ height: heightOrHash }, { block_hash: heightOrHash }]
+      where: [{ height: Number(heightOrHash) }, { block_hash: String(heightOrHash) }]
     })
   }
 

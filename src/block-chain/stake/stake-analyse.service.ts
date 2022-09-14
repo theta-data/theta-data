@@ -72,7 +72,8 @@ export class StakeAnalyseService {
         {
           order: {
             id: 'DESC'
-          }
+          },
+          where: { id: MoreThan(0) }
         }
       )
       for (let i = 0; i < blockList.result.length; i++) {
@@ -186,7 +187,7 @@ export class StakeAnalyseService {
         BigNumber
       ] = eenpRes
       let res = await this.stakeConnectionRunner.manager.findOne(StakeStatisticsEntity, {
-        block_height: Number(block.height)
+        where: { block_height: Number(block.height) }
       })
       if (!res) {
         const stakeStatisticsInfo = {
@@ -250,7 +251,7 @@ export class StakeAnalyseService {
       // throw new Error('no validator BlockHashVcpPairs')
     }
     const latestVa = await this.stakeConnectionRunner.manager.findOne(LatestStakeInfoEntity, {
-      node_type: STAKE_NODE_TYPE_ENUM.validator
+      where: { node_type: STAKE_NODE_TYPE_ENUM.validator }
     })
     if (!latestVa) {
       await this.stakeConnectionRunner.manager.insert(LatestStakeInfoEntity, {
@@ -306,7 +307,7 @@ export class StakeAnalyseService {
       // throw new Error('no validator BlockHashVcpPairs')
     }
     const latestGn = await this.stakeConnectionRunner.manager.findOne(LatestStakeInfoEntity, {
-      node_type: STAKE_NODE_TYPE_ENUM.guardian
+      where: { node_type: STAKE_NODE_TYPE_ENUM.guardian }
     })
     if (!latestGn) {
       await this.stakeConnectionRunner.manager.insert(LatestStakeInfoEntity, {
@@ -364,7 +365,7 @@ export class StakeAnalyseService {
       // throw new Error('no validator BlockHashVcpPairs')
     }
     const een = await this.stakeConnectionRunner.manager.findOne(LatestStakeInfoEntity, {
-      node_type: STAKE_NODE_TYPE_ENUM.edge_cache
+      where: { node_type: STAKE_NODE_TYPE_ENUM.edge_cache }
     })
     if (!een) {
       await this.stakeConnectionRunner.manager.insert(LatestStakeInfoEntity, {

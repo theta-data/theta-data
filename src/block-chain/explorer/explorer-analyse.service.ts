@@ -29,39 +29,11 @@ export class ExplorerAnalyseService {
 
   constructor(
     private utilsService: UtilsService,
-    @InjectConnection('explorer') private explorerConnectionInjected: Connection
+    @InjectConnection('explorer')
+    private readonly explorerConnectionInjected: Connection
   ) {
     this.utilsService = utilsService
   }
-
-  async getInitHeight(configPath: string): Promise<[Number, Number]> {
-    let height: number = 0
-    this.logger.debug(this.heightConfigFile)
-    const lastfinalizedHeight = Number(
-      (await thetaTsSdk.blockchain.getStatus()).result.latest_finalized_block_height
-    )
-    this.logger.debug(JSON.stringify(config.get(configPath.toUpperCase() + '.START_HEIGHT')))
-    // height = lastfinalizedHeight - 1000
-    if (config.get(configPath.toUpperCase() + '.START_HEIGHT')) {
-      height = config.get(configPath.toUpperCase() + '.START_HEIGHT')
-    }
-    const recordHeight = this.utilsService.getRecordHeight(this.heightConfigFile)
-    height = recordHeight > height ? recordHeight : height
-
-    if (height >= lastfinalizedHeight) {
-      this.logger.debug('commit success')
-      this.logger.debug('no height to analyse')
-      return [0, 0]
-    }
-    // await this.
-    let endHeight = lastfinalizedHeight
-    const analyseNumber = config.get(configPath.toUpperCase() + '.ANALYSE_NUMBER')
-    if (lastfinalizedHeight - height > analyseNumber) {
-      endHeight = height + analyseNumber
-    }
-    return [height, endHeight]
-  }
-
   public async analyseData() {
     try {
       this.explorerConnectionRunner = this.explorerConnectionInjected.createQueryRunner()
@@ -89,7 +61,9 @@ export class ExplorerAnalyseService {
       const tansactionCountEntity = await this.explorerConnectionRunner.manager.findOne(
         CountEntity,
         {
-          key: TRANSACTION_COUNT_KEY
+          where: {
+            key: TRANSACTION_COUNT_KEY
+          }
         }
       )
       if (tansactionCountEntity) {
@@ -102,7 +76,7 @@ export class ExplorerAnalyseService {
         })
       }
       const blockCountEntity = await this.explorerConnectionRunner.manager.findOne(CountEntity, {
-        key: BLOCK_COUNT_KEY
+        where: { key: BLOCK_COUNT_KEY }
       })
       if (blockCountEntity) {
         blockCountEntity.count += blockList.result.length
@@ -231,5 +205,33 @@ export class ExplorerAnalyseService {
       tfuel_burnt: tfuelBurnt,
       txns: block.transactions.length
     })
+  }
+
+  async getInitHeight(configPath: string): Promise<[Number, Number]> {
+    let height: number = 0
+    this.logger.debug(this.heightConfigFile)
+    const lastfinalizedHeight = Number(
+      (await thetaTsSdk.blockchain.getStatus()).result.latest_finalized_block_height
+    )
+    this.logger.debug(JSON.stringify(config.get(configPath.toUpperCase() + '.START_HEIGHT')))
+    // height = lastfinalizedHeight - 1000
+    if (config.get(configPath.toUpperCase() + '.START_HEIGHT')) {
+      height = config.get(configPath.toUpperCase() + '.START_HEIGHT')
+    }
+    const recordHeight = this.utilsService.getRecordHeight(this.heightConfigFile)
+    height = recordHeight > height ? recordHeight : height
+
+    if (height >= lastfinalizedHeight) {
+      this.logger.debug('commit success')
+      this.logger.debug('no height to analyse')
+      return [0, 0]
+    }
+    // await this.
+    let endHeight = lastfinalizedHeight
+    const analyseNumber = config.get(configPath.toUpperCase() + '.ANALYSE_NUMBER')
+    if (lastfinalizedHeight - height > analyseNumber) {
+      endHeight = height + analyseNumber
+    }
+    return [height, endHeight]
   }
 }

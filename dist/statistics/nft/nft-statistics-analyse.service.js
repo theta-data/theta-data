@@ -133,7 +133,7 @@ let NftStatisticsAnalyseService = class NftStatisticsAnalyseService {
             return;
         }
         const smartContract = await this.smartContractConnectionRunner.manager.findOne(smart_contract_entity_1.SmartContractEntity, {
-            contract_address: smartContractAddress
+            where: { contract_address: smartContractAddress }
         });
         if (!smartContract || smartContract.protocol !== contact_entity_1.SmartContractProtocolEnum.tnt721) {
             this.logger.debug('no contract or not tnt721 protocol:' + smartContractAddress);
@@ -154,8 +154,10 @@ let NftStatisticsAnalyseService = class NftStatisticsAnalyseService {
         const uniqueOwners = await this.nftConnectionRunner.query(`select count(distinct(owner)) as _num from nft_balance_entity where nft_balance_entity.smart_contract_address = '${smartContractAddress}' and nft_balance_entity.owner != '0x0000000000000000000000000000000000000000'`);
         const uniqueHolders = uniqueOwners[0]._num;
         const recordList = await this.nftConnectionRunner.manager.find(nft_transfer_record_entity_1.NftTransferRecordEntity, {
-            smart_contract_address: smartContractAddress,
-            timestamp: (0, typeorm_1.MoreThan)(moment().subtract(30, 'days').unix())
+            where: {
+                smart_contract_address: smartContractAddress,
+                timestamp: (0, typeorm_1.MoreThan)(moment().subtract(30, 'days').unix())
+            }
         });
         const users24H = [];
         const users7D = [];
@@ -255,7 +257,7 @@ let NftStatisticsAnalyseService = class NftStatisticsAnalyseService {
             }
         }
         const nft = await this.nftStatisticsConnectionRunner.manager.findOne(nft_statistics_entity_1.NftStatisticsEntity, {
-            smart_contract_address: smartContractAddress
+            where: { smart_contract_address: smartContractAddress }
         });
         if (!nft) {
             const nftStatistics = new nft_statistics_entity_1.NftStatisticsEntity();
@@ -376,7 +378,7 @@ let NftStatisticsAnalyseService = class NftStatisticsAnalyseService {
             if (logo.length < 2)
                 continue;
             const nft = await this.nftStatisticsConnectionRunner.manager.findOne(nft_statistics_entity_1.NftStatisticsEntity, {
-                smart_contract_address: logo[0].toLowerCase()
+                where: { smart_contract_address: logo[0].toLowerCase() }
             });
             if (nft) {
                 const imgUri = await this.utilsService.getPath(logo[1], const_1.config.get('NFT_STATISTICS.STATIC_PATH'));

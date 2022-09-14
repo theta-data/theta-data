@@ -67,7 +67,8 @@ let SmartContractAnalyseService = class SmartContractAnalyseService {
             const latestRecord = await this.smartContractConnectionRunner.manager.findOne(smart_contract_call_record_entity_1.SmartContractCallRecordEntity, {
                 order: {
                     height: 'DESC'
-                }
+                },
+                where: {}
             });
             const latestRecordHeight = latestRecord ? latestRecord.height : 0;
             if (latestRecordHeight >= height) {
@@ -129,7 +130,7 @@ let SmartContractAnalyseService = class SmartContractAnalyseService {
                         this.smartContractList.push(transaction.receipt.ContractAddress);
                     }
                     const smartContract = await this.smartContractConnectionRunner.manager.findOne(smart_contract_entity_1.SmartContractEntity, {
-                        contract_address: transaction.receipt.ContractAddress
+                        where: { contract_address: transaction.receipt.ContractAddress }
                     });
                     if (smartContract.call_times > const_1.config.get('SMART_CONTRACT_VERIFY_DETECT_TIMES') &&
                         !smartContract.verified &&
@@ -188,15 +189,21 @@ let SmartContractAnalyseService = class SmartContractAnalyseService {
     async updateCallTimesByPeriod(contractAddress) {
         this.logger.debug('start update call times by period');
         const contract = await this.smartContractConnectionRunner.manager.findOne(smart_contract_entity_1.SmartContractEntity, {
-            contract_address: contractAddress
+            where: {
+                contract_address: contractAddress
+            }
         });
         contract.last_24h_call_times = await this.smartContractConnectionRunner.manager.count(smart_contract_call_record_entity_1.SmartContractCallRecordEntity, {
-            timestamp: (0, typeorm_1.MoreThan)(moment().subtract(24, 'hours').unix()),
-            contract_id: contract.id
+            where: {
+                timestamp: (0, typeorm_1.MoreThan)(moment().subtract(24, 'hours').unix()),
+                contract_id: contract.id
+            }
         });
         contract.last_seven_days_call_times = await this.smartContractConnectionRunner.manager.count(smart_contract_call_record_entity_1.SmartContractCallRecordEntity, {
-            timestamp: (0, typeorm_1.MoreThan)(moment().subtract(7, 'days').unix()),
-            contract_id: contract.id
+            where: {
+                timestamp: (0, typeorm_1.MoreThan)(moment().subtract(7, 'days').unix()),
+                contract_id: contract.id
+            }
         });
         await this.smartContractConnectionRunner.manager.save(contract);
         this.logger.debug('end update call times by period');

@@ -34,14 +34,14 @@ let StakeService = class StakeService {
         this.logger.debug('node type:' + nodeType);
         if (typeof nodeType !== 'undefined')
             return await this.stakeRepository.find({
-                node_type: nodeType
+                where: { node_type: nodeType }
             });
         return await this.stakeRepository.find();
     }
     async getNodeNum(latestBlock, nodeType) {
         let effectNodeNum = 0;
         let stakeList = await this.stakeRepository.find({
-            node_type: nodeType
+            where: { node_type: nodeType }
         });
         stakeList.forEach((node) => {
             node.stakes.some((stake) => {
@@ -58,8 +58,7 @@ let StakeService = class StakeService {
         let vcpList = await theta_ts_sdk_1.thetaTsSdk.blockchain.getVcpByHeight(height);
         for (const validator of vcpList.result.BlockHashVcpPairs[0].Vcp.SortedCandidates) {
             let res = await this.stakeRepository.findOne({
-                holder: validator.Holder,
-                node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.validator
+                where: { holder: validator.Holder, node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.validator }
             });
             if (!res)
                 await this.stakeRepository.insert({
@@ -77,8 +76,7 @@ let StakeService = class StakeService {
         let gcpList = await theta_ts_sdk_1.thetaTsSdk.blockchain.getGcpByHeight(height);
         for (const guardian of gcpList.result.BlockHashGcpPairs[0].Gcp.SortedGuardians) {
             let res = await this.stakeRepository.findOne({
-                node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.guardian,
-                holder: guardian.Holder
+                where: { node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.guardian, holder: guardian.Holder }
             });
             if (!res)
                 await this.stakeRepository.insert({
@@ -94,8 +92,7 @@ let StakeService = class StakeService {
         let eenpList = await theta_ts_sdk_1.thetaTsSdk.blockchain.getEenpByHeight(height);
         for (const een of eenpList.result.BlockHashEenpPairs[0].EENs) {
             let res = await this.stakeRepository.findOne({
-                node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.edge_cache,
-                holder: een.Holder
+                where: { node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.edge_cache, holder: een.Holder }
             });
             if (!res)
                 await this.stakeRepository.insert({
@@ -163,26 +160,34 @@ let StakeService = class StakeService {
         switch (period) {
             case 'last_24_hour':
                 rewardList = await this.stakeRewardRepository.find({
-                    timestamp: (0, typeorm_2.MoreThan)(moment().subtract(24, 'hours').unix()),
-                    wallet_address: wallet_address
+                    where: {
+                        timestamp: (0, typeorm_2.MoreThan)(moment().subtract(24, 'hours').unix()),
+                        wallet_address: wallet_address
+                    }
                 });
                 break;
             case 'last_7_days':
                 rewardList = await this.stakeRewardRepository.find({
-                    timestamp: (0, typeorm_2.MoreThan)(moment().subtract(7, 'days').unix()),
-                    wallet_address: wallet_address
+                    where: {
+                        timestamp: (0, typeorm_2.MoreThan)(moment().subtract(7, 'days').unix()),
+                        wallet_address: wallet_address
+                    }
                 });
                 break;
             case 'last_3_days':
                 rewardList = await this.stakeRewardRepository.find({
-                    timestamp: (0, typeorm_2.MoreThan)(moment().subtract(3, 'days').unix()),
-                    wallet_address: wallet_address
+                    where: {
+                        timestamp: (0, typeorm_2.MoreThan)(moment().subtract(3, 'days').unix()),
+                        wallet_address: wallet_address
+                    }
                 });
                 break;
             case 'last_30_days':
                 rewardList = await this.stakeRewardRepository.find({
-                    timestamp: (0, typeorm_2.MoreThan)(moment().subtract(3, 'days').unix()),
-                    wallet_address: wallet_address
+                    where: {
+                        timestamp: (0, typeorm_2.MoreThan)(moment().subtract(3, 'days').unix()),
+                        wallet_address: wallet_address
+                    }
                 });
                 break;
             default:

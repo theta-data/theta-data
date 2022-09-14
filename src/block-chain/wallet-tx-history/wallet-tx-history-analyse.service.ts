@@ -46,7 +46,7 @@ export class WalletTxHistoryAnalyseService {
         where: {
           id: MoreThan(startId)
         },
-        take: config.get('WALLET-TX-HISTORY.ANALYSE_NUMBER'),
+        take: config.get('WWALLET_TX_HISTORY.ANALYSE_NUMBER'),
         order: { id: 'ASC' }
       })
       const walletToUpdates: { [index: string]: Array<string> } = {}
@@ -73,12 +73,12 @@ export class WalletTxHistoryAnalyseService {
       this.logger.error(e.message)
       this.logger.error('rollback')
       await this.walletTxHistoryConnectionRunner.rollbackTransaction()
-      writeFailExcuteLog(config.get('WALLET-TX-HISTORY.MONITOR_PATH'))
+      writeFailExcuteLog(config.get('WALLET_TX_HISTORY.MONITOR_PATH'))
     } finally {
       await this.walletTxHistoryConnectionRunner.release()
       this.logger.debug('end analyse')
       this.logger.debug('release success')
-      writeSucessExcuteLog(config.get('WALLET-TX-HISTORY.MONITOR_PATH'))
+      writeSucessExcuteLog(config.get('WALLET_TX_HISTORY.MONITOR_PATH'))
     }
   }
 
