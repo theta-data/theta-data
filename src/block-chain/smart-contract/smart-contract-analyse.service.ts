@@ -69,7 +69,8 @@ export class SmartContractAnalyseService {
         {
           order: {
             height: 'DESC'
-          }
+          },
+          where: {}
         }
       )
       const latestRecordHeight = latestRecord ? latestRecord.height : 0
