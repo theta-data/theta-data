@@ -1,4 +1,4 @@
-[![NPM](https://nodei.co/npm/theta-ts-sdk.png)](https://nodei.co/npm/theta-ts-sdk/)   
+[![NPM](https://nodei.co/npm/theta-data.png)](https://www.npmjs.com/package/theta-data)   
 
 Theta Data is a Data Analytics Tool for [The Theta Network](https://www.thetatoken.org/).
 It collects data from Guardian Node, performs analysis and provides data and analysis result through convenient Graphql interfaces.
