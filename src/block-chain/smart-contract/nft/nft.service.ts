@@ -214,6 +214,43 @@ export class NftService {
             logContract.protocol !== SmartContractProtocolEnum.tnt721
           )
             continue
+          let detail = ''
+          let tokenUri = ''
+          let baseTokenUri = ''
+          const abiInfo = JSON.parse(logContract.abi)
+          const hasTokenUri = abiInfo.find((v) => v.name == 'tokenURI')
+          name = logContract.name
+          let contractUri = logContract.contract_uri
+          if (hasTokenUri) {
+            try {
+              tokenUri = await this.getTokenUri(
+                logContract.contract_address,
+                abiInfo,
+                Number(log.decode.result.tokenId)
+              )
+              // try {
+              const httpRes = await fetch(tokenUri, {
+                method: 'GET',
+                headers: {
+                  'Content-Type': 'application/json'
+                }
+              })
+              if (httpRes.status >= 400) {
+                throw new Error('Bad response from server')
+              }
+              const res: any = await httpRes.json()
+              name = res.name
+              imgUri = res.image
+              detail = JSON.stringify(res)
+            } catch (e) {
+              this.logger.error(e)
+            }
+          }
+          const hasBaseTokenUri = abiInfo.find((v) => v.name == 'baseTokenURI')
+          if (hasBaseTokenUri) {
+            baseTokenUri = await this.getBaseTokenUri(logContract.contract_address, abiInfo)
+          }
+          imgUri = await this.utilsService.downloadImage(imgUri, config.get('NFT.STATIC_PATH'))
           const transferRecord = await nftConnection.manager.findOne(NftTransferRecordEntity, {
             where: {
               token_id: Number(log.decode.result.tokenId),
@@ -285,43 +322,6 @@ export class NftService {
               }
             )
           } else {
-            let detail = ''
-            let tokenUri = ''
-            let baseTokenUri = ''
-            const abiInfo = JSON.parse(logContract.abi)
-            const hasTokenUri = abiInfo.find((v) => v.name == 'tokenURI')
-            name = logContract.name
-            let contractUri = logContract.contract_uri
-            if (hasTokenUri) {
-              try {
-                tokenUri = await this.getTokenUri(
-                  logContract.contract_address,
-                  abiInfo,
-                  Number(log.decode.result.tokenId)
-                )
-                // try {
-                const httpRes = await fetch(tokenUri, {
-                  method: 'GET',
-                  headers: {
-                    'Content-Type': 'application/json'
-                  }
-                })
-                if (httpRes.status >= 400) {
-                  throw new Error('Bad response from server')
-                }
-                const res: any = await httpRes.json()
-                name = res.name
-                imgUri = res.image
-                detail = JSON.stringify(res)
-              } catch (e) {
-                this.logger.error(e)
-              }
-            }
-            const hasBaseTokenUri = abiInfo.find((v) => v.name == 'baseTokenURI')
-            if (hasBaseTokenUri) {
-              baseTokenUri = await this.getBaseTokenUri(logContract.contract_address, abiInfo)
-            }
-            imgUri = await this.utilsService.downloadImage(imgUri, config.get('NFT.STATIC_PATH'))
             await nftConnection.manager.insert(NftBalanceEntity, {
               smart_contract_address: logContract.contract_address,
               owner: log.decode.result.to.toLowerCase(),
