@@ -116,7 +116,6 @@ import { ThetaTxNumByHoursEntity } from './block-chain/tx/theta-tx-num-by-hours.
       ttl: config.get('RATE_LIMIT')['ttl'],
       limit: config.get('RATE_LIMIT')['limit']
     }),
-    EventEmitterModule.forRoot(),
     TxModule,
     StakeModule,
     MarketModule,

@@ -22,7 +22,6 @@ const path_1 = require("path");
 const serve_static_1 = require("@nestjs/serve-static");
 const throttler_1 = require("@nestjs/throttler");
 const wallet_module_1 = require("./block-chain/wallet/wallet.module");
-const event_emitter_1 = require("@nestjs/event-emitter");
 const contact_module_1 = require("./contact/contact.module");
 const apollo_1 = require("@nestjs/apollo");
 const core_1 = require("@nestjs/core");
@@ -67,7 +66,6 @@ AppModule = __decorate([
                 ttl: const_1.config.get('RATE_LIMIT')['ttl'],
                 limit: const_1.config.get('RATE_LIMIT')['limit']
             }),
-            event_emitter_1.EventEmitterModule.forRoot(),
             tx_module_1.TxModule,
             stake_module_1.StakeModule,
             market_module_1.MarketModule,

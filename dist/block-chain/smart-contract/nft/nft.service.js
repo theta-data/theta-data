@@ -167,78 +167,39 @@ let NftService = class NftService {
                         !logContract.verified ||
                         logContract.protocol !== smart_contract_entity_1.SmartContractProtocolEnum.tnt721)
                         continue;
-                    const balance = await nftConnection.manager.findOne(nft_balance_entity_1.NftBalanceEntity, {
-                        where: {
-                            smart_contract_address: log.address.toLowerCase(),
-                            token_id: Number(log.decode.result.tokenId)
-                        }
-                    });
-                    if (balance) {
-                        imgUri = balance.img_uri;
-                        name = balance.name;
-                        const latestRecord = await nftConnection.manager.findOne(nft_transfer_record_entity_1.NftTransferRecordEntity, {
-                            where: {
-                                smart_contract_address: log.address.toLowerCase(),
-                                token_id: Number(log.decode.result.tokenId)
-                            },
-                            order: {
-                                height: 'DESC'
-                            }
-                        });
-                        await nftConnection.manager.update(nft_balance_entity_1.NftBalanceEntity, {
-                            id: balance.id
-                        }, {
-                            owner: latestRecord.to,
-                            from: latestRecord.from
-                        });
-                    }
-                    else {
-                        let detail = '';
-                        let tokenUri = '';
-                        let baseTokenUri = '';
-                        const abiInfo = JSON.parse(logContract.abi);
-                        const hasTokenUri = abiInfo.find((v) => v.name == 'tokenURI');
-                        name = logContract.name;
-                        let contractUri = logContract.contract_uri;
-                        if (hasTokenUri) {
-                            try {
-                                tokenUri = await this.getTokenUri(logContract.contract_address, abiInfo, Number(log.decode.result.tokenId));
-                                const httpRes = await (0, cross_fetch_1.default)(tokenUri, {
-                                    method: 'GET',
-                                    headers: {
-                                        'Content-Type': 'application/json'
-                                    }
-                                });
-                                if (httpRes.status >= 400) {
-                                    throw new Error('Bad response from server');
+                    let detail = '';
+                    let tokenUri = '';
+                    let baseTokenUri = '';
+                    const abiInfo = JSON.parse(logContract.abi);
+                    const hasTokenUri = abiInfo.find((v) => v.name == 'tokenURI');
+                    name = logContract.name;
+                    let contractUri = logContract.contract_uri;
+                    if (hasTokenUri) {
+                        try {
+                            tokenUri = await this.getTokenUri(logContract.contract_address, abiInfo, Number(log.decode.result.tokenId));
+                            const httpRes = await (0, cross_fetch_1.default)(tokenUri, {
+                                method: 'GET',
+                                headers: {
+                                    'Content-Type': 'application/json'
                                 }
-                                const res = await httpRes.json();
-                                name = res.name;
-                                imgUri = res.image;
-                                detail = JSON.stringify(res);
+                            });
+                            if (httpRes.status >= 400) {
+                                throw new Error('Bad response from server');
                             }
-                            catch (e) {
-                                this.logger.error(e);
-                            }
+                            const res = await httpRes.json();
+                            name = res.name;
+                            imgUri = res.image;
+                            detail = JSON.stringify(res);
                         }
-                        const hasBaseTokenUri = abiInfo.find((v) => v.name == 'baseTokenURI');
-                        if (hasBaseTokenUri) {
-                            baseTokenUri = await this.getBaseTokenUri(logContract.contract_address, abiInfo);
+                        catch (e) {
+                            this.logger.error(e);
                         }
-                        imgUri = await this.utilsService.downloadImage(imgUri, const_1.config.get('NFT.STATIC_PATH'));
-                        await nftConnection.manager.insert(nft_balance_entity_1.NftBalanceEntity, {
-                            smart_contract_address: logContract.contract_address,
-                            owner: log.decode.result.to.toLowerCase(),
-                            from: log.decode.result.from.toLowerCase(),
-                            token_id: Number(log.decode.result.tokenId),
-                            name: name,
-                            img_uri: imgUri,
-                            detail: detail,
-                            contract_uri: contractUri,
-                            token_uri: tokenUri,
-                            base_token_uri: baseTokenUri
-                        });
                     }
+                    const hasBaseTokenUri = abiInfo.find((v) => v.name == 'baseTokenURI');
+                    if (hasBaseTokenUri) {
+                        baseTokenUri = await this.getBaseTokenUri(logContract.contract_address, abiInfo);
+                    }
+                    imgUri = await this.utilsService.downloadImage(imgUri, const_1.config.get('NFT.STATIC_PATH'));
                     const transferRecord = await nftConnection.manager.findOne(nft_transfer_record_entity_1.NftTransferRecordEntity, {
                         where: {
                             token_id: Number(log.decode.result.tokenId),
@@ -273,6 +234,45 @@ let NftService = class NftService {
                         transferRecord.img_uri = imgUri;
                         transferRecord.name = name;
                         await nftConnection.manager.save(transferRecord);
+                    }
+                    const balance = await nftConnection.manager.findOne(nft_balance_entity_1.NftBalanceEntity, {
+                        where: {
+                            smart_contract_address: log.address.toLowerCase(),
+                            token_id: Number(log.decode.result.tokenId)
+                        }
+                    });
+                    if (balance) {
+                        imgUri = balance.img_uri;
+                        name = balance.name;
+                        const latestRecord = await nftConnection.manager.findOne(nft_transfer_record_entity_1.NftTransferRecordEntity, {
+                            where: {
+                                smart_contract_address: log.address.toLowerCase(),
+                                token_id: Number(log.decode.result.tokenId)
+                            },
+                            order: {
+                                height: 'DESC'
+                            }
+                        });
+                        await nftConnection.manager.update(nft_balance_entity_1.NftBalanceEntity, {
+                            id: balance.id
+                        }, {
+                            owner: latestRecord.to,
+                            from: latestRecord.from
+                        });
+                    }
+                    else {
+                        await nftConnection.manager.insert(nft_balance_entity_1.NftBalanceEntity, {
+                            smart_contract_address: logContract.contract_address,
+                            owner: log.decode.result.to.toLowerCase(),
+                            from: log.decode.result.from.toLowerCase(),
+                            token_id: Number(log.decode.result.tokenId),
+                            name: name,
+                            img_uri: imgUri,
+                            detail: detail,
+                            contract_uri: contractUri,
+                            token_uri: tokenUri,
+                            base_token_uri: baseTokenUri
+                        });
                     }
                 }
                 if ((log.decode.eventName === 'NFTTraded' &&

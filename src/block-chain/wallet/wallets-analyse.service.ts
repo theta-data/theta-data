@@ -7,6 +7,8 @@ import { WalletEntity } from 'src/block-chain/wallet/wallet.entity'
 import { UtilsService, writeFailExcuteLog, writeSucessExcuteLog } from 'src/common/utils.service'
 import { config } from 'src/const'
 import { InjectConnection } from '@nestjs/typeorm'
+import { THETA_TRANSACTION_TYPE_ENUM } from 'theta-ts-sdk/dist/types/enum'
+import { SmartContractEntity } from '../smart-contract/smart-contract.entity'
 
 const moment = require('moment')
 @Injectable()
@@ -16,12 +18,14 @@ export class WalletsAnalyseService {
   private counter = 0
   private startTimestamp = 0
   private walletConnectionRunner: QueryRunner
+  private smartContractConnectionRunner: QueryRunner
   private heightConfigFile = config.get('ORM_CONFIG')['database'] + 'wallet/record.height'
 
   constructor(
     private loggerService: LoggerService,
     private utilsService: UtilsService,
-    @InjectConnection('wallet') private walletConnectionInjected: Connection
+    @InjectConnection('wallet') private walletConnectionInjected: Connection,
+    @InjectConnection('smart_contract') private smartContractConnectionInjected: Connection
   ) {
     // thetaTsSdk.blockchain.setUrl(config.get('THETA_NODE_HOST'))
     this.logger.debug(config.get('THETA_NODE_HOST'))
@@ -30,6 +34,7 @@ export class WalletsAnalyseService {
   public async analyseData() {
     try {
       this.walletConnectionRunner = this.walletConnectionInjected.createQueryRunner()
+      this.smartContractConnectionRunner = this.smartContractConnectionInjected.createQueryRunner()
 
       // await this.walletConnection.connect()
       await this.walletConnectionRunner.startTransaction()
@@ -252,6 +257,84 @@ export class WalletsAnalyseService {
             transaction.hash,
             Number(block.timestamp)
           )
+        }
+        if (transaction.receipt) {
+          for (const log of transaction.receipt.Logs) {
+            this.updateWallets(wallets, log.address, transaction.hash, Number(block.timestamp))
+          }
+        }
+        if (transaction.type == THETA_TRANSACTION_TYPE_ENUM.smart_contract) {
+          const contractList: {
+            [prop: string]: {
+              contract: SmartContractEntity
+              logs: Array<any>
+            }
+          } = {}
+          for (const log of transaction.receipt.Logs) {
+            if (log.data == '') {
+              log.data = '0x'
+            } else {
+              log.data = this.utilsService.getHex(log.data)
+            }
+            if (contractList.hasOwnProperty(log.address)) {
+              contractList[log.address].logs.push(log)
+            } else {
+              const tempContract = await this.smartContractConnectionRunner.manager.findOne(
+                SmartContractEntity,
+                {
+                  where: {
+                    contract_address: log.address
+                  }
+                }
+              )
+              if (!tempContract || !tempContract.verified) continue
+              contractList[log.address] = {
+                contract: tempContract,
+                logs: [log]
+              }
+            }
+          }
+          const contractDecodeList = Object.values(contractList)
+          for (const contract of contractDecodeList) {
+            const logInfo = this.utilsService.decodeLogs(
+              contract.logs,
+              JSON.parse(contract.contract.abi)
+            )
+            for (const log of logInfo) {
+              if (log.decode.result.from) {
+                this.updateWallets(
+                  wallets,
+                  log.decode.result.from.toLocaleLowerCase(),
+                  transaction.hash,
+                  Number(block.timestamp)
+                )
+              }
+              if (log.decode.result.to) {
+                this.updateWallets(
+                  wallets,
+                  log.decode.result.from.toLocaleLowerCase(),
+                  transaction.hash,
+                  Number(block.timestamp)
+                )
+              }
+              if (log.decode.result.buyer) {
+                this.updateWallets(
+                  wallets,
+                  log.decode.result.buyer.toLocaleLowerCase(),
+                  transaction.hash,
+                  Number(block.timestamp)
+                )
+              }
+              if (log.decode.result.owner) {
+                this.updateWallets(
+                  wallets,
+                  log.decode.result.owner.toLocaleLowerCase(),
+                  transaction.hash,
+                  Number(block.timestamp)
+                )
+              }
+            }
+          }
         }
       }
 

@@ -6,13 +6,15 @@ export declare class WalletsAnalyseService {
     private loggerService;
     private utilsService;
     private walletConnectionInjected;
+    private smartContractConnectionInjected;
     private readonly logger;
     analyseKey: string;
     private counter;
     private startTimestamp;
     private walletConnectionRunner;
+    private smartContractConnectionRunner;
     private heightConfigFile;
-    constructor(loggerService: LoggerService, utilsService: UtilsService, walletConnectionInjected: Connection);
+    constructor(loggerService: LoggerService, utilsService: UtilsService, walletConnectionInjected: Connection, smartContractConnectionInjected: Connection);
     analyseData(): Promise<void>;
     handleOrderCreatedEvent(block: THETA_BLOCK_INTERFACE, latestFinalizedBlockHeight: number): Promise<void>;
     dealBlocks(blocks: Array<THETA_BLOCK_INTERFACE>): Promise<void>;
