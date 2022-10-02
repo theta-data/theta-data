@@ -101,18 +101,27 @@ export class ExplorerService {
   }
 
   public async getBlockInfo(heightOrHash: number | string) {
-    return await this.blockListRepository.findOne({
-      where: [{ height: Number(heightOrHash) }, { block_hash: String(heightOrHash) }]
-    })
+    if (isNaN(Number(String(heightOrHash).replace('0x', '')))) {
+      if (String(heightOrHash).length < 64) return false
+      return await this.blockListRepository.findOne({
+        where: { block_hash: String(heightOrHash) }
+      })
+    } else {
+      return await this.blockListRepository.findOne({
+        where: { height: Number(heightOrHash) }
+      })
+    }
   }
 
   public async getTransactionInfo(hash) {
+    if (hash.length < 64) return false
     return await this.transactionRepository.findOne({
       where: { tx_hash: hash }
     })
   }
 
   public async getAccount(walletAddress: string) {
+    if (walletAddress.length < 42) return false
     return await this.walletService.getWalletByAddress(walletAddress.toLowerCase())
   }
 

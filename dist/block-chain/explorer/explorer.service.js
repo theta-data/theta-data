@@ -92,16 +92,29 @@ let ExplorerService = class ExplorerService {
         return [hasNextPage, totalBlock, blockList];
     }
     async getBlockInfo(heightOrHash) {
-        return await this.blockListRepository.findOne({
-            where: [{ height: Number(heightOrHash) }, { block_hash: String(heightOrHash) }]
-        });
+        if (isNaN(Number(String(heightOrHash).replace('0x', '')))) {
+            if (String(heightOrHash).length < 64)
+                return false;
+            return await this.blockListRepository.findOne({
+                where: { block_hash: String(heightOrHash) }
+            });
+        }
+        else {
+            return await this.blockListRepository.findOne({
+                where: { height: Number(heightOrHash) }
+            });
+        }
     }
     async getTransactionInfo(hash) {
+        if (hash.length < 64)
+            return false;
         return await this.transactionRepository.findOne({
             where: { tx_hash: hash }
         });
     }
     async getAccount(walletAddress) {
+        if (walletAddress.length < 42)
+            return false;
         return await this.walletService.getWalletByAddress(walletAddress.toLowerCase());
     }
     async getAccountTransactions(walletAddress, take, skip) {

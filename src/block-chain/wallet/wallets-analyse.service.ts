@@ -304,7 +304,7 @@ export class WalletsAnalyseService {
               if (log.decode.result.from) {
                 this.updateWallets(
                   wallets,
-                  log.decode.result.from.toLocaleLowerCase(),
+                  log.decode.result.from,
                   transaction.hash,
                   Number(block.timestamp)
                 )
@@ -312,7 +312,7 @@ export class WalletsAnalyseService {
               if (log.decode.result.to) {
                 this.updateWallets(
                   wallets,
-                  log.decode.result.from.toLocaleLowerCase(),
+                  log.decode.result.to,
                   transaction.hash,
                   Number(block.timestamp)
                 )
@@ -320,7 +320,7 @@ export class WalletsAnalyseService {
               if (log.decode.result.buyer) {
                 this.updateWallets(
                   wallets,
-                  log.decode.result.buyer.toLocaleLowerCase(),
+                  log.decode.result.buyer,
                   transaction.hash,
                   Number(block.timestamp)
                 )
@@ -328,7 +328,7 @@ export class WalletsAnalyseService {
               if (log.decode.result.owner) {
                 this.updateWallets(
                   wallets,
-                  log.decode.result.owner.toLocaleLowerCase(),
+                  log.decode.result.owner,
                   transaction.hash,
                   Number(block.timestamp)
                 )

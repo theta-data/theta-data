@@ -225,16 +225,16 @@ let WalletsAnalyseService = class WalletsAnalyseService {
                         const logInfo = this.utilsService.decodeLogs(contract.logs, JSON.parse(contract.contract.abi));
                         for (const log of logInfo) {
                             if (log.decode.result.from) {
-                                this.updateWallets(wallets, log.decode.result.from.toLocaleLowerCase(), transaction.hash, Number(block.timestamp));
+                                this.updateWallets(wallets, log.decode.result.from, transaction.hash, Number(block.timestamp));
                             }
                             if (log.decode.result.to) {
-                                this.updateWallets(wallets, log.decode.result.from.toLocaleLowerCase(), transaction.hash, Number(block.timestamp));
+                                this.updateWallets(wallets, log.decode.result.to, transaction.hash, Number(block.timestamp));
                             }
                             if (log.decode.result.buyer) {
-                                this.updateWallets(wallets, log.decode.result.buyer.toLocaleLowerCase(), transaction.hash, Number(block.timestamp));
+                                this.updateWallets(wallets, log.decode.result.buyer, transaction.hash, Number(block.timestamp));
                             }
                             if (log.decode.result.owner) {
-                                this.updateWallets(wallets, log.decode.result.owner.toLocaleLowerCase(), transaction.hash, Number(block.timestamp));
+                                this.updateWallets(wallets, log.decode.result.owner, transaction.hash, Number(block.timestamp));
                             }
                         }
                     }
