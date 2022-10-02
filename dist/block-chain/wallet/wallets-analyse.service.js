@@ -21,12 +21,15 @@ const wallet_entity_1 = require("./wallet.entity");
 const utils_service_1 = require("../../common/utils.service");
 const const_1 = require("../../const");
 const typeorm_2 = require("@nestjs/typeorm");
+const enum_1 = require("theta-ts-sdk/dist/types/enum");
+const smart_contract_entity_1 = require("../smart-contract/smart-contract.entity");
 const moment = require('moment');
 let WalletsAnalyseService = class WalletsAnalyseService {
-    constructor(loggerService, utilsService, walletConnectionInjected) {
+    constructor(loggerService, utilsService, walletConnectionInjected, smartContractConnectionInjected) {
         this.loggerService = loggerService;
         this.utilsService = utilsService;
         this.walletConnectionInjected = walletConnectionInjected;
+        this.smartContractConnectionInjected = smartContractConnectionInjected;
         this.logger = new common_1.Logger('wallet analyse service');
         this.analyseKey = 'under_analyse';
         this.counter = 0;
@@ -37,6 +40,7 @@ let WalletsAnalyseService = class WalletsAnalyseService {
     async analyseData() {
         try {
             this.walletConnectionRunner = this.walletConnectionInjected.createQueryRunner();
+            this.smartContractConnectionRunner = this.smartContractConnectionInjected.createQueryRunner();
             await this.walletConnectionRunner.startTransaction();
             let height = 0;
             const lastfinalizedHeight = Number((await theta_ts_sdk_1.thetaTsSdk.blockchain.getStatus()).result.latest_finalized_block_height);
@@ -185,6 +189,56 @@ let WalletsAnalyseService = class WalletsAnalyseService {
                 if (transaction.raw.proposer) {
                     this.updateWallets(wallets, transaction.raw.proposer.address, transaction.hash, Number(block.timestamp));
                 }
+                if (transaction.receipt) {
+                    for (const log of transaction.receipt.Logs) {
+                        this.updateWallets(wallets, log.address, transaction.hash, Number(block.timestamp));
+                    }
+                }
+                if (transaction.type == enum_1.THETA_TRANSACTION_TYPE_ENUM.smart_contract) {
+                    const contractList = {};
+                    for (const log of transaction.receipt.Logs) {
+                        if (log.data == '') {
+                            log.data = '0x';
+                        }
+                        else {
+                            log.data = this.utilsService.getHex(log.data);
+                        }
+                        if (contractList.hasOwnProperty(log.address)) {
+                            contractList[log.address].logs.push(log);
+                        }
+                        else {
+                            const tempContract = await this.smartContractConnectionRunner.manager.findOne(smart_contract_entity_1.SmartContractEntity, {
+                                where: {
+                                    contract_address: log.address
+                                }
+                            });
+                            if (!tempContract || !tempContract.verified)
+                                continue;
+                            contractList[log.address] = {
+                                contract: tempContract,
+                                logs: [log]
+                            };
+                        }
+                    }
+                    const contractDecodeList = Object.values(contractList);
+                    for (const contract of contractDecodeList) {
+                        const logInfo = this.utilsService.decodeLogs(contract.logs, JSON.parse(contract.contract.abi));
+                        for (const log of logInfo) {
+                            if (log.decode.result.from) {
+                                this.updateWallets(wallets, log.decode.result.from, transaction.hash, Number(block.timestamp));
+                            }
+                            if (log.decode.result.to) {
+                                this.updateWallets(wallets, log.decode.result.to, transaction.hash, Number(block.timestamp));
+                            }
+                            if (log.decode.result.buyer) {
+                                this.updateWallets(wallets, log.decode.result.buyer, transaction.hash, Number(block.timestamp));
+                            }
+                            if (log.decode.result.owner) {
+                                this.updateWallets(wallets, log.decode.result.owner, transaction.hash, Number(block.timestamp));
+                            }
+                        }
+                    }
+                }
             }
             this.logger.debug(height + ' end insert wallet');
             this.counter--;
@@ -256,8 +310,10 @@ let WalletsAnalyseService = class WalletsAnalyseService {
 WalletsAnalyseService = __decorate([
     (0, common_1.Injectable)(),
     __param(2, (0, typeorm_2.InjectConnection)('wallet')),
+    __param(3, (0, typeorm_2.InjectConnection)('smart_contract')),
     __metadata("design:paramtypes", [logger_service_1.LoggerService,
         utils_service_1.UtilsService,
+        typeorm_1.Connection,
         typeorm_1.Connection])
 ], WalletsAnalyseService);
 exports.WalletsAnalyseService = WalletsAnalyseService;

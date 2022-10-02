@@ -127,6 +127,9 @@ export class StakeService {
     const key = 'latest-stake-info-key'
     if (await this.cacheManager.get(key)) return await this.cacheManager.get(key)
     const latestStakeInfo = await this.stakeStatisticsRepository.findOne({
+      where: {
+        id: MoreThan(0)
+      },
       order: {
         block_height: 'DESC'
       }

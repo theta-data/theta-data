@@ -71,6 +71,12 @@ let ExplorerResolver = class ExplorerResolver {
             const res = await this.rpcService.getBlockByHeight(blockInfo.height);
             return { block: res, block_extend: blockInfo, search_type: explorer_model_1.SEARCH_TYPE_ENUM.block };
         }
+        const accountInfo = await this.explorerService.getAccount(search);
+        if (accountInfo) {
+            return {
+                search_type: explorer_model_1.SEARCH_TYPE_ENUM.account
+            };
+        }
         const transactionInfo = await this.explorerService.getTransactionInfo(search);
         if (transactionInfo) {
             const transactionRpc = await this.rpcService.getTransactionByHash(search);
@@ -94,14 +100,6 @@ let ExplorerResolver = class ExplorerResolver {
                 search_type: explorer_model_1.SEARCH_TYPE_ENUM.nft,
                 nft_statistics: nftList,
                 total: totalNum
-            };
-        }
-        const accountInfo = await this.rpcService.getAccount(search);
-        if (accountInfo) {
-            const accountInfo = await this.rpcService.getAccount(search);
-            return {
-                account: accountInfo,
-                search_type: explorer_model_1.SEARCH_TYPE_ENUM.account
             };
         }
         return {

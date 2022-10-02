@@ -1,3 +1,4 @@
+import { SmartContractEntity } from 'src/block-chain/smart-contract/smart-contract.entity'
 import { MarketModule } from 'src/market/market.module'
 import { CacheModule, Module } from '@nestjs/common'
 import { WalletResolver } from './wallet.resolver'
@@ -14,6 +15,7 @@ import { LatestStakeInfoEntity } from '../stake/latest-stake-info.entity'
   imports: [
     CacheModule.register(),
     TypeOrmModule.forFeature([WalletEntity, ActiveWalletsEntity], 'wallet'),
+    TypeOrmModule.forFeature([SmartContractEntity], 'smart_contract'),
     TypeOrmModule.forFeature([LatestStakeInfoEntity], 'stake'),
     CommonModule,
     MarketModule

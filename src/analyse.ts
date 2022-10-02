@@ -37,8 +37,26 @@ export async function analyseBootstrap() {
     const walletTxHistory = app
       .select(WalletTxHistoryModule)
       .get(WalletTxHistoryAnalyseService, { strict: true })
-
-    // console.log('do while')
+    // await Promise.race([
+    //   tx.analyseData(),
+    //   new Promise((resolve, reject) => {
+    //     setTimeout(() => {
+    //       resolve('timeout')
+    //       console.log('analyse race timeout')
+    //       // this.logger.debug('timeout')
+    //     }, 1000 * 60 * 5)
+    //   })
+    // ])
+    // await Promise.race([
+    //   explorer.analyseData(),
+    //   new Promise((resolve, reject) => {
+    //     setTimeout(() => {
+    //       resolve('timeout')
+    //       console.log('analyse race timeout')
+    //       // this.logger.debug('timeout')
+    //     }, 1000 * 60 * 5)
+    //   })
+    // ])
     await tx.analyseData()
     await explorer.analyseData()
     await smartContract.analyseData()

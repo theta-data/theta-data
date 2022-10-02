@@ -63,9 +63,6 @@ let NftAnalyseService = class NftAnalyseService {
                 await this.nftService.updateNftRecord(this.nftConnectionRunner, this.smartContractConnectionRunner, record);
             }
             this.logger.debug('start update calltimes by period');
-            if (const_1.config.get('NFT.DL_ALL_NFT_IMG') == true) {
-                await this.downloadAllImg(loop);
-            }
             await this.nftConnectionRunner.commitTransaction();
             if (contractRecordList.length > 0) {
                 this.logger.debug('end height:' + Number(contractRecordList[contractRecordList.length - 1].height));
