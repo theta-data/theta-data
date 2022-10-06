@@ -53,7 +53,7 @@ export class BinanceService implements EXCHANGE_INTERFACE {
       timeout: default_options.recvWindow,
       method: 'get'
     }
-    let res = await axios.request(opt)
+    let res = await axios(opt)
     // await this.cacheManager.set(pair, { price: Number(res.data.price) }, { ttl: 1 })
     return { price: Number(res.data.price) }
   }
@@ -71,12 +71,14 @@ export class BinanceService implements EXCHANGE_INTERFACE {
       timeout: default_options.recvWindow,
       method: 'get'
     }
-    let res = await axios.request(opt)
+    let res = await axios(opt)
+    // this.logger.debug()
+    console.log('res data', res.data)
     const dataToReturn = []
     res.data.forEach((item) => {
       dataToReturn.push({
-        time: item[0],
-        price: item[2]
+        time: Number(item[0]),
+        price: Number(item[2])
       })
     })
     return dataToReturn
@@ -90,8 +92,31 @@ export class BinanceService implements EXCHANGE_INTERFACE {
       timeout: default_options.recvWindow,
       method: 'get'
     }
-    let res = await axios.request(opt)
+    let res = await axios(opt)
     // await this.cacheManager.set(pair, { price: Number(res.data.price) }, { ttl: 1 })
-    return res.data
+    const resToReturn: PRICE_CHANGE_INTERFACE = {
+      symbol: '',
+      priceChange: '',
+      priceChangePercent: '',
+      weightedAvgPrice: '',
+      prevClosePrice: '',
+      lastPrice: '',
+      lastQty: '',
+      bidPrice: '',
+      bidQty: '',
+      askPrice: '',
+      askQty: '',
+      openPrice: '',
+      highPrice: '',
+      lowPrice: '',
+      volume: '',
+      quoteVolume: '',
+      openTime: '',
+      closeTime: '',
+      firstId: '',
+      lastId: '',
+      count: ''
+    }
+    return Object.assign(resToReturn, res.data)
   }
 }

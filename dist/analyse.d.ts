@@ -1,1 +1,1 @@
-export declare function analyseBootstrap(): Promise<void>;
+export declare function analyseBootstrap(except: Array<string> | undefined): Promise<void>;

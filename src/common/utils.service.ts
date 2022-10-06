@@ -248,16 +248,17 @@ export class UtilsService {
     if (!parsed.hostname) {
       return urlPath.replace(storePath, '')
     }
+    if (!parsed.pathname) return null
     // const ext = ['gif', 'png', 'jpg', 'jpeg']
-    if (
-      !parsed.pathname.includes('gif') &&
-      !parsed.pathname.includes('png') &&
-      !parsed.pathname.includes('jpg') &&
-      !parsed.pathname.includes('jpeg') &&
-      !parsed.pathname.includes('svg')
-    ) {
-      return null
-    }
+    // if (
+    //   !parsed.pathname.includes('gif') &&
+    //   !parsed.pathname.includes('png') &&
+    //   !parsed.pathname.includes('jpg') &&
+    //   !parsed.pathname.includes('jpeg') &&
+    //   !parsed.pathname.includes('svg')
+    // ) {
+    //   return null
+    // }
     const imgPath = storePath + '/' + parsed.hostname.replace(/\./g, '-')
     const imgStorePath = imgPath + parsed.pathname
     const pathArr = imgStorePath.split('/')
@@ -294,15 +295,16 @@ export class UtilsService {
       return urlPath.replace(storePath, '')
     }
     // const ext = ['gif', 'png', 'jpg', 'jpeg']
-    if (
-      !parsed.pathname.includes('gif') &&
-      !parsed.pathname.includes('png') &&
-      !parsed.pathname.includes('jpg') &&
-      !parsed.pathname.includes('jpeg') &&
-      !parsed.pathname.includes('svg')
-    ) {
-      return null
-    }
+    // if (
+    //   !parsed.pathname.includes('gif') &&
+    //   !parsed.pathname.includes('png') &&
+    //   !parsed.pathname.includes('jpg') &&
+    //   !parsed.pathname.includes('jpeg') &&
+    //   !parsed.pathname.includes('svg')
+    // ) {
+    //   return null
+    // }
+    if (!parsed.pathname) return null
     const imgPath = storePath + '/' + parsed.hostname.replace(/\./g, '-')
     return imgPath + parsed.pathname
   }

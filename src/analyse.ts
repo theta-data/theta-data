@@ -17,7 +17,7 @@ import { TxModule } from './block-chain/tx/tx.module'
 import { WalletModule } from './block-chain/wallet/wallet.module'
 import { WalletTxHistoryAnalyseService } from './block-chain/wallet-tx-history/wallet-tx-history-analyse.service'
 
-export async function analyseBootstrap() {
+export async function analyseBootstrap(except: Array<string> | undefined) {
   let i = 0
   while (1) {
     const app = await NestFactory.createApplicationContext(AppModule)
@@ -61,8 +61,10 @@ export async function analyseBootstrap() {
     await explorer.analyseData()
     await smartContract.analyseData()
     await wallet.analyseData()
-    await nft.analyseData(i)
 
+    if (except && !except.includes('nft')) {
+      await nft.analyseData(i)
+    }
     await stake.analyseData()
     await nftStatistics.analyseData()
     await walletTxHistory.analyseData()

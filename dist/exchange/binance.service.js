@@ -43,7 +43,7 @@ let BinanceService = class BinanceService {
             timeout: default_options.recvWindow,
             method: 'get'
         };
-        let res = await axios.request(opt);
+        let res = await axios(opt);
         return { price: Number(res.data.price) };
     }
     async kLine(pair, interval = '5m') {
@@ -58,12 +58,13 @@ let BinanceService = class BinanceService {
             timeout: default_options.recvWindow,
             method: 'get'
         };
-        let res = await axios.request(opt);
+        let res = await axios(opt);
+        console.log('res data', res.data);
         const dataToReturn = [];
         res.data.forEach((item) => {
             dataToReturn.push({
-                time: item[0],
-                price: item[2]
+                time: Number(item[0]),
+                price: Number(item[2])
             });
         });
         return dataToReturn;
@@ -75,8 +76,31 @@ let BinanceService = class BinanceService {
             timeout: default_options.recvWindow,
             method: 'get'
         };
-        let res = await axios.request(opt);
-        return res.data;
+        let res = await axios(opt);
+        const resToReturn = {
+            symbol: '',
+            priceChange: '',
+            priceChangePercent: '',
+            weightedAvgPrice: '',
+            prevClosePrice: '',
+            lastPrice: '',
+            lastQty: '',
+            bidPrice: '',
+            bidQty: '',
+            askPrice: '',
+            askQty: '',
+            openPrice: '',
+            highPrice: '',
+            lowPrice: '',
+            volume: '',
+            quoteVolume: '',
+            openTime: '',
+            closeTime: '',
+            firstId: '',
+            lastId: '',
+            count: ''
+        };
+        return Object.assign(resToReturn, res.data);
     }
 };
 BinanceService = __decorate([

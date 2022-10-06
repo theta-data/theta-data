@@ -301,7 +301,7 @@ export class WalletsAnalyseService {
               JSON.parse(contract.contract.abi)
             )
             for (const log of logInfo) {
-              if (log.decode.result.from) {
+              if (log.decode.result && log.decode.result.from) {
                 this.updateWallets(
                   wallets,
                   log.decode.result.from,
@@ -309,7 +309,7 @@ export class WalletsAnalyseService {
                   Number(block.timestamp)
                 )
               }
-              if (log.decode.result.to) {
+              if (log.decode.result && log.decode.result.to) {
                 this.updateWallets(
                   wallets,
                   log.decode.result.to,
@@ -317,7 +317,7 @@ export class WalletsAnalyseService {
                   Number(block.timestamp)
                 )
               }
-              if (log.decode.result.buyer) {
+              if (log.decode.result && log.decode.result.buyer) {
                 this.updateWallets(
                   wallets,
                   log.decode.result.buyer,
@@ -325,7 +325,7 @@ export class WalletsAnalyseService {
                   Number(block.timestamp)
                 )
               }
-              if (log.decode.result.owner) {
+              if (log.decode.result && log.decode.result.owner) {
                 this.updateWallets(
                   wallets,
                   log.decode.result.owner,

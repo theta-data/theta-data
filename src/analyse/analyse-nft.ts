@@ -5,7 +5,7 @@ import { NftAnalyseService } from 'src/block-chain/smart-contract/nft/nft-analys
 import { NftModule } from 'src/block-chain/smart-contract/nft/nft.module'
 import { config } from 'src/const'
 
-async function bootstrap() {
+export async function analyseNftBootstrap() {
   let i = 0
   try {
     while (1) {
@@ -21,7 +21,7 @@ async function bootstrap() {
             resolve('timeout')
             console.log('analyse race timeout')
             // this.logger.debug('timeout')
-          }, 1000 * 60 * 5)
+          }, 1000 * 60 * 20)
         })
       ])
       await new Promise((resolve) => setTimeout(resolve, config.get('NFT.ANALYSE_INTERVAL')))
@@ -35,4 +35,4 @@ async function bootstrap() {
     process.exit()
   }
 }
-bootstrap()
+// bootstrap()

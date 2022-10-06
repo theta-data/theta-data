@@ -1,12 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.analyseNftBootstrap = void 0;
 const utils_service_1 = require("../common/utils.service");
 const core_1 = require("@nestjs/core");
 const app_module_1 = require("../app.module");
 const nft_analyse_service_1 = require("../block-chain/smart-contract/nft/nft-analyse.service");
 const nft_module_1 = require("../block-chain/smart-contract/nft/nft.module");
 const const_1 = require("../const");
-async function bootstrap() {
+async function analyseNftBootstrap() {
     let i = 0;
     try {
         while (1) {
@@ -18,7 +19,7 @@ async function bootstrap() {
                     setTimeout(() => {
                         resolve('timeout');
                         console.log('analyse race timeout');
-                    }, 1000 * 60 * 5);
+                    }, 1000 * 60 * 20);
                 })
             ]);
             await new Promise((resolve) => setTimeout(resolve, const_1.config.get('NFT.ANALYSE_INTERVAL')));
@@ -33,5 +34,5 @@ async function bootstrap() {
         process.exit();
     }
 }
-bootstrap();
+exports.analyseNftBootstrap = analyseNftBootstrap;
 //# sourceMappingURL=analyse-nft.js.map

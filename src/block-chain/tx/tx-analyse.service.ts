@@ -7,7 +7,7 @@ import BigNumber from 'bignumber.js'
 import { SmartContractEntity } from 'src/block-chain/smart-contract/smart-contract.entity'
 import { UtilsService, writeFailExcuteLog, writeSucessExcuteLog } from 'src/common/utils.service'
 import { config } from 'src/const'
-import { getConnectionName, InjectConnection } from '@nestjs/typeorm'
+import { InjectConnection } from '@nestjs/typeorm'
 import { createConnection } from 'net'
 // const config = require('config')
 const moment = require('moment')
