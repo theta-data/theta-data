@@ -74,8 +74,8 @@ export class BinanceService implements EXCHANGE_INTERFACE {
       method: 'get',
       responseType: 'json'
     }
-    console.log('start get axios')
-    console.log('opt', opt)
+    // console.log('start get axios')
+    // console.log('opt', opt)
     const httpRes = await axios(opt)
     // this.logger.debug()
     console.log('res data', httpRes.data)
