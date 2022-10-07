@@ -12,9 +12,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.BinanceService = void 0;
 const common_1 = require("@nestjs/common");
 const axios = require('axios');
-const crypto = require('crypto');
-const userAgent = 'Mozilla/4.0 (compatible; Node Binance API)';
-const contentType = 'application/x-www-form-urlencoded';
 const default_options = {
     recvWindow: 50000,
     useServerTime: false,
@@ -39,7 +36,10 @@ let BinanceService = class BinanceService {
     async prices(pair) {
         const params = typeof pair === 'string' ? '?symbol=' + pair.toUpperCase() : '';
         let opt = {
-            url: this.baseArr[Math.floor(Math.random() * this.baseArr.length)] + 'v3/ticker/price' + params,
+            url: this.baseArr[Math.floor(Math.random() * this.baseArr.length)] + 'v3/ticker/price',
+            params: {
+                symbol: pair.toUpperCase()
+            },
             timeout: default_options.recvWindow,
             method: 'get'
         };
@@ -49,19 +49,22 @@ let BinanceService = class BinanceService {
     async kLine(pair, interval = '5m') {
         const params = typeof pair === 'string' ? '?symbol=' + pair.toUpperCase() : '';
         let opt = {
-            url: this.baseArr[Math.floor(Math.random() * this.baseArr.length)] +
-                'v3/klines' +
-                params +
-                '&interval=' +
-                interval +
-                '&limit=1000',
+            url: this.baseArr[Math.floor(Math.random() * this.baseArr.length)] + 'v3/klines',
+            params: {
+                symbol: pair.toUpperCase(),
+                interval: interval,
+                limit: 1000
+            },
             timeout: default_options.recvWindow,
-            method: 'get'
+            method: 'get',
+            responseType: 'json'
         };
-        let res = await axios(opt);
-        console.log('res data', res.data);
+        console.log('start get axios');
+        console.log('opt', opt);
+        const httpRes = await axios(opt);
+        console.log('res data', httpRes.data);
         const dataToReturn = [];
-        res.data.forEach((item) => {
+        httpRes.data.forEach((item) => {
             dataToReturn.push({
                 time: Number(item[0]),
                 price: Number(item[2])
@@ -72,7 +75,10 @@ let BinanceService = class BinanceService {
     async tickerPriceChange(pair) {
         const params = typeof pair === 'string' ? '?symbol=' + pair.toUpperCase() : '';
         let opt = {
-            url: this.baseArr[Math.floor(Math.random() * this.baseArr.length)] + 'v3/ticker/24hr' + params,
+            url: this.baseArr[Math.floor(Math.random() * this.baseArr.length)] + 'v3/ticker/24hr',
+            params: {
+                symbol: pair.toUpperCase()
+            },
             timeout: default_options.recvWindow,
             method: 'get'
         };
