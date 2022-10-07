@@ -89,11 +89,15 @@ exports.config = (function () {
     let config = exports.DEFAULT_CONFIG;
     const configFile = '.theta-data.' + process.env.NODE_ENV + '.json';
     const defaultConfigFile = '.theta-data.json';
-    if (fs.existsSync(configFile)) {
-        config = _.merge(config, JSON.parse(fs.readFileSync(configFile, 'utf8')));
+    let fileToRead = '';
+    if (fs.existsSync(defaultConfigFile)) {
+        fileToRead = defaultConfigFile;
     }
-    else if (fs.existsSync(defaultConfigFile)) {
-        config = _.merge(config, JSON.parse(fs.readFileSync(defaultConfigFile, 'utf8')));
+    if (fs.existsSync(configFile)) {
+        fileToRead = configFile;
+    }
+    if (fileToRead) {
+        config = _.merge(config, JSON.parse(fs.readFileSync(fileToRead, 'utf8')));
     }
     return {
         get: (str) => {

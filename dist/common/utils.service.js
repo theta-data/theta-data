@@ -180,13 +180,8 @@ let UtilsService = class UtilsService {
         if (!parsed.hostname) {
             return urlPath.replace(storePath, '');
         }
-        if (!parsed.pathname.includes('gif') &&
-            !parsed.pathname.includes('png') &&
-            !parsed.pathname.includes('jpg') &&
-            !parsed.pathname.includes('jpeg') &&
-            !parsed.pathname.includes('svg')) {
+        if (!parsed.pathname)
             return null;
-        }
         const imgPath = storePath + '/' + parsed.hostname.replace(/\./g, '-');
         const imgStorePath = imgPath + parsed.pathname;
         const pathArr = imgStorePath.split('/');
@@ -217,13 +212,8 @@ let UtilsService = class UtilsService {
         if (!parsed.hostname) {
             return urlPath.replace(storePath, '');
         }
-        if (!parsed.pathname.includes('gif') &&
-            !parsed.pathname.includes('png') &&
-            !parsed.pathname.includes('jpg') &&
-            !parsed.pathname.includes('jpeg') &&
-            !parsed.pathname.includes('svg')) {
+        if (!parsed.pathname)
             return null;
-        }
         const imgPath = storePath + '/' + parsed.hostname.replace(/\./g, '-');
         return imgPath + parsed.pathname;
     }

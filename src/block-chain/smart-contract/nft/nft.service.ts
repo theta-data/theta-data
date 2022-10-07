@@ -20,7 +20,9 @@ import fetch from 'cross-fetch'
 import { UtilsService } from 'src/common/utils.service'
 import BigNumber from 'bignumber.js'
 import { config } from 'src/const'
+// import { json } from 'stream/consumers'
 // const config = require('config')
+const axios = require('axios')
 
 @Injectable()
 export class NftService {
@@ -195,6 +197,7 @@ export class NftService {
       for (const log of logInfo) {
         let imgUri = ''
         let name = ''
+
         if (log.decode.eventName === 'Transfer' && log.decode.result.tokenId) {
           this.logger.debug(
             JSON.stringify({
@@ -217,40 +220,75 @@ export class NftService {
           let detail = ''
           let tokenUri = ''
           let baseTokenUri = ''
-          const abiInfo = JSON.parse(logContract.abi)
-          const hasTokenUri = abiInfo.find((v) => v.name == 'tokenURI')
-          name = logContract.name
           let contractUri = logContract.contract_uri
-          if (hasTokenUri) {
-            try {
-              tokenUri = await this.getTokenUri(
-                logContract.contract_address,
-                abiInfo,
-                Number(log.decode.result.tokenId)
-              )
-              // try {
-              const httpRes = await fetch(tokenUri, {
-                method: 'GET',
-                headers: {
-                  'Content-Type': 'application/json'
-                }
-              })
-              if (httpRes.status >= 400) {
-                throw new Error('Bad response from server')
-              }
-              const res: any = await httpRes.json()
-              name = res.name
-              imgUri = res.image
-              detail = JSON.stringify(res)
-            } catch (e) {
-              this.logger.error(e)
+          const balance = await nftConnection.manager.findOne(NftBalanceEntity, {
+            where: {
+              smart_contract_address: log.address.toLowerCase(),
+              token_id: Number(log.decode.result.tokenId)
             }
+          })
+          if (balance && balance.detail) {
+            const detailInfo = JSON.parse(balance.detail)
+            imgUri = await this.utilsService.downloadImage(
+              detailInfo.image,
+              config.get('NFT.STATIC_PATH')
+            )
+            name = detailInfo.name
+            detail = balance.detail
+            tokenUri = balance.token_uri
+            baseTokenUri = balance.base_token_uri
+          } else {
+            const abiInfo = JSON.parse(logContract.abi)
+            const hasTokenUri = abiInfo.find((v) => v.name == 'tokenURI')
+            name = logContract.name
+
+            if (hasTokenUri) {
+              try {
+                tokenUri = await this.getTokenUri(
+                  logContract.contract_address,
+                  abiInfo,
+                  Number(log.decode.result.tokenId)
+                )
+                // try {
+                this.logger.debug(
+                  'axios fetch',
+                  JSON.stringify({
+                    url: tokenUri,
+                    method: 'GET',
+                    timeout: 10000,
+                    responseType: 'json'
+                    // headers: {
+                    //   'Content-Type': 'application/json'
+                    // }
+                  })
+                )
+                const httpRes = await axios({
+                  url: tokenUri,
+                  method: 'GET',
+                  timeout: 10000,
+                  responseType: 'json'
+                  // headers: {
+                  //   'Content-Type': 'application/json'
+                  // }
+                })
+                if (httpRes.status >= 400) {
+                  throw new Error('Bad response from server')
+                }
+                const res: any = httpRes.data
+                name = res.name
+                imgUri = res.image
+                detail = JSON.stringify(res)
+              } catch (e) {
+                this.logger.error(e)
+              }
+            }
+            const hasBaseTokenUri = abiInfo.find((v) => v.name == 'baseTokenURI')
+            if (hasBaseTokenUri) {
+              baseTokenUri = await this.getBaseTokenUri(logContract.contract_address, abiInfo)
+            }
+            imgUri = await this.utilsService.downloadImage(imgUri, config.get('NFT.STATIC_PATH'))
           }
-          const hasBaseTokenUri = abiInfo.find((v) => v.name == 'baseTokenURI')
-          if (hasBaseTokenUri) {
-            baseTokenUri = await this.getBaseTokenUri(logContract.contract_address, abiInfo)
-          }
-          imgUri = await this.utilsService.downloadImage(imgUri, config.get('NFT.STATIC_PATH'))
+
           const transferRecord = await nftConnection.manager.findOne(NftTransferRecordEntity, {
             where: {
               token_id: Number(log.decode.result.tokenId),
@@ -292,16 +330,13 @@ export class NftService {
             await nftConnection.manager.save(transferRecord)
           }
 
-          const balance = await nftConnection.manager.findOne(NftBalanceEntity, {
-            where: {
-              smart_contract_address: log.address.toLowerCase(),
-              token_id: Number(log.decode.result.tokenId)
-            }
-          })
-
           if (balance) {
-            imgUri = balance.img_uri
-            name = balance.name
+            // imgUri = balance.img_uri
+            // name = balance.name
+            // if(!balance)
+            if (balance.img_uri) {
+              imgUri = balance.img_uri
+            }
             const latestRecord = await nftConnection.manager.findOne(NftTransferRecordEntity, {
               where: {
                 smart_contract_address: log.address.toLowerCase(),
@@ -318,7 +353,9 @@ export class NftService {
               },
               {
                 owner: latestRecord.to,
-                from: latestRecord.from
+                from: latestRecord.from,
+                name: name,
+                img_uri: imgUri
               }
             )
           } else {

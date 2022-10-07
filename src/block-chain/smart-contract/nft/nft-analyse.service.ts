@@ -57,6 +57,7 @@ export class NftAnalyseService {
       )
 
       const promiseArr = []
+      this.logger.debug('records length:' + contractRecordList.length)
       for (const record of contractRecordList) {
         // promiseArr.push(
         await this.nftService.updateNftRecord(

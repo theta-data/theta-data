@@ -19,7 +19,7 @@ const tx_analyse_service_1 = require("./block-chain/tx/tx-analyse.service");
 const tx_module_1 = require("./block-chain/tx/tx.module");
 const wallet_module_1 = require("./block-chain/wallet/wallet.module");
 const wallet_tx_history_analyse_service_1 = require("./block-chain/wallet-tx-history/wallet-tx-history-analyse.service");
-async function analyseBootstrap() {
+async function analyseBootstrap(except) {
     let i = 0;
     while (1) {
         const app = await core_1.NestFactory.createApplicationContext(app_module_1.AppModule);
@@ -41,7 +41,9 @@ async function analyseBootstrap() {
         await explorer.analyseData();
         await smartContract.analyseData();
         await wallet.analyseData();
-        await nft.analyseData(i);
+        if (except && !except.includes('nft')) {
+            await nft.analyseData(i);
+        }
         await stake.analyseData();
         await nftStatistics.analyseData();
         await walletTxHistory.analyseData();

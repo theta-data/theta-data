@@ -59,6 +59,7 @@ let NftAnalyseService = class NftAnalyseService {
                 order: { id: 'ASC' }
             });
             const promiseArr = [];
+            this.logger.debug('records length:' + contractRecordList.length);
             for (const record of contractRecordList) {
                 await this.nftService.updateNftRecord(this.nftConnectionRunner, this.smartContractConnectionRunner, record);
             }

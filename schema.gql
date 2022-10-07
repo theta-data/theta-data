@@ -36,11 +36,16 @@ type PaginatedHistoryTransactions {
   totalCount: Int!
   hasNextPage: Boolean!
   skip: Int!
+  endCursor: String!
 }
 
 type NftStatisticsEntity {
   smart_contract_address: String!
   name: String!
+  description: String!
+  unique_owners: Int!
+  items: Int!
+  destroyed_items: Int!
   img_uri: String
   contract_uri: String!
   contract_uri_detail: String!
@@ -68,6 +73,7 @@ type PaginatedNftStatistics {
   totalCount: Int!
   hasNextPage: Boolean!
   skip: Int!
+  endCursor: String!
 }
 
 type NftDetailType {
@@ -76,6 +82,10 @@ type NftDetailType {
   contract_uri_detail: String
   name: String
   img_uri: String
+  description: String
+  unique_owners: Int!
+  items: Int!
+  destroyed_items: Int!
   update_timestamp: Float
   contract_uri_update_timestamp: Float
   by_24_hours(
@@ -601,6 +611,7 @@ type PaginatedNftBalance {
   totalCount: Int!
   hasNextPage: Boolean!
   skip: Int!
+  endCursor: String!
 }
 
 type PaginatedSmartContract {
@@ -608,6 +619,7 @@ type PaginatedSmartContract {
   totalCount: Int!
   hasNextPage: Boolean!
   skip: Int!
+  endCursor: String!
 }
 
 type PaginatedNftTransferRecord {
@@ -615,6 +627,7 @@ type PaginatedNftTransferRecord {
   totalCount: Int!
   hasNextPage: Boolean!
   skip: Int!
+  endCursor: String!
 }
 
 """Statistics on smart contract related calls"""
@@ -661,6 +674,7 @@ type PaginatedBlockList {
   totalCount: Int!
   hasNextPage: Boolean!
   skip: Int!
+  endCursor: String!
 }
 
 type PaginatedTransactions {
@@ -668,6 +682,7 @@ type PaginatedTransactions {
   totalCount: Int!
   hasNextPage: Boolean!
   skip: Int!
+  endCursor: String!
 }
 
 type ExplorerSearchModelType {
