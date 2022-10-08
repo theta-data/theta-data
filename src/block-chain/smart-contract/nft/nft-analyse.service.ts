@@ -21,6 +21,7 @@ export class NftAnalyseService {
   private smartContractConnectionRunner: QueryRunner
   private nftConnectionRunner: QueryRunner
   private heightConfigFile = config.get('ORM_CONFIG')['database'] + 'nft/record.height'
+  private retriveIdFile = config.get('ORM_CONFIG')['database'] + 'nft/retrive.id'
 
   constructor(
     private nftService: NftService,
@@ -107,22 +108,32 @@ export class NftAnalyseService {
   async autoRefetchTokenUri(loop: number) {
     // const total = await this.nftConnectionRunner.manager.count(NftBalanceEntity)
     const pageSize = 100
-    const pageCount = Math.ceil(100000 / pageSize)
-    // if (loop > pageCount) {
-    loop = loop % pageCount
-    this.logger.debug('loop ' + loop + ' page count:' + pageCount)
-    // return
-    // }
-    // for (let i = 0; i < pageCount; i++) {
+    // const pageCount = Math.ceil(100000 / pageSize)
+    if ((loop * pageSize) % 100000 == 0) {
+      const latestNftRecord = await this.nftConnectionRunner.manager.findOne(NftBalanceEntity, {
+        // skip: loop * pageSize,
+        // take: pageSize,
+        where: { id: MoreThan(0) },
+        order: {
+          id: 'DESC'
+        }
+      })
+      if (!latestNftRecord) fs.writeFileSync(this.retriveIdFile, '0')
+      else fs.writeFileSync(this.retriveIdFile, latestNftRecord.id.toString())
+    }
+
+    const startId = Number(fs.readFileSync(this.retriveIdFile, 'utf8'))
+
     const list = await this.nftConnectionRunner.manager.find(NftBalanceEntity, {
-      skip: loop * pageSize,
+      // skip: loop * pageSize,
+      where: { id: LessThan(startId) },
       take: pageSize,
       order: {
         id: 'DESC'
       }
     })
     for (const item of list) {
-      this.logger.debug('start download ' + item.id + ' ' + item.img_uri)
+      this.logger.debug('start download ' + item.id + ' ' + item.name)
       // let img = item.img_uri
       // if (!item.detail) {
       try {
@@ -164,6 +175,7 @@ export class NftAnalyseService {
         { img_uri: item.img_uri, name: item.name }
       )
     }
+    if (list.length > 0) fs.writeFileSync(this.retriveIdFile, list[list.length - 1].id.toString())
     // }
     // const nfts = await this.nftConnection.manager.find(NftBalanceEntity)
   }

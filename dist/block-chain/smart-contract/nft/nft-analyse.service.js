@@ -35,6 +35,7 @@ let NftAnalyseService = class NftAnalyseService {
         this.logger = new common_1.Logger('nft analyse service');
         this.analyseKey = 'under_analyse';
         this.heightConfigFile = const_1.config.get('ORM_CONFIG')['database'] + 'nft/record.height';
+        this.retriveIdFile = const_1.config.get('ORM_CONFIG')['database'] + 'nft/retrive.id';
     }
     async analyseData(loop) {
         try {
@@ -91,18 +92,28 @@ let NftAnalyseService = class NftAnalyseService {
     }
     async autoRefetchTokenUri(loop) {
         const pageSize = 100;
-        const pageCount = Math.ceil(100000 / pageSize);
-        loop = loop % pageCount;
-        this.logger.debug('loop ' + loop + ' page count:' + pageCount);
+        if ((loop * pageSize) % 100000 == 0) {
+            const latestNftRecord = await this.nftConnectionRunner.manager.findOne(nft_balance_entity_1.NftBalanceEntity, {
+                where: { id: (0, typeorm_1.MoreThan)(0) },
+                order: {
+                    id: 'DESC'
+                }
+            });
+            if (!latestNftRecord)
+                fs.writeFileSync(this.retriveIdFile, '0');
+            else
+                fs.writeFileSync(this.retriveIdFile, latestNftRecord.id.toString());
+        }
+        const startId = Number(fs.readFileSync(this.retriveIdFile, 'utf8'));
         const list = await this.nftConnectionRunner.manager.find(nft_balance_entity_1.NftBalanceEntity, {
-            skip: loop * pageSize,
+            where: { id: (0, typeorm_1.LessThan)(startId) },
             take: pageSize,
             order: {
                 id: 'DESC'
             }
         });
         for (const item of list) {
-            this.logger.debug('start download ' + item.id + ' ' + item.img_uri);
+            this.logger.debug('start download ' + item.id + ' ' + item.name);
             try {
                 const httpRes = await axios({
                     url: item.token_uri,
@@ -123,7 +134,6 @@ let NftAnalyseService = class NftAnalyseService {
                     item.img_uri = await this.utilsService.downloadImage(res.image, const_1.config.get('NFT.STATIC_PATH'));
                 }
                 this.logger.debug('end get token uri ' + item.img_uri);
-                console.log(res);
             }
             catch (e) {
                 this.logger.error(e);
@@ -134,6 +144,8 @@ let NftAnalyseService = class NftAnalyseService {
                 token_id: item.token_id
             }, { img_uri: item.img_uri, name: item.name });
         }
+        if (list.length > 0)
+            fs.writeFileSync(this.retriveIdFile, list[list.length - 1].id.toString());
     }
     async retriveNfts() {
         const moment = require('moment');
