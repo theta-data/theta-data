@@ -102,7 +102,7 @@ let NftAnalyseService = class NftAnalyseService {
             }
         });
         for (const item of list) {
-            this.logger.debug('start download ' + item.img_uri);
+            this.logger.debug('start download ' + item.id + ' ' + item.img_uri);
             try {
                 const httpRes = await axios({
                     url: item.token_uri,

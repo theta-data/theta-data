@@ -122,7 +122,7 @@ export class NftAnalyseService {
       }
     })
     for (const item of list) {
-      this.logger.debug('start download ' + item.img_uri)
+      this.logger.debug('start download ' + item.id + ' ' + item.img_uri)
       // let img = item.img_uri
       // if (!item.detail) {
       try {
@@ -150,8 +150,7 @@ export class NftAnalyseService {
           )
         }
         this.logger.debug('end get token uri ' + item.img_uri)
-
-        console.log(res)
+        // console.log(res)
       } catch (e) {
         this.logger.error(e)
       }
