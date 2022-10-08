@@ -11,7 +11,8 @@ const fs = require('fs')
 import fetch from 'cross-fetch'
 import { config } from 'src/const'
 import { InjectConnection } from '@nestjs/typeorm'
-
+import { isEmpty } from 'rxjs'
+const axios = require('axios')
 @Injectable()
 export class NftAnalyseService {
   private readonly logger = new Logger('nft analyse service')
@@ -71,6 +72,7 @@ export class NftAnalyseService {
         // await Promise.all(promiseArr)
       }
       await this.retriveNfts()
+      await this.autoRefetchTokenUri(loop)
 
       this.logger.debug('start update calltimes by period')
       // if (config.get('NFT.DL_ALL_NFT_IMG') == true) {
@@ -102,17 +104,18 @@ export class NftAnalyseService {
     }
   }
 
-  async downloadAllImg(loop: number) {
-    const total = await this.nftConnectionRunner.manager.count(NftBalanceEntity)
+  async autoRefetchTokenUri(loop: number) {
+    // const total = await this.nftConnectionRunner.manager.count(NftBalanceEntity)
     const pageSize = 100
-    const pageCount = Math.ceil(total / pageSize)
-    if (loop > pageCount) {
-      this.logger.debug('loop ' + loop + ' page count:' + pageCount)
-      return
-    }
+    const pageCount = Math.ceil(100000 / pageSize)
+    // if (loop > pageCount) {
+    loop = loop % pageCount
+    this.logger.debug('loop ' + loop + ' page count:' + pageCount)
+    // return
+    // }
     // for (let i = 0; i < pageCount; i++) {
     const list = await this.nftConnectionRunner.manager.find(NftBalanceEntity, {
-      skip: (loop + 2400) * pageSize,
+      skip: loop * pageSize,
       take: pageSize,
       order: {
         id: 'DESC'
@@ -121,58 +124,31 @@ export class NftAnalyseService {
     for (const item of list) {
       this.logger.debug('start download ' + item.img_uri)
       // let img = item.img_uri
-      if (!item.detail) {
-        try {
-          const res = await Promise.race([
-            async () => {
-              // const controller = new AbortController()
-              // const timeoutId = setTimeout(() => controller.abort(), 3000)
-              const httpRes = await fetch(item.token_uri, {
-                method: 'GET',
-                // signal: controller.signal,
-                headers: {
-                  'Content-Type': 'application/json'
-                }
-              })
-              if (httpRes.status >= 400) {
-                throw new Error('Bad response from server')
-              }
-              const res: any = await httpRes.json()
-              item.detail = JSON.stringify(res)
-              item.name = res.name
-              item.img_uri = res.image
-              this.logger.debug('end get token uri ' + item.img_uri)
-            },
-            this.utilsService.timeout(5000)
-          ])
-          console.log(res)
-        } catch (e) {
-          this.logger.error(e)
+      // if (!item.detail) {
+      try {
+        const httpRes = await axios({
+          url: item.token_uri,
+          method: 'get',
+          // signal: controller.signal,
+          timeout: 3000,
+          responseType: 'json'
+        })
+        if (httpRes.status >= 400) {
+          throw new Error('Bad response from server')
         }
-      } else {
-        const detail = JSON.parse(item.detail)
-
-        const imgStorePath = await this.utilsService.getPath(
-          detail.image,
+        const res: any = await httpRes.json()
+        item.detail = JSON.stringify(res)
+        item.name = res.name
+        item.img_uri = await this.utilsService.downloadImage(
+          res.image,
           config.get('NFT.STATIC_PATH')
         )
-        if (item.name == detail.name && item.img_uri == imgStorePath) {
-          this.logger.debug('img is ok')
-          continue
-        }
-        item.name = detail.name
-        if (imgStorePath != item.img_uri) {
-          item.img_uri = detail.image
-        }
+        this.logger.debug('end get token uri ' + item.img_uri)
+
+        console.log(res)
+      } catch (e) {
+        this.logger.error(e)
       }
-      // }
-      const imgPath = await this.utilsService.downloadImage(
-        item.img_uri,
-        config.get('NFT.STATIC_PATH')
-      )
-      this.logger.debug('loop ' + loop + ': ' + item.img_uri + ' ' + imgPath)
-      // if (imgPath == item.img_uri) continue
-      item.img_uri = imgPath
       await this.nftConnectionRunner.manager.save(item)
       await this.nftConnectionRunner.manager.update(
         NftTransferRecordEntity,
@@ -180,7 +156,7 @@ export class NftAnalyseService {
           smart_contract_address: item.smart_contract_address,
           token_id: item.token_id
         },
-        { img_uri: imgPath, name: item.name }
+        { img_uri: item.img_uri, name: item.name }
       )
     }
     // }
