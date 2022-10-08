@@ -1,3 +1,4 @@
+import { NftRetriveEntity } from './nft-retrive.entity'
 import { Module } from '@nestjs/common'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { NftService } from './nft.service'
@@ -11,7 +12,7 @@ import { NftAnalyseService } from './nft-analyse.service'
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([NftBalanceEntity, NftTransferRecordEntity], 'nft'),
+    TypeOrmModule.forFeature([NftBalanceEntity, NftTransferRecordEntity, NftRetriveEntity], 'nft'),
     TypeOrmModule.forFeature(
       [SmartContractCallRecordEntity, SmartContractEntity],
       'smart_contract'

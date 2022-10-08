@@ -59,8 +59,6 @@ let BinanceService = class BinanceService {
             method: 'get',
             responseType: 'json'
         };
-        console.log('start get axios');
-        console.log('opt', opt);
         const httpRes = await axios(opt);
         console.log('res data', httpRes.data);
         const dataToReturn = [];

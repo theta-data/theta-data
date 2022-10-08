@@ -13,6 +13,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NftAnalyseService = void 0;
+const nft_retrive_entity_1 = require("./nft-retrive.entity");
+const smart_contract_entity_1 = require("../smart-contract.entity");
 const nft_transfer_record_entity_1 = require("./nft-transfer-record.entity");
 const nft_balance_entity_1 = require("./nft-balance.entity");
 const common_1 = require("@nestjs/common");
@@ -63,6 +65,7 @@ let NftAnalyseService = class NftAnalyseService {
             for (const record of contractRecordList) {
                 await this.nftService.updateNftRecord(this.nftConnectionRunner, this.smartContractConnectionRunner, record);
             }
+            await this.retriveNfts();
             this.logger.debug('start update calltimes by period');
             await this.nftConnectionRunner.commitTransaction();
             if (contractRecordList.length > 0) {
@@ -149,6 +152,37 @@ let NftAnalyseService = class NftAnalyseService {
                 smart_contract_address: item.smart_contract_address,
                 token_id: item.token_id
             }, { img_uri: imgPath, name: item.name });
+        }
+    }
+    async retriveNfts() {
+        const moment = require('moment');
+        const smartContracts = await this.smartContractConnectionRunner.manager.find(smart_contract_entity_1.SmartContractEntity, {
+            where: {
+                verification_date: (0, typeorm_1.MoreThan)(moment().subtract(1, 'days').unix())
+            }
+        });
+        for (const contract of smartContracts) {
+            const retrived = await this.nftConnectionRunner.manager.findOne(nft_retrive_entity_1.NftRetriveEntity, {
+                where: {
+                    smart_contract_address: contract.contract_address
+                }
+            });
+            if (retrived) {
+                continue;
+            }
+            const nftRecords = await this.smartContractConnectionRunner.manager.find(smart_contract_call_record_entity_1.SmartContractCallRecordEntity, {
+                where: {
+                    contract_id: contract.id,
+                    timestamp: (0, typeorm_1.LessThan)(contract.verification_date + 10 * 60)
+                }
+            });
+            for (const record of nftRecords) {
+                await this.nftService.updateNftRecord(this.nftConnectionRunner, this.smartContractConnectionRunner, record);
+            }
+            const retrive = new nft_retrive_entity_1.NftRetriveEntity();
+            retrive.smart_contract_address = contract.contract_address;
+            retrive.retrived = true;
+            await this.nftConnectionRunner.manager.save(retrive);
         }
     }
 };

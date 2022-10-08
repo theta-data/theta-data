@@ -14,4 +14,5 @@ export declare class NftAnalyseService {
     constructor(nftService: NftService, utilsService: UtilsService, smartContractConnectionInjected: Connection, nftConnectionInjected: Connection);
     analyseData(loop: number): Promise<void>;
     downloadAllImg(loop: number): Promise<void>;
+    retriveNfts(): Promise<void>;
 }

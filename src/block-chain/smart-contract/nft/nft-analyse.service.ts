@@ -1,7 +1,9 @@
+import { NftRetriveEntity } from './nft-retrive.entity'
+import { SmartContractEntity } from 'src/block-chain/smart-contract/smart-contract.entity'
 import { NftTransferRecordEntity } from 'src/block-chain/smart-contract/nft/nft-transfer-record.entity'
 import { NftBalanceEntity } from './nft-balance.entity'
 import { Injectable, Logger } from '@nestjs/common'
-import { Connection, getConnection, MoreThan, QueryRunner } from 'typeorm'
+import { Connection, getConnection, LessThan, MoreThan, QueryRunner } from 'typeorm'
 import { SmartContractCallRecordEntity } from 'src/block-chain/smart-contract/smart-contract-call-record.entity'
 import { NftService } from 'src/block-chain/smart-contract/nft/nft.service'
 import { UtilsService, writeFailExcuteLog, writeSucessExcuteLog } from 'src/common/utils.service'
@@ -68,6 +70,7 @@ export class NftAnalyseService {
         // )
         // await Promise.all(promiseArr)
       }
+      await this.retriveNfts()
 
       this.logger.debug('start update calltimes by period')
       // if (config.get('NFT.DL_ALL_NFT_IMG') == true) {
@@ -182,5 +185,48 @@ export class NftAnalyseService {
     }
     // }
     // const nfts = await this.nftConnection.manager.find(NftBalanceEntity)
+  }
+
+  async retriveNfts() {
+    const moment = require('moment')
+    const smartContracts = await this.smartContractConnectionRunner.manager.find(
+      SmartContractEntity,
+      {
+        where: {
+          verification_date: MoreThan(moment().subtract(1, 'days').unix())
+        }
+      }
+    )
+    for (const contract of smartContracts) {
+      const retrived = await this.nftConnectionRunner.manager.findOne(NftRetriveEntity, {
+        where: {
+          smart_contract_address: contract.contract_address
+        }
+      })
+      if (retrived) {
+        continue
+      }
+
+      const nftRecords = await this.smartContractConnectionRunner.manager.find(
+        SmartContractCallRecordEntity,
+        {
+          where: {
+            contract_id: contract.id,
+            timestamp: LessThan(contract.verification_date + 10 * 60)
+          }
+        }
+      )
+      for (const record of nftRecords) {
+        await this.nftService.updateNftRecord(
+          this.nftConnectionRunner,
+          this.smartContractConnectionRunner,
+          record
+        )
+      }
+      const retrive = new NftRetriveEntity()
+      retrive.smart_contract_address = contract.contract_address
+      retrive.retrived = true
+      await this.nftConnectionRunner.manager.save(retrive)
+    }
   }
 }

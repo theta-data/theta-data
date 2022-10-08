@@ -15,8 +15,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ExplorerResolver = void 0;
 const nft_statistics_service_1 = require("./../../statistics/nft/nft-statistics.service");
 const nft_service_1 = require("../smart-contract/nft/nft.service");
-const contact_entity_1 = require("../../contact/contact.entity");
-const enum_1 = require("theta-ts-sdk/dist/types/enum");
 const smart_contract_service_1 = require("../smart-contract/smart-contract.service");
 const utils_service_1 = require("./../../common/utils.service");
 const explorer_service_1 = require("./explorer.service");
@@ -80,17 +78,9 @@ let ExplorerResolver = class ExplorerResolver {
         const transactionInfo = await this.explorerService.getTransactionInfo(search);
         if (transactionInfo) {
             const transactionRpc = await this.rpcService.getTransactionByHash(search);
-            let nftTransferRecords = [];
-            if (transactionInfo.tx_type === enum_1.THETA_TRANSACTION_TYPE_ENUM.smart_contract) {
-                const contract = await this.smartContractService.getContractByAddress(transactionInfo.to);
-                if (contract.protocol == contact_entity_1.SmartContractProtocolEnum.tnt721) {
-                    nftTransferRecords = await this.nftService.getNftTransferRecordsByTxHash(transactionInfo.tx_hash);
-                }
-            }
             return {
                 transaction: transactionInfo,
                 transaction_rpc: transactionRpc,
-                transaction_nft_records: nftTransferRecords,
                 search_type: explorer_model_1.SEARCH_TYPE_ENUM.transaction
             };
         }
