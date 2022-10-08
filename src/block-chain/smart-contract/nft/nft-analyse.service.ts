@@ -136,13 +136,19 @@ export class NftAnalyseService {
         if (httpRes.status >= 400) {
           throw new Error('Bad response from server')
         }
-        const res: any = await httpRes.json()
+        const res: any = httpRes.data
+        if (JSON.stringify(res) == item.detail) continue
         item.detail = JSON.stringify(res)
         item.name = res.name
-        item.img_uri = await this.utilsService.downloadImage(
-          res.image,
-          config.get('NFT.STATIC_PATH')
-        )
+        if (
+          (await this.utilsService.getPath(res.image, config.get('NFT.STATIC_PATH'))) !=
+          item.img_uri
+        ) {
+          item.img_uri = await this.utilsService.downloadImage(
+            res.image,
+            config.get('NFT.STATIC_PATH')
+          )
+        }
         this.logger.debug('end get token uri ' + item.img_uri)
 
         console.log(res)
