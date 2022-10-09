@@ -110,19 +110,19 @@ export class ExplorerResolver {
 
     if (transactionInfo) {
       const transactionRpc = await this.rpcService.getTransactionByHash(search)
-      let nftTransferRecords = []
-      if (transactionInfo.tx_type === THETA_TRANSACTION_TYPE_ENUM.smart_contract) {
-        const contract = await this.smartContractService.getContractByAddress(transactionInfo.to)
-        if (contract.protocol == SmartContractProtocolEnum.tnt721) {
-          nftTransferRecords = await this.nftService.getNftTransferRecordsByTxHash(
-            transactionInfo.tx_hash
-          )
-        }
-      }
+      // let nftTransferRecords = []
+      // if (transactionInfo.tx_type === THETA_TRANSACTION_TYPE_ENUM.smart_contract) {
+      //   const contract = await this.smartContractService.getContractByAddress(transactionInfo.to)
+      //   if (contract.protocol == SmartContractProtocolEnum.tnt721) {
+      //     nftTransferRecords = await this.nftService.getNftTransferRecordsByTxHash(
+      //       transactionInfo.tx_hash
+      //     )
+      //   }
+      // }
       return {
         transaction: transactionInfo,
         transaction_rpc: transactionRpc,
-        transaction_nft_records: nftTransferRecords,
+        // transaction_nft_records: nftTransferRecords,
         search_type: SEARCH_TYPE_ENUM.transaction
       }
     }

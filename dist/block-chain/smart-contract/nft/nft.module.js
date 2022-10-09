@@ -7,6 +7,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NftModule = void 0;
+const nft_retrive_entity_1 = require("./nft-retrive.entity");
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const nft_service_1 = require("./nft.service");
@@ -22,7 +23,7 @@ let NftModule = class NftModule {
 NftModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            typeorm_1.TypeOrmModule.forFeature([nft_balance_entity_1.NftBalanceEntity, nft_transfer_record_entity_1.NftTransferRecordEntity], 'nft'),
+            typeorm_1.TypeOrmModule.forFeature([nft_balance_entity_1.NftBalanceEntity, nft_transfer_record_entity_1.NftTransferRecordEntity, nft_retrive_entity_1.NftRetriveEntity], 'nft'),
             typeorm_1.TypeOrmModule.forFeature([smart_contract_call_record_entity_1.SmartContractCallRecordEntity, smart_contract_entity_1.SmartContractEntity], 'smart_contract'),
             common_module_1.CommonModule
         ],

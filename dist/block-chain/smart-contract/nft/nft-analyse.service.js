@@ -13,6 +13,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NftAnalyseService = void 0;
+const nft_retrive_entity_1 = require("./nft-retrive.entity");
+const smart_contract_entity_1 = require("../smart-contract.entity");
 const nft_transfer_record_entity_1 = require("./nft-transfer-record.entity");
 const nft_balance_entity_1 = require("./nft-balance.entity");
 const common_1 = require("@nestjs/common");
@@ -21,9 +23,9 @@ const smart_contract_call_record_entity_1 = require("../smart-contract-call-reco
 const nft_service_1 = require("./nft.service");
 const utils_service_1 = require("../../../common/utils.service");
 const fs = require('fs');
-const cross_fetch_1 = require("cross-fetch");
 const const_1 = require("../../../const");
 const typeorm_2 = require("@nestjs/typeorm");
+const axios = require('axios');
 let NftAnalyseService = class NftAnalyseService {
     constructor(nftService, utilsService, smartContractConnectionInjected, nftConnectionInjected) {
         this.nftService = nftService;
@@ -33,6 +35,7 @@ let NftAnalyseService = class NftAnalyseService {
         this.logger = new common_1.Logger('nft analyse service');
         this.analyseKey = 'under_analyse';
         this.heightConfigFile = const_1.config.get('ORM_CONFIG')['database'] + 'nft/record.height';
+        this.retriveIdFile = const_1.config.get('ORM_CONFIG')['database'] + 'nft/retrive.id';
     }
     async analyseData(loop) {
         try {
@@ -63,6 +66,8 @@ let NftAnalyseService = class NftAnalyseService {
             for (const record of contractRecordList) {
                 await this.nftService.updateNftRecord(this.nftConnectionRunner, this.smartContractConnectionRunner, record);
             }
+            await this.retriveNfts();
+            await this.autoRefetchTokenUri(loop);
             this.logger.debug('start update calltimes by period');
             await this.nftConnectionRunner.commitTransaction();
             if (contractRecordList.length > 0) {
@@ -85,70 +90,92 @@ let NftAnalyseService = class NftAnalyseService {
             this.logger.debug('release success');
         }
     }
-    async downloadAllImg(loop) {
-        const total = await this.nftConnectionRunner.manager.count(nft_balance_entity_1.NftBalanceEntity);
+    async autoRefetchTokenUri(loop) {
         const pageSize = 100;
-        const pageCount = Math.ceil(total / pageSize);
-        if (loop > pageCount) {
-            this.logger.debug('loop ' + loop + ' page count:' + pageCount);
-            return;
+        if ((loop * pageSize) % 100000 == 0) {
+            const latestNftRecord = await this.nftConnectionRunner.manager.findOne(nft_balance_entity_1.NftBalanceEntity, {
+                where: { id: (0, typeorm_1.MoreThan)(0) },
+                order: {
+                    id: 'DESC'
+                }
+            });
+            if (!latestNftRecord)
+                fs.writeFileSync(this.retriveIdFile, '0');
+            else
+                fs.writeFileSync(this.retriveIdFile, latestNftRecord.id.toString());
         }
+        const startId = Number(fs.readFileSync(this.retriveIdFile, 'utf8'));
         const list = await this.nftConnectionRunner.manager.find(nft_balance_entity_1.NftBalanceEntity, {
-            skip: (loop + 2400) * pageSize,
+            where: { id: (0, typeorm_1.LessThan)(startId) },
             take: pageSize,
             order: {
                 id: 'DESC'
             }
         });
         for (const item of list) {
-            this.logger.debug('start download ' + item.img_uri);
-            if (!item.detail) {
-                try {
-                    const res = await Promise.race([
-                        async () => {
-                            const httpRes = await (0, cross_fetch_1.default)(item.token_uri, {
-                                method: 'GET',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                }
-                            });
-                            if (httpRes.status >= 400) {
-                                throw new Error('Bad response from server');
-                            }
-                            const res = await httpRes.json();
-                            item.detail = JSON.stringify(res);
-                            item.name = res.name;
-                            item.img_uri = res.image;
-                            this.logger.debug('end get token uri ' + item.img_uri);
-                        },
-                        this.utilsService.timeout(5000)
-                    ]);
-                    console.log(res);
+            this.logger.debug('start download ' + item.id + ' ' + item.name);
+            try {
+                const httpRes = await axios({
+                    url: item.token_uri,
+                    method: 'get',
+                    timeout: 3000,
+                    responseType: 'json'
+                });
+                if (httpRes.status >= 400) {
+                    throw new Error('Bad response from server');
                 }
-                catch (e) {
-                    this.logger.error(e);
-                }
-            }
-            else {
-                const detail = JSON.parse(item.detail);
-                const imgStorePath = await this.utilsService.getPath(detail.image, const_1.config.get('NFT.STATIC_PATH'));
-                if (item.name == detail.name && item.img_uri == imgStorePath) {
-                    this.logger.debug('img is ok');
+                const res = httpRes.data;
+                if (JSON.stringify(res) == item.detail)
                     continue;
+                item.detail = JSON.stringify(res);
+                item.name = res.name;
+                if ((await this.utilsService.getPath(res.image, const_1.config.get('NFT.STATIC_PATH'))) !=
+                    item.img_uri) {
+                    item.img_uri = await this.utilsService.downloadImage(res.image, const_1.config.get('NFT.STATIC_PATH'));
                 }
-                item.name = detail.name;
-                if (imgStorePath != item.img_uri) {
-                    item.img_uri = detail.image;
-                }
+                this.logger.debug('end get token uri ' + item.img_uri);
             }
-            const imgPath = await this.utilsService.downloadImage(item.img_uri, const_1.config.get('NFT.STATIC_PATH'));
-            this.logger.debug('loop ' + loop + ': ' + item.img_uri + ' ' + imgPath);
-            item.img_uri = imgPath;
+            catch (e) {
+                this.logger.error(e);
+            }
             await this.nftConnectionRunner.manager.save(item);
             await this.nftConnectionRunner.manager.update(nft_transfer_record_entity_1.NftTransferRecordEntity, {
                 smart_contract_address: item.smart_contract_address,
                 token_id: item.token_id
-            }, { img_uri: imgPath, name: item.name });
+            }, { img_uri: item.img_uri, name: item.name });
+        }
+        if (list.length > 0)
+            fs.writeFileSync(this.retriveIdFile, list[list.length - 1].id.toString());
+    }
+    async retriveNfts() {
+        const moment = require('moment');
+        const smartContracts = await this.smartContractConnectionRunner.manager.find(smart_contract_entity_1.SmartContractEntity, {
+            where: {
+                verification_date: (0, typeorm_1.MoreThan)(moment().subtract(1, 'days').unix())
+            }
+        });
+        for (const contract of smartContracts) {
+            const retrived = await this.nftConnectionRunner.manager.findOne(nft_retrive_entity_1.NftRetriveEntity, {
+                where: {
+                    smart_contract_address: contract.contract_address
+                }
+            });
+            if (retrived) {
+                continue;
+            }
+            const nftRecords = await this.smartContractConnectionRunner.manager.find(smart_contract_call_record_entity_1.SmartContractCallRecordEntity, {
+                where: {
+                    contract_id: contract.id,
+                    timestamp: (0, typeorm_1.LessThan)(contract.verification_date + 10 * 60)
+                }
+            });
+            for (const record of nftRecords) {
+                await this.nftService.updateNftRecord(this.nftConnectionRunner, this.smartContractConnectionRunner, record);
+            }
+            const retrive = new nft_retrive_entity_1.NftRetriveEntity();
+            retrive.smart_contract_address = contract.contract_address;
+            retrive.retrived = true;
+            await this.nftConnectionRunner.manager.save(retrive);
         }
     }
 };
