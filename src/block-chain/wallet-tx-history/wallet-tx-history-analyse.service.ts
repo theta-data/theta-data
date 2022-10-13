@@ -46,7 +46,7 @@ export class WalletTxHistoryAnalyseService {
         where: {
           id: MoreThan(startId)
         },
-        take: config.get('WWALLET_TX_HISTORY.ANALYSE_NUMBER'),
+        take: config.get('WALLET_TX_HISTORY.ANALYSE_NUMBER'),
         order: { id: 'ASC' }
       })
       const walletToUpdates: { [index: string]: Array<string> } = {}
@@ -83,10 +83,20 @@ export class WalletTxHistoryAnalyseService {
   }
 
   async addWallet(record: TransactionEntity, walletsToupdate: { [index: string]: Array<string> }) {
-    if (record.tx_type === THETA_TRANSACTION_TYPE_ENUM.send) {
+    if (
+      record.tx_type === THETA_TRANSACTION_TYPE_ENUM.send ||
+      record.tx_type === THETA_TRANSACTION_TYPE_ENUM.coinbase
+    ) {
       // console.log('send record')
-      const from = JSON.parse(record.from)
-      const to = JSON.parse(record.to)
+      let from = []
+      let to = []
+      if (record.from) {
+        from = JSON.parse(record.from)
+      }
+      // JSON.parse(record.from)
+      if (record.to) {
+        to = JSON.parse(record.to)
+      }
       // console.log('send record parsed')
       for (const addr of [...from, ...to]) {
         if (addr.address === '0x0000000000000000000000000000000000000000') continue
