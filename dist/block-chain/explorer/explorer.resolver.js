@@ -38,7 +38,6 @@ let ExplorerResolver = class ExplorerResolver {
         const [hasNextPage, totalNumber, res] = await this.explorerService.getBlockList(take, after, skip);
         let endCursor = '';
         if (res.length > 0) {
-            console.log(res[res.length - 1].height.toString());
             endCursor = Buffer.from(res[res.length - 1].height.toString()).toString('base64');
         }
         return {

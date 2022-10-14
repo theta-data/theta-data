@@ -189,7 +189,6 @@ let UtilsService = class UtilsService {
         if (!fs.existsSync(pathArr.join('/'))) {
             fs.mkdirSync(pathArr.join('/'), { recursive: true });
         }
-        console.log(path.basename(parsed.pathname));
         if (!fs.existsSync(imgStorePath)) {
             try {
                 await pipeline(got.stream(urlPath), fs.createWriteStream(imgStorePath));

@@ -40,7 +40,6 @@ let NftAnalyseService = class NftAnalyseService {
     async analyseData(loop) {
         try {
             this.logger.debug(loop + ' start analyse nft data');
-            console.log(const_1.config.get('NFT'));
             this.smartContractConnectionRunner = this.smartContractConnectionInjected.createQueryRunner();
             this.nftConnectionRunner = this.nftConnectionInjected.createQueryRunner();
             await this.nftConnectionRunner.startTransaction();
