@@ -78,7 +78,7 @@ export class BinanceService implements EXCHANGE_INTERFACE {
     // console.log('opt', opt)
     const httpRes = await axios(opt)
     // this.logger.debug()
-    console.log('res data', httpRes.data)
+    // console.log('res data', httpRes.data)
     const dataToReturn = []
     httpRes.data.forEach((item) => {
       dataToReturn.push({

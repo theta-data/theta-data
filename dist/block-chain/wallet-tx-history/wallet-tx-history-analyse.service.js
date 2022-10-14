@@ -53,7 +53,7 @@ let WalletTxHistoryAnalyseService = class WalletTxHistoryAnalyseService {
                 where: {
                     id: (0, typeorm_1.MoreThan)(startId)
                 },
-                take: const_1.config.get('WWALLET_TX_HISTORY.ANALYSE_NUMBER'),
+                take: const_1.config.get('WALLET_TX_HISTORY.ANALYSE_NUMBER'),
                 order: { id: 'ASC' }
             });
             const walletToUpdates = {};
@@ -85,9 +85,19 @@ let WalletTxHistoryAnalyseService = class WalletTxHistoryAnalyseService {
         }
     }
     async addWallet(record, walletsToupdate) {
-        if (record.tx_type === theta_enum_1.THETA_TRANSACTION_TYPE_ENUM.send) {
-            const from = JSON.parse(record.from);
-            const to = JSON.parse(record.to);
+        if (record.tx_type === theta_enum_1.THETA_TRANSACTION_TYPE_ENUM.send ||
+            record.tx_type === theta_enum_1.THETA_TRANSACTION_TYPE_ENUM.coinbase) {
+            let from = [];
+            let to = [];
+            if (record.from && record.tx_type == theta_enum_1.THETA_TRANSACTION_TYPE_ENUM.send) {
+                from = JSON.parse(record.from);
+            }
+            if (record.from && record.tx_type == theta_enum_1.THETA_TRANSACTION_TYPE_ENUM.coinbase) {
+                from = [record.from];
+            }
+            if (record.to) {
+                to = JSON.parse(record.to);
+            }
             for (const addr of [...from, ...to]) {
                 if (addr.address === '0x0000000000000000000000000000000000000000')
                     continue;

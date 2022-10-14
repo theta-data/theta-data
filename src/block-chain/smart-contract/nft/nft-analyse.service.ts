@@ -33,7 +33,7 @@ export class NftAnalyseService {
   public async analyseData(loop: number) {
     try {
       this.logger.debug(loop + ' start analyse nft data')
-      console.log(config.get('NFT'))
+      // console.log(config.get('NFT'))
       // this.logger.debug(logoConfig)
       this.smartContractConnectionRunner = this.smartContractConnectionInjected.createQueryRunner()
       this.nftConnectionRunner = this.nftConnectionInjected.createQueryRunner()

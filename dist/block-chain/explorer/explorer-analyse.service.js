@@ -137,6 +137,7 @@ let ExplorerAnalyseService = class ExplorerAnalyseService {
                     break;
                 case enum_1.THETA_TRANSACTION_TYPE_ENUM.coinbase:
                     from = transaction.raw.proposer.address;
+                    to = JSON.stringify(transaction.raw.outputs);
                     break;
                 case enum_1.THETA_TRANSACTION_TYPE_ENUM.service_payment:
                     from = transaction.raw.source.address;

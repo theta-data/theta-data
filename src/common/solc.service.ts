@@ -7,7 +7,7 @@ const fs = require('fs')
 export class SolcService {
   async getVersionList() {
     return new Promise((resolve, reject) => {
-      console.log('Retrieving available version list...')
+      // console.log('Retrieving available version list...')
 
       var mem = new MemoryStream(null, { readable: false })
       https.get('https://solc-bin.ethereum.org/bin/list.json', function (response) {

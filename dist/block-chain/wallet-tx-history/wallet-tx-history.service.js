@@ -44,7 +44,13 @@ let WalletTxHistoryService = class WalletTxHistoryService {
             return [false, 0, []];
         }
         const hasNextPage = idsTyped.length > skip + take ? true : false;
-        const idsToFind = idsTyped.slice(skip, skip + take);
+        let idsToFind = [];
+        if (skip == 0) {
+            idsToFind = idsTyped.slice(-take);
+        }
+        else {
+            idsToFind = idsTyped.slice(-skip - take, -skip);
+        }
         const list = await this.transactionRepository.find({
             where: { id: (0, typeorm_2.In)(idsToFind) },
             order: { height: 'DESC' }

@@ -118,9 +118,9 @@ export class SmartContractResolver {
       throw new Error('Bad response from server')
     }
     const res: any = await httpRes.json()
-    console.log('theta explorer res optimizer ', res.body.optimizer)
+    // console.log('theta explorer res optimizer ', res.body.optimizer)
     const optimizer = res.body.optimizer === 'disabled' ? false : true
-    console.log('optimizer', optimizer)
+    // console.log('optimizer', optimizer)
     const optimizerRuns = res.body.optimizerRuns ? res.body.optimizerRuns : 200
     address = this.utilsService.normalize(address.toLowerCase())
     this.logger.debug('start verify')
