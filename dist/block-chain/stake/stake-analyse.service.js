@@ -174,13 +174,11 @@ let StakeAnalyseService = class StakeAnalyseService {
                 }
                 catch (e) {
                     this.logger.error('insert stake statistics error:' + JSON.stringify(e));
-                    console.log(e);
                 }
             }
         }
         catch (e) {
             this.logger.error('updateCheckPoint error:' + JSON.stringify(e));
-            console.log(e);
         }
     }
     async updateValidator(block) {

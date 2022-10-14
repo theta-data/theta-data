@@ -75,7 +75,6 @@ let SmartContractService = class SmartContractService {
         }
         if (name)
             condition.where['name'] = (0, typeorm_2.Like)('%' + name + '%');
-        console.log(condition);
         return await this.smartContractRepository.find(condition);
     }
     async getSmartContractNum() {
@@ -129,7 +128,7 @@ let SmartContractService = class SmartContractService {
         if (Number.isNaN(optimizerRuns))
             optimizerRuns = 200;
         try {
-            console.log('Verifing the source code and bytecode for address:', address);
+            this.logger.debug('Verifing the source code and bytecode for address:', address);
             let start = +new Date();
             var input = {
                 language: 'Solidity',
@@ -151,25 +150,25 @@ let SmartContractService = class SmartContractService {
                 }
             };
             var output = '';
-            console.log(`Loading specific version starts.`);
-            console.log(`version: ${version}`);
+            this.logger.debug(`Loading specific version starts.`);
+            this.logger.debug(`version: ${version}`);
             const prefix = './libs';
             const fileName = prefix + '/' + versionFullName;
             if (!fs.existsSync(fileName)) {
-                console.log(`file ${fileName} does not exsit, downloading`);
+                this.logger.debug(`file ${fileName} does not exsit, downloading`);
                 await this.solcService.downloadByVersion(version, './libs');
             }
             else {
-                console.log(`file ${fileName} exsits, skip download process`);
+                this.logger.debug(`file ${fileName} exsits, skip download process`);
             }
-            console.log(`Download solc-js file takes: ${(+new Date() - start) / 1000} seconds`);
+            this.logger.debug(`Download solc-js file takes: ${(+new Date() - start) / 1000} seconds`);
             start = +new Date();
             const solcjs = solc.setupMethods(requireFromString(fs.readFileSync(fileName, 'utf8')));
-            console.log(`load solc-js version takes: ${(+new Date() - start) / 1000} seconds`);
+            this.logger.debug(`load solc-js version takes: ${(+new Date() - start) / 1000} seconds`);
             start = +new Date();
-            console.log('input', input);
+            this.logger.debug('input', input);
             output = JSON.parse(solcjs.compile(JSON.stringify(input)));
-            console.log(`compile takes ${(+new Date() - start) / 1000} seconds`);
+            this.logger.debug(`compile takes ${(+new Date() - start) / 1000} seconds`);
             let check = {};
             if (output.errors) {
                 check = output.errors.reduce((check, err) => {
@@ -186,7 +185,7 @@ let SmartContractService = class SmartContractService {
             }
             let data = {};
             if (check.error) {
-                console.log(check.error);
+                this.logger.debug(check.error);
                 data = { result: { verified: false }, err_msg: check.error };
             }
             else {
@@ -222,7 +221,7 @@ let SmartContractService = class SmartContractService {
                             contract.function_hash = JSON.stringify(output.contracts['test.sol'][contractName].evm.methodIdentifiers);
                             contract.constructor_arguments = constructor_arguments;
                             await this.smartContractRepository.save(contract);
-                            console.log('save smart contract');
+                            this.logger.debug('save smart contract');
                             break;
                         }
                         else {
@@ -234,7 +233,7 @@ let SmartContractService = class SmartContractService {
             return contract;
         }
         catch (e) {
-            console.log('Error in catch:', e);
+            this.logger.debug('Error in catch:', e);
             return contract;
         }
     }
@@ -301,7 +300,6 @@ let SmartContractService = class SmartContractService {
                 }
             }
         };
-        console.log(input);
         var output = '';
         const prefix = './libs';
         const fileName = prefix + '/' + versionFullName;

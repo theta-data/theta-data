@@ -95,11 +95,8 @@ let NftStatisticsAnalyseService = class NftStatisticsAnalyseService {
             for (const nft of nftList) {
                 promiseArr.push(this.nftStatistics(nft));
             }
-            console.log(111);
             await Promise.all(promiseArr);
-            console.log(222);
             await this.updateNftsImgUri();
-            console.log(333);
             await this.nftStatisticsConnectionRunner.commitTransaction();
             try {
                 if (nftTransferRecordList.length > 0) {

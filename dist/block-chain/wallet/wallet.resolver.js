@@ -27,7 +27,6 @@ let WalletResolver = class WalletResolver {
     }
     async Balance(wallet_address) {
         const resInfo = await this.walletService.getALlBalance(wallet_address.toLocaleLowerCase());
-        console.log(resInfo.total);
         return resInfo;
     }
 };

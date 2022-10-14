@@ -33,7 +33,6 @@ let StakeResolver = class StakeResolver {
         return await this.stakeService.getLatestStakeStatics();
     }
     async StakeReward(info, wallet_address) {
-        console.log((0, graphql_fields_list_1.fieldsList)(info));
         const reward = new stake_model_1.StakeRewardModel();
         const thetaFuelMarketInfo = await this.marketInfo.getThetaFuelMarketInfo();
         wallet_address = wallet_address.toLocaleLowerCase();

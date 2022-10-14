@@ -60,7 +60,6 @@ let BinanceService = class BinanceService {
             responseType: 'json'
         };
         const httpRes = await axios(opt);
-        console.log('res data', httpRes.data);
         const dataToReturn = [];
         httpRes.data.forEach((item) => {
             dataToReturn.push({

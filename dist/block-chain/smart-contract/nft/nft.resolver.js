@@ -29,7 +29,6 @@ let NftResolver = class NftResolver {
         const [hasNextPage, totalNumber, res] = await this.nftService.findNftsByName(name, take, after);
         let endCursor = '';
         if (res.length > 0) {
-            console.log(res[res.length - 1].create_date);
             endCursor = Buffer.from(res[res.length - 1].id.toString()).toString('base64');
         }
         return {
@@ -42,7 +41,6 @@ let NftResolver = class NftResolver {
         const [hasNextPage, totalNumber, res] = await this.nftService.getNftByWalletAddress(walletAddress.toLowerCase(), take, after, skip, search);
         let endCursor = '';
         if (res.length > 0) {
-            console.log(res[res.length - 1].id.toString());
             endCursor = Buffer.from(res[res.length - 1].id.toString()).toString('base64');
         }
         return {
@@ -57,7 +55,6 @@ let NftResolver = class NftResolver {
         const [hasNextPage, totalNumber, res] = await this.nftService.getNftsForContract(walletAddress.toLowerCase(), contractAddress.toLowerCase(), take, after);
         let endCursor = '';
         if (res.length > 0) {
-            console.log(res[res.length - 1].create_date);
             endCursor = Buffer.from(res[res.length - 1].id.toString()).toString('base64');
         }
         return {
@@ -71,7 +68,6 @@ let NftResolver = class NftResolver {
         const [hasNextPage, totalNumber, res] = await this.nftService.getNftTransfersByWallet(walletAddress.toLowerCase(), take, after);
         let endCursor = '';
         if (res.length > 0) {
-            console.log(res[res.length - 1].id);
             endCursor = Buffer.from(res[res.length - 1].id.toString()).toString('base64');
         }
         return {
@@ -88,7 +84,6 @@ let NftResolver = class NftResolver {
         const [hasNextPage, totalNumber, res] = await this.nftService.getNftsBySmartContractAddress(contractAddress.toLowerCase(), take, after, skip);
         let endCursor = '';
         if (res.length > 0) {
-            console.log(res[res.length - 1].create_date);
             endCursor = Buffer.from(res[res.length - 1].id.toString()).toString('base64');
         }
         return {
