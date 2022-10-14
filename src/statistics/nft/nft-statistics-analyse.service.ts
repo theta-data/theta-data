@@ -108,14 +108,14 @@ export class NftStatisticsAnalyseService {
       for (const nft of nftList) {
         promiseArr.push(this.nftStatistics(nft))
       }
-      console.log(111)
+      // console.log(111)
       await Promise.all(promiseArr)
-      console.log(222)
+      // console.log(222)
 
       // this.logger.debug('start update calltimes by period')
 
       await this.updateNftsImgUri()
-      console.log(333)
+      // console.log(333)
 
       // await this.downloadAllImg()
       await this.nftStatisticsConnectionRunner.commitTransaction()

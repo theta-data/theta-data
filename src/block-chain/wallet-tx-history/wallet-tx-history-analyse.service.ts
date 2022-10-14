@@ -90,8 +90,11 @@ export class WalletTxHistoryAnalyseService {
       // console.log('send record')
       let from = []
       let to = []
-      if (record.from) {
+      if (record.from && record.tx_type == THETA_TRANSACTION_TYPE_ENUM.send) {
         from = JSON.parse(record.from)
+      }
+      if (record.from && record.tx_type == THETA_TRANSACTION_TYPE_ENUM.coinbase) {
+        from = [record.from]
       }
       // JSON.parse(record.from)
       if (record.to) {

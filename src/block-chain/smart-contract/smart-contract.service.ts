@@ -73,7 +73,7 @@ export class SmartContractService {
       condition.where['protocol'] = protocol
     }
     if (name) condition.where['name'] = Like('%' + name + '%')
-    console.log(condition)
+    // console.log(condition)
     return await this.smartContractRepository.find(condition)
   }
 
@@ -146,7 +146,7 @@ export class SmartContractService {
     optimizerRuns = +optimizerRuns
     if (Number.isNaN(optimizerRuns)) optimizerRuns = 200
     try {
-      console.log('Verifing the source code and bytecode for address:', address)
+      this.logger.debug('Verifing the source code and bytecode for address:', address)
       let start = +new Date()
       var input = {
         language: 'Solidity',
@@ -174,24 +174,24 @@ export class SmartContractService {
       }
       // console.log(input)
       var output: any = ''
-      console.log(`Loading specific version starts.`)
-      console.log(`version: ${version}`)
+      this.logger.debug(`Loading specific version starts.`)
+      this.logger.debug(`version: ${version}`)
       const prefix = './libs'
       const fileName = prefix + '/' + versionFullName
       if (!fs.existsSync(fileName)) {
-        console.log(`file ${fileName} does not exsit, downloading`)
+        this.logger.debug(`file ${fileName} does not exsit, downloading`)
         await this.solcService.downloadByVersion(version, './libs')
       } else {
-        console.log(`file ${fileName} exsits, skip download process`)
+        this.logger.debug(`file ${fileName} exsits, skip download process`)
       }
-      console.log(`Download solc-js file takes: ${(+new Date() - start) / 1000} seconds`)
+      this.logger.debug(`Download solc-js file takes: ${(+new Date() - start) / 1000} seconds`)
       start = +new Date()
       const solcjs = solc.setupMethods(requireFromString(fs.readFileSync(fileName, 'utf8')))
-      console.log(`load solc-js version takes: ${(+new Date() - start) / 1000} seconds`)
+      this.logger.debug(`load solc-js version takes: ${(+new Date() - start) / 1000} seconds`)
       start = +new Date()
-      console.log('input', input)
+      this.logger.debug('input', input)
       output = JSON.parse(solcjs.compile(JSON.stringify(input)))
-      console.log(`compile takes ${(+new Date() - start) / 1000} seconds`)
+      this.logger.debug(`compile takes ${(+new Date() - start) / 1000} seconds`)
       let check: any = {}
       if (output.errors) {
         check = output.errors.reduce((check, err) => {
@@ -207,7 +207,7 @@ export class SmartContractService {
       }
       let data = {}
       if (check.error) {
-        console.log(check.error)
+        this.logger.debug(check.error)
         data = { result: { verified: false }, err_msg: check.error }
       } else {
         if (output.contracts) {
@@ -255,7 +255,7 @@ export class SmartContractService {
               )
               contract.constructor_arguments = constructor_arguments
               await this.smartContractRepository.save(contract)
-              console.log('save smart contract')
+              this.logger.debug('save smart contract')
               // await this.nftService.parseRecordByContractAddress(address)
               // return contract
               break
@@ -267,7 +267,7 @@ export class SmartContractService {
       }
       return contract
     } catch (e) {
-      console.log('Error in catch:', e)
+      this.logger.debug('Error in catch:', e)
       return contract
     }
   }
@@ -371,7 +371,7 @@ export class SmartContractService {
         }
       }
     }
-    console.log(input)
+    // this.logger.debug(input)
     var output: any = ''
     // console.log(`Loading specific version starts.`)
     // console.log(`version: ${version}`)

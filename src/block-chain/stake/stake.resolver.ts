@@ -31,7 +31,7 @@ export class StakeResolver {
     @Info() info,
     @Args('wallet_address', { type: () => GraphQLString! }) wallet_address: string
   ) {
-    console.log(fieldsList(info))
+    // console.log(fieldsList(info))
     const reward = new StakeRewardModel()
     const thetaFuelMarketInfo = await this.marketInfo.getThetaFuelMarketInfo()
     wallet_address = wallet_address.toLocaleLowerCase()

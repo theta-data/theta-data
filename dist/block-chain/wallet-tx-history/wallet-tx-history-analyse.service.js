@@ -89,8 +89,11 @@ let WalletTxHistoryAnalyseService = class WalletTxHistoryAnalyseService {
             record.tx_type === theta_enum_1.THETA_TRANSACTION_TYPE_ENUM.coinbase) {
             let from = [];
             let to = [];
-            if (record.from) {
+            if (record.from && record.tx_type == theta_enum_1.THETA_TRANSACTION_TYPE_ENUM.send) {
                 from = JSON.parse(record.from);
+            }
+            if (record.from && record.tx_type == theta_enum_1.THETA_TRANSACTION_TYPE_ENUM.coinbase) {
+                from = [record.from];
             }
             if (record.to) {
                 to = JSON.parse(record.to);
