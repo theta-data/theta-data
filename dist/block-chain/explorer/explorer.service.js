@@ -14,7 +14,6 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ExplorerService = void 0;
 const wallets_service_1 = require("./../wallet/wallets.service");
-const const_1 = require("./const");
 const count_entity_1 = require("./count.entity");
 const transaction_entity_1 = require("./transaction.entity");
 const block_list_entity_1 = require("./block-list.entity");
@@ -32,19 +31,28 @@ let ExplorerService = class ExplorerService {
     async getBlockList(take = 20, after, skip = 0) {
         const condition = {
             take: take + 1,
-            skip: skip,
             order: {
                 height: 'DESC'
             }
         };
+        const latestObj = await this.blockListRepository.findOne({
+            select: ['id'],
+            where: { id: (0, typeorm_2.MoreThan)(0) },
+            order: {
+                id: 'DESC'
+            }
+        });
+        if (!latestObj)
+            return null;
+        const totalBlock = latestObj.id;
+        if (skip > 0) {
+            condition.where = { id: (0, typeorm_2.LessThanOrEqual)(totalBlock - skip) };
+        }
         if (after) {
             const height = Number(Buffer.from(after, 'base64').toString('ascii'));
             this.logger.debug('decode from base64:' + height);
             condition.where[height] = (0, typeorm_2.LessThan)(height);
         }
-        const totalBlock = (await this.countRepository.findOne({
-            where: { key: const_1.BLOCK_COUNT_KEY }
-        })).count;
         let blockList = await this.blockListRepository.find(condition);
         let hasNextPage = false;
         if (blockList.length > take) {
@@ -56,11 +64,10 @@ let ExplorerService = class ExplorerService {
     async getTransactions(take = 20, after, skip = 0, blockHeight = 0) {
         const condition = {
             take: take + 1,
-            skip: skip,
+            where: {},
             order: {
                 id: 'DESC'
-            },
-            where: {}
+            }
         };
         if (blockHeight) {
             condition.where['height'] = blockHeight;
@@ -79,9 +86,16 @@ let ExplorerService = class ExplorerService {
             });
         }
         else {
-            totalBlock = (await this.countRepository.findOne({
-                where: { key: const_1.TRANSACTION_COUNT_KEY }
-            })).count;
+            totalBlock = (await this.transactionRepository.findOne({
+                select: ['id'],
+                where: { id: (0, typeorm_2.MoreThan)(0) },
+                order: {
+                    id: 'DESC'
+                }
+            })).id;
+        }
+        if (skip > 0) {
+            condition.where = { id: (0, typeorm_2.LessThanOrEqual)(totalBlock - skip) };
         }
         let blockList = await this.transactionRepository.find(condition);
         let hasNextPage = false;

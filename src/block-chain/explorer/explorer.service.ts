@@ -5,7 +5,7 @@ import { TransactionEntity } from './transaction.entity'
 import { BlokcListEntity } from './block-list.entity'
 import { Injectable, Logger } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { FindManyOptions, In, LessThan, Repository } from 'typeorm'
+import { FindManyOptions, In, LessThan, LessThanOrEqual, MoreThan, Repository } from 'typeorm'
 
 @Injectable()
 export class ExplorerService {
@@ -29,22 +29,31 @@ export class ExplorerService {
   ): Promise<[boolean, number, Array<BlokcListEntity>]> {
     const condition: FindManyOptions<BlokcListEntity> = {
       take: take + 1,
-      skip: skip,
+      // skip: skip,
+      // where: { id: LessThan(skip) },
       order: {
         // id: 'ASC',
         height: 'DESC'
       }
+    }
+    const latestObj = await this.blockListRepository.findOne({
+      select: ['id'],
+      where: { id: MoreThan(0) },
+      order: {
+        id: 'DESC'
+      }
+    })
+    if (!latestObj) return null
+    const totalBlock = latestObj.id
+    if (skip > 0) {
+      condition.where = { id: LessThanOrEqual(totalBlock - skip) }
     }
     if (after) {
       const height = Number(Buffer.from(after, 'base64').toString('ascii'))
       this.logger.debug('decode from base64:' + height)
       condition.where[height] = LessThan(height)
     }
-    const totalBlock = (
-      await this.countRepository.findOne({
-        where: { key: BLOCK_COUNT_KEY }
-      })
-    ).count
+
     let blockList = await this.blockListRepository.find(condition)
     let hasNextPage = false
     if (blockList.length > take) {
@@ -62,13 +71,15 @@ export class ExplorerService {
   ): Promise<[boolean, number, Array<TransactionEntity>]> {
     const condition: FindManyOptions<TransactionEntity> = {
       take: take + 1,
-      skip: skip,
+      // skip: skip,
+      where: {},
       order: {
         // id: 'ASC',
         id: 'DESC'
-      },
-      where: {}
+      }
+      // where: {}
     }
+
     if (blockHeight) {
       condition.where['height'] = blockHeight
     }
@@ -86,10 +97,17 @@ export class ExplorerService {
       })
     } else {
       totalBlock = (
-        await this.countRepository.findOne({
-          where: { key: TRANSACTION_COUNT_KEY }
+        await this.transactionRepository.findOne({
+          select: ['id'],
+          where: { id: MoreThan(0) },
+          order: {
+            id: 'DESC'
+          }
         })
-      ).count
+      ).id
+    }
+    if (skip > 0) {
+      condition.where = { id: LessThanOrEqual(totalBlock - skip) }
     }
     let blockList = await this.transactionRepository.find(condition)
     let hasNextPage = false
