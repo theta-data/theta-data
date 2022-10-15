@@ -1,6 +1,6 @@
 {
   "name": "theta-data",
-  "version": "0.1.60",
+  "version": "0.1.61",
   "description": "Theta Data is a Data Explorer and Analytics Tool for Theta Network. It collects data from Guardian Node, performs analysis and provides data and analysis result through convenient Graphql interfaces. Users can access the data with simple statements and queries.",
   "author": "larry",
   "license": "MIT",
