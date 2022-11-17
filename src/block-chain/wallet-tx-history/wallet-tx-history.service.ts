@@ -1,8 +1,10 @@
+import { NftTransferRecordEntity } from 'src/block-chain/smart-contract/nft/nft-transfer-record.entity'
+import { StakeRewardEntity } from './../stake/stake-reward.entity'
 import { THETA_TRANSACTION_TYPE_ENUM } from './../tx/theta.enum'
 import { TransactionEntity } from './../explorer/transaction.entity'
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { In, Repository } from 'typeorm'
+import { Between, In, Repository } from 'typeorm'
 import { WalletTxHistoryEntity } from './wallet-tx-history.entity'
 import { id } from 'ethers/lib/utils'
 
@@ -13,7 +15,13 @@ export class WalletTxHistoryService {
     private readonly walletTxHistoryRepository: Repository<WalletTxHistoryEntity>,
 
     @InjectRepository(TransactionEntity, 'explorer')
-    private readonly transactionRepository: Repository<TransactionEntity>
+    private readonly transactionRepository: Repository<TransactionEntity>,
+
+    @InjectRepository(StakeRewardEntity, 'stake')
+    private readonly stakeRewardRepository: Repository<StakeRewardEntity>,
+
+    @InjectRepository(NftTransferRecordEntity, 'nft')
+    private readonly nftTransferRecordRepository: Repository<NftTransferRecordEntity>
   ) {}
 
   async getTransactions(
@@ -59,5 +67,28 @@ export class WalletTxHistoryService {
     })
     return [hasNextPage, idsTyped.length, list]
     // }
+  }
+
+  async getActivityHistory(
+    type: 'stake_rewards' | 'nft_transfers',
+    wallet: string,
+    startTime: number,
+    endTime: number
+  ): Promise<any> {
+    switch (type) {
+      case 'stake_rewards':
+        return await this.stakeRewardRepository.find({
+          where: { timestamp: Between(startTime, endTime), wallet_address: wallet },
+          order: { timestamp: 'DESC' }
+        })
+      case 'nft_transfers':
+        return await this.nftTransferRecordRepository.find({
+          where: [
+            { timestamp: Between(startTime, endTime), from: wallet },
+            { timestamp: Between(startTime, endTime), to: wallet }
+          ],
+          order: { timestamp: 'DESC' }
+        })
+    }
   }
 }

@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.StakeRewardEntity = exports.STAKE_TOKEN_TYPE_ENUM = void 0;
 const typeorm_1 = require("typeorm");
 const graphql_1 = require("@nestjs/graphql");
+const graphql_2 = require("graphql");
 var STAKE_TOKEN_TYPE_ENUM;
 (function (STAKE_TOKEN_TYPE_ENUM) {
     STAKE_TOKEN_TYPE_ENUM[STAKE_TOKEN_TYPE_ENUM["theta_stake"] = 1] = "theta_stake";
@@ -27,18 +28,22 @@ __decorate([
     __metadata("design:type", Number)
 ], StakeRewardEntity.prototype, "id", void 0);
 __decorate([
+    (0, graphql_1.Field)(() => graphql_2.GraphQLFloat),
     (0, typeorm_1.Column)({ type: 'real' }),
     __metadata("design:type", Number)
 ], StakeRewardEntity.prototype, "reward_amount", void 0);
 __decorate([
+    (0, graphql_1.Field)(),
     (0, typeorm_1.Column)({ type: 'text' }),
     __metadata("design:type", String)
 ], StakeRewardEntity.prototype, "wallet_address", void 0);
 __decorate([
+    (0, graphql_1.Field)(() => graphql_2.GraphQLInt),
     (0, typeorm_1.Column)({ type: 'integer' }),
     __metadata("design:type", Number)
 ], StakeRewardEntity.prototype, "reward_height", void 0);
 __decorate([
+    (0, graphql_1.Field)(() => graphql_2.GraphQLInt),
     (0, typeorm_1.Column)({
         type: 'integer'
     }),
@@ -55,7 +60,8 @@ __decorate([
 StakeRewardEntity = __decorate([
     (0, typeorm_1.Entity)(),
     (0, typeorm_1.Index)(['wallet_address', 'timestamp']),
-    (0, typeorm_1.Unique)(['wallet_address', 'reward_height'])
+    (0, typeorm_1.Unique)(['wallet_address', 'reward_height']),
+    (0, graphql_1.ObjectType)()
 ], StakeRewardEntity);
 exports.StakeRewardEntity = StakeRewardEntity;
 //# sourceMappingURL=stake-reward.entity.js.map

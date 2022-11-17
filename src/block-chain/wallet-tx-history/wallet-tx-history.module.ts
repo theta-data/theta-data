@@ -1,3 +1,5 @@
+import { NftTransferRecordEntity } from './../smart-contract/nft/nft-transfer-record.entity'
+import { StakeRewardEntity } from './../stake/stake-reward.entity'
 import { WalletTxHistoryResolver } from './wallet-tx-history.resolver'
 import { WalletTxHistoryService } from './wallet-tx-history.service'
 import { CommonModule } from './../../common/common.module'
@@ -13,6 +15,8 @@ import { WalletEntity } from '../wallet/wallet.entity'
     TypeOrmModule.forFeature([WalletEntity], 'wallet'),
     TypeOrmModule.forFeature([TransactionEntity], 'explorer'),
     TypeOrmModule.forFeature([WalletTxHistoryEntity], 'wallet-tx-history'),
+    TypeOrmModule.forFeature([StakeRewardEntity], 'stake'),
+    TypeOrmModule.forFeature([NftTransferRecordEntity], 'nft'),
     CommonModule
   ],
   providers: [WalletTxHistoryAnalyseService, WalletTxHistoryService, WalletTxHistoryResolver],

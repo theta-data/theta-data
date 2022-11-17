@@ -2,6 +2,27 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type NftTransferRecordEntity {
+  smart_contract_address: String!
+  from: String!
+  name: String!
+  img_uri: String
+  to: String!
+  token_id: Int!
+  payment_token_amount: Float!
+  tdrop_mined: Float!
+  height: Int!
+  transaction_hash: String!
+  timestamp: Int!
+}
+
+type StakeRewardEntity {
+  reward_amount: Float!
+  wallet_address: String!
+  reward_height: Int!
+  timestamp: Int!
+}
+
 type TransactionEntity {
   tx_hash: String!
   tx_type: THETA_TRANSACTION_TYPE_ENUM!
@@ -37,6 +58,11 @@ type PaginatedHistoryTransactions {
   hasNextPage: Boolean!
   skip: Int!
   endCursor: String!
+}
+
+type HistoryTransactionsModel {
+  stake_rewards: [StakeRewardEntity!]
+  nft_transfers: [NftTransferRecordEntity!]
 }
 
 type NftStatisticsEntity {
@@ -113,20 +139,6 @@ type NftDetailByDate {
   volume: Float!
   transactions: Int!
   users: Int!
-}
-
-type NftTransferRecordEntity {
-  smart_contract_address: String!
-  from: String!
-  name: String!
-  img_uri: String
-  to: String!
-  token_id: Int!
-  payment_token_amount: Float!
-  tdrop_mined: Float!
-  height: Int!
-  transaction_hash: String!
-  timestamp: Int!
 }
 
 type NftBalanceEntity {
@@ -860,6 +872,7 @@ type Query {
   NftDetail(contract_address: String!): NftDetailType!
   Explorer: ExplorerModelType!
   TxHistory(wallet_address: String!, take: Int = 10, skip: Int = 0, tx_type: THETA_TRANSACTION_TYPE_ENUM): PaginatedHistoryTransactions!
+  ActivityHistory(wallet_address: String!, start_time: Int!, end_time: Int!): HistoryTransactionsModel!
 }
 
 enum LoggerRankByEnum {

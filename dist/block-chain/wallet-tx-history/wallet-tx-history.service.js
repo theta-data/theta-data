@@ -13,15 +13,19 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WalletTxHistoryService = void 0;
+const nft_transfer_record_entity_1 = require("../smart-contract/nft/nft-transfer-record.entity");
+const stake_reward_entity_1 = require("./../stake/stake-reward.entity");
 const transaction_entity_1 = require("./../explorer/transaction.entity");
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const wallet_tx_history_entity_1 = require("./wallet-tx-history.entity");
 let WalletTxHistoryService = class WalletTxHistoryService {
-    constructor(walletTxHistoryRepository, transactionRepository) {
+    constructor(walletTxHistoryRepository, transactionRepository, stakeRewardRepository, nftTransferRecordRepository) {
         this.walletTxHistoryRepository = walletTxHistoryRepository;
         this.transactionRepository = transactionRepository;
+        this.stakeRewardRepository = stakeRewardRepository;
+        this.nftTransferRecordRepository = nftTransferRecordRepository;
     }
     async getTransactions(wallet, take = 10, skip = 0, txType) {
         const res = await this.walletTxHistoryRepository.findOne({
@@ -57,12 +61,33 @@ let WalletTxHistoryService = class WalletTxHistoryService {
         });
         return [hasNextPage, idsTyped.length, list];
     }
+    async getActivityHistory(type, wallet, startTime, endTime) {
+        switch (type) {
+            case 'stake_rewards':
+                return await this.stakeRewardRepository.find({
+                    where: { timestamp: (0, typeorm_2.Between)(startTime, endTime), wallet_address: wallet },
+                    order: { timestamp: 'DESC' }
+                });
+            case 'nft_transfers':
+                return await this.nftTransferRecordRepository.find({
+                    where: [
+                        { timestamp: (0, typeorm_2.Between)(startTime, endTime), from: wallet },
+                        { timestamp: (0, typeorm_2.Between)(startTime, endTime), to: wallet }
+                    ],
+                    order: { timestamp: 'DESC' }
+                });
+        }
+    }
 };
 WalletTxHistoryService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(wallet_tx_history_entity_1.WalletTxHistoryEntity, 'wallet-tx-history')),
     __param(1, (0, typeorm_1.InjectRepository)(transaction_entity_1.TransactionEntity, 'explorer')),
+    __param(2, (0, typeorm_1.InjectRepository)(stake_reward_entity_1.StakeRewardEntity, 'stake')),
+    __param(3, (0, typeorm_1.InjectRepository)(nft_transfer_record_entity_1.NftTransferRecordEntity, 'nft')),
     __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository,
+        typeorm_2.Repository,
         typeorm_2.Repository])
 ], WalletTxHistoryService);
 exports.WalletTxHistoryService = WalletTxHistoryService;

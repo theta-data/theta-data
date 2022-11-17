@@ -1,7 +1,10 @@
+import { fieldsList } from 'graphql-fields-list'
 import { THETA_TRANSACTION_TYPE_ENUM } from './../tx/theta.enum'
-import { PaginatedHistoryTransactions } from './wallet-tx-history.model'
+import { HistoryTransactionsModel, PaginatedHistoryTransactions } from './wallet-tx-history.model'
 import { WalletTxHistoryService } from './wallet-tx-history.service'
-import { Args, Int, Query, registerEnumType, Resolver } from '@nestjs/graphql'
+import { Args, Info, Int, Query, Resolver } from '@nestjs/graphql'
+import { GraphQLInt } from 'graphql'
+const moment = require('moment')
 @Resolver(() => PaginatedHistoryTransactions)
 export class WalletTxHistoryResolver {
   constructor(private walletTxHistoryService: WalletTxHistoryService) {}
@@ -32,5 +35,27 @@ export class WalletTxHistoryResolver {
       skip: skip,
       endCursor: skip + res.length
     }
+  }
+
+  @Query(() => HistoryTransactionsModel)
+  async ActivityHistory(
+    @Info() info,
+    @Args('wallet_address') walletAddress: string,
+    @Args('start_time', { type: () => GraphQLInt }) startTime: number,
+    @Args('end_time', { type: () => GraphQLInt }) endTime: number
+  ) {
+    const history = new HistoryTransactionsModel()
+    if (!startTime) startTime = moment().subtract(7, 'days').unix()
+    if (!endTime) endTime = moment().unix()
+    for (const field of fieldsList(info)) {
+      history[field] = await this.walletTxHistoryService.getActivityHistory(
+        //@ts-ignore
+        field,
+        walletAddress.toLocaleLowerCase(),
+        startTime,
+        endTime
+      )
+    }
+    return history
   }
 }
