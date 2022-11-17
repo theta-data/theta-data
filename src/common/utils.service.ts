@@ -1,3 +1,4 @@
+import { RpcService } from './../block-chain/rpc/rpc.service'
 import { Injectable, Logger } from '@nestjs/common'
 // import BigNumber from 'bignumber.js'
 import { ethers } from 'ethers'
@@ -53,7 +54,7 @@ export interface LOG_DECODE_INTERFACE {
 @Injectable()
 export class UtilsService {
   logger = new Logger()
-  constructor() {
+  constructor(private rpcService: RpcService) {
     // thetaTsSdk.blockchain.setUrl(config.get('THETA_NODE_HOST'))
   }
 
@@ -219,6 +220,34 @@ export class UtilsService {
       const data = fs.readFileSync(path, 'utf8')
       return Number(data) + 1
     }
+  }
+
+  async getHeightRangeToAnalyse(module: string, heightConfigFile): Promise<[number, number]> {
+    let height: number = 0
+    const lastfinalizedHeight = Number(
+      (await this.rpcService.getStatus()).latest_finalized_block_height
+    )
+    height = lastfinalizedHeight - 1000
+
+    if (config.get(module + '.START_HEIGHT')) {
+      height = config.get(module + '.START_HEIGHT')
+    }
+
+    const recordHeight = this.getRecordHeight(heightConfigFile)
+    height = recordHeight > height ? recordHeight : height
+    if (height >= lastfinalizedHeight) {
+      // await this.runner.commitTransaction()
+      this.logger.debug('commit success')
+      this.logger.debug('no height to analyse')
+      return [0, 0]
+    }
+    let endHeight = lastfinalizedHeight
+    const analyseNumber = config.get(module + '.ANALYSE_NUMBER')
+    if (lastfinalizedHeight - height > analyseNumber) {
+      endHeight = height + analyseNumber
+    }
+    this.logger.debug('start height: ' + height + '; end height: ' + endHeight)
+    return [height, endHeight]
   }
 
   updateRecordHeight(path: string, height: number) {

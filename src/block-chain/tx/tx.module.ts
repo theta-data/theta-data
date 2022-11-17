@@ -1,3 +1,4 @@
+import { RpcModule } from './../rpc/rpc.module'
 import { Module, CacheModule } from '@nestjs/common'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { ThetaTxNumByHoursEntity } from './theta-tx-num-by-hours.entity'
@@ -13,7 +14,8 @@ import { CommonModule } from 'src/common/common.module'
     CacheModule.register(),
     TypeOrmModule.forFeature([ThetaTxNumByHoursEntity], 'tx'),
     WalletModule,
-    CommonModule
+    CommonModule,
+    RpcModule
   ],
   providers: [TxService, TxResolver, TxAnalyseService],
   exports: [TxService]

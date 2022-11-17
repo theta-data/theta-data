@@ -32,7 +32,7 @@ export class ExplorerAnalyseService {
     @InjectConnection('explorer')
     private readonly explorerConnectionInjected: Connection
   ) {
-    this.utilsService = utilsService
+    // this.utilsService = utilsService
   }
   public async analyseData() {
     try {
@@ -95,17 +95,17 @@ export class ExplorerAnalyseService {
         )
       }
       await this.explorerConnectionRunner.commitTransaction()
+      writeSucessExcuteLog(config.get('EXPLORER.MONITOR_PATH'))
     } catch (e) {
       this.logger.error(e)
       console.error(e)
       this.logger.debug(JSON.stringify(this.current))
       await this.explorerConnectionRunner.rollbackTransaction()
-      await this.explorerConnectionRunner.release()
+      // await this.explorerConnectionRunner.release()
       writeFailExcuteLog(config.get('EXPLORER.MONITOR_PATH'))
       // return
     } finally {
       await this.explorerConnectionRunner.release()
-      writeSucessExcuteLog(config.get('EXPLORER.MONITOR_PATH'))
     }
     //  let height: number = 0
   }
