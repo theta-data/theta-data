@@ -1,10 +1,13 @@
+import { WalletSendHistoryAnalyseService } from './wallet-send-history-analyse.service'
+import { WalletSendHistoryEntity } from './wallet-send-history.entity'
 import { RpcModule } from '../../rpc/rpc.module'
 import { Module } from '@nestjs/common'
+import { TypeOrmModule } from '@nestjs/typeorm'
 
 @Module({
-  imports: [RpcModule],
+  imports: [RpcModule, TypeOrmModule.forFeature([WalletSendHistoryEntity], 'wallet-send-history')],
   controllers: [],
-  providers: [],
+  providers: [WalletSendHistoryAnalyseService],
   exports: []
 })
 export class WalletSendHistoryModule {}

@@ -1,6 +1,5 @@
 import { THETA_TRANSACTION_TYPE_ENUM } from 'theta-ts-sdk/dist/types/enum'
 import { THETA_BLOCK_INTERFACE } from 'theta-ts-sdk/dist/types/interface'
-import { analyse } from '../../../index'
 import { Injectable, Logger } from '@nestjs/common'
 import { InjectConnection } from '@nestjs/typeorm'
 import { UtilsService, writeFailExcuteLog, writeSucessExcuteLog } from 'src/common/utils.service'

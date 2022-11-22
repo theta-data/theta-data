@@ -105,6 +105,13 @@ import { ThetaTxNumByHoursEntity } from './block-chain/tx/theta-tx-num-by-hours.
       name: 'wallet-send-history',
       entities: []
     }),
+    TypeOrmModule.forRoot({
+      ...config.get('ORM_CONFIG'),
+      database:
+        config.get('ORM_CONFIG')['database'] + 'wallet-tx-history/deposit-withdraw/index.sqlite',
+      name: 'wallet-deposit-withdraw-history',
+      entities: []
+    }),
     GraphQLModule.forRoot({
       driver: ApolloDriver,
       installSubscriptionHandlers: true,
