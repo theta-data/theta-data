@@ -1,3 +1,7 @@
+import { WalletDpWdHistoryAnalyseService } from './block-chain/wallet-tx-history/deposit-withdraw/wallet-dp-wd-history-analyse.service'
+import { WalletDpWdHistoryModule } from './block-chain/wallet-tx-history/deposit-withdraw/wallet-dp-wd-history.module'
+import { WalletSendHistoryAnalyseService } from './block-chain/wallet-tx-history/send/wallet-send-history-analyse.service'
+import { WalletSendHistoryModule } from './block-chain/wallet-tx-history/send/wallet-send-history.module'
 import { WalletTxHistoryModule } from './block-chain/wallet-tx-history/wallet-tx-history.module'
 import { StakeAnalyseService } from './block-chain/stake/stake-analyse.service'
 import { StakeModule } from './block-chain/stake/stake.module'
@@ -33,41 +37,56 @@ export async function analyseBootstrap(except: Array<string> | undefined) {
     const nftStatistics = app
       .select(NftStatisticsModule)
       .get(NftStatisticsAnalyseService, { strict: true })
+    // const walletTxHistory = app
+    //   .select(WalletTxHistoryModule)
+    //   .get(WalletTxHistoryAnalyseService, { strict: true })
 
-    const walletTxHistory = app
-      .select(WalletTxHistoryModule)
-      .get(WalletTxHistoryAnalyseService, { strict: true })
-    // await Promise.race([
-    //   tx.analyseData(),
-    //   new Promise((resolve, reject) => {
-    //     setTimeout(() => {
-    //       resolve('timeout')
-    //       console.log('analyse race timeout')
-    //       // this.logger.debug('timeout')
-    //     }, 1000 * 60 * 5)
-    //   })
-    // ])
-    // await Promise.race([
-    //   explorer.analyseData(),
-    //   new Promise((resolve, reject) => {
-    //     setTimeout(() => {
-    //       resolve('timeout')
-    //       console.log('analyse race timeout')
-    //       // this.logger.debug('timeout')
-    //     }, 1000 * 60 * 5)
-    //   })
-    // ])
-    await tx.analyseData()
-    await explorer.analyseData()
-    await smartContract.analyseData()
-    await wallet.analyseData()
+    const walletSendHistory = app
+      .select(WalletSendHistoryModule)
+      .get(WalletSendHistoryAnalyseService, { strict: true })
+
+    const walletDpWdHistory = app
+      .select(WalletDpWdHistoryModule)
+      .get(WalletDpWdHistoryAnalyseService, { strict: true })
+
+    if (!except || !except.includes('tx')) {
+      await tx.analyseData()
+    }
+
+    if (!except || !except.includes('explorer')) {
+      await explorer.analyseData()
+    }
+
+    if (!except || !except.includes('smartContract')) {
+      await smartContract.analyseData()
+    }
+
+    if (!except || !except.includes('wallet')) {
+      await wallet.analyseData()
+    }
 
     if (except && !except.includes('nft')) {
       await nft.analyseData(i)
     }
-    await stake.analyseData()
-    await nftStatistics.analyseData()
-    await walletTxHistory.analyseData()
+
+    if (except && !except.includes('stake')) {
+      await stake.analyseData()
+    }
+
+    if (except && !except.includes('nft-statistics')) {
+      await nftStatistics.analyseData()
+    }
+    // if (except && !except.includes('wallet-tx-history')) {
+    //   await walletTxHistory.analyseData()
+    // }
+    if (except && !except.includes('wallet-send-history')) {
+      await walletSendHistory.analyse()
+    }
+
+    if (except && !except.includes('wallet-dp-wd-history')) {
+      await walletDpWdHistory.analyse()
+    }
+
     await new Promise((resolve) => setTimeout(resolve, 1000))
     app.close()
     i++

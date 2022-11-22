@@ -1,4 +1,4 @@
-import { WalletDpWdHistoryEntity } from './wallet-dp-wp-history.entity'
+import { WalletDpWdHistoryEntity } from './wallet-dp-wd-history.entity'
 import { THETA_TRANSACTION_TYPE_ENUM } from 'theta-ts-sdk/dist/types/enum'
 import { THETA_BLOCK_INTERFACE } from 'theta-ts-sdk/dist/types/interface'
 import {
@@ -30,16 +30,13 @@ export class WalletDpWdHistoryAnalyseService {
     @InjectConnection('wallet-deposit-withdraw-history')
     private readonly connection: Connection,
 
-    @InjectConnection('stake')
-    private readonly stakeConnection: Connection,
-
     private rpcService: RpcService
   ) {}
 
   public async analyse() {
     try {
       this.runner = this.connection.createQueryRunner()
-      this.stakeRunner = this.stakeConnection.createQueryRunner()
+      // this.stakeRunner = this.stakeConnection.createQueryRunner()
       await this.runner.startTransaction()
       const [startHeight, endHeight] = await this.utilsService.getHeightRangeToAnalyse(
         'WALLET_SEND_HISTORY',

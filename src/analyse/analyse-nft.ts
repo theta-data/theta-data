@@ -14,16 +14,16 @@ export async function analyseNftBootstrap() {
       // console.log(a)
       // const a = {}
       // console.log(a['b']['c'])
-      await Promise.race([
-        service.analyseData(i),
-        new Promise((resolve, reject) => {
-          setTimeout(() => {
-            resolve('timeout')
-            console.log('analyse race timeout')
-            // this.logger.debug('timeout')
-          }, 1000 * 60 * 20)
-        })
-      ])
+      // await Promise.race([
+      await service.analyseData(i)
+      //   new Promise((resolve, reject) => {
+      //     setTimeout(() => {
+      //       resolve('timeout')
+      //       console.log('analyse race timeout')
+      //       // this.logger.debug('timeout')
+      //     }, 1000 * 60 * 20)
+      //   })
+      // ])
       await new Promise((resolve) => setTimeout(resolve, config.get('NFT.ANALYSE_INTERVAL')))
       app.close()
       i++
