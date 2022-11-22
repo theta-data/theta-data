@@ -7,6 +7,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TxModule = void 0;
+const rpc_module_1 = require("./../rpc/rpc.module");
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const theta_tx_num_by_hours_entity_1 = require("./theta-tx-num-by-hours.entity");
@@ -23,7 +24,8 @@ TxModule = __decorate([
             common_1.CacheModule.register(),
             typeorm_1.TypeOrmModule.forFeature([theta_tx_num_by_hours_entity_1.ThetaTxNumByHoursEntity], 'tx'),
             wallet_module_1.WalletModule,
-            common_module_1.CommonModule
+            common_module_1.CommonModule,
+            rpc_module_1.RpcModule
         ],
         providers: [tx_service_1.TxService, tx_resolver_1.TxResolver, tx_analyse_service_1.TxAnalyseService],
         exports: [tx_service_1.TxService]

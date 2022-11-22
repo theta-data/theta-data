@@ -13,7 +13,9 @@ export async function analyseWalletSendHistoryBootstrap() {
       .select(WalletSendHistoryModule)
       .get(WalletSendHistoryAnalyseService, { strict: true })
     await service.analyse()
-    await new Promise((resolve) => setTimeout(resolve, config.get('NFT.ANALYSE_INTERVAL')))
+    await new Promise((resolve) =>
+      setTimeout(resolve, config.get('WALLET_SEND_HISTORY.ANALYSE_INTERVAL'))
+    )
     app.close()
     i++
   }

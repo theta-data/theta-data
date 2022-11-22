@@ -12,7 +12,9 @@ export async function analyseWalletDpWdHistoryBootstrap() {
       .select(WalletDpWdHistoryModule)
       .get(WalletDpWdHistoryAnalyseService, { strict: true })
     await service.analyse()
-    await new Promise((resolve) => setTimeout(resolve, config.get('NFT.ANALYSE_INTERVAL')))
+    await new Promise((resolve) =>
+      setTimeout(resolve, config.get('WALLET_DP_WD_HISTORY.ANALYSE_INTERVAL'))
+    )
     app.close()
     i++
   }

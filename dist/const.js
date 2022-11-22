@@ -81,6 +81,18 @@ exports.DEFAULT_CONFIG = {
         ANALYSE_NUMBER: 50,
         ANALYSE_INTERVAL: 1000,
         MONITOR_PATH: '../database/monitor/wallet-tx-history/'
+    },
+    WALLET_SEND_HISTORY: {
+        START_HEIGHT: 17000000,
+        ANALYSE_NUMBER: 50,
+        ANALYSE_INTERVAL: 1000,
+        MONITOR_PATH: '../database/monitor/wallet-send-history/'
+    },
+    WALLET_DP_WD_HISTORY: {
+        START_HEIGHT: 17000000,
+        ANALYSE_NUMBER: 50,
+        ANALYSE_INTERVAL: 1000,
+        MONITOR_PATH: '../database/monitor/wallet-dp-wd-history/'
     }
 };
 const fs = require('fs');

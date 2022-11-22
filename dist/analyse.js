@@ -1,7 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.analyseBootstrap = void 0;
-const wallet_tx_history_module_1 = require("./block-chain/wallet-tx-history/wallet-tx-history.module");
+const wallet_dp_wd_history_analyse_service_1 = require("./block-chain/wallet-tx-history/deposit-withdraw/wallet-dp-wd-history-analyse.service");
+const wallet_dp_wd_history_module_1 = require("./block-chain/wallet-tx-history/deposit-withdraw/wallet-dp-wd-history.module");
+const wallet_send_history_analyse_service_1 = require("./block-chain/wallet-tx-history/send/wallet-send-history-analyse.service");
+const wallet_send_history_module_1 = require("./block-chain/wallet-tx-history/send/wallet-send-history.module");
 const stake_analyse_service_1 = require("./block-chain/stake/stake-analyse.service");
 const stake_module_1 = require("./block-chain/stake/stake.module");
 const wallets_analyse_service_1 = require("./block-chain/wallet/wallets-analyse.service");
@@ -18,8 +21,7 @@ const app_module_1 = require("./app.module");
 const tx_analyse_service_1 = require("./block-chain/tx/tx-analyse.service");
 const tx_module_1 = require("./block-chain/tx/tx.module");
 const wallet_module_1 = require("./block-chain/wallet/wallet.module");
-const wallet_tx_history_analyse_service_1 = require("./block-chain/wallet-tx-history/wallet-tx-history-analyse.service");
-async function analyseBootstrap(except) {
+async function analyseBootstrap(except = undefined) {
     let i = 0;
     while (1) {
         const app = await core_1.NestFactory.createApplicationContext(app_module_1.AppModule);
@@ -34,19 +36,39 @@ async function analyseBootstrap(except) {
         const nftStatistics = app
             .select(nft_statistics_module_1.NftStatisticsModule)
             .get(nft_statistics_analyse_service_1.NftStatisticsAnalyseService, { strict: true });
-        const walletTxHistory = app
-            .select(wallet_tx_history_module_1.WalletTxHistoryModule)
-            .get(wallet_tx_history_analyse_service_1.WalletTxHistoryAnalyseService, { strict: true });
-        await tx.analyseData();
-        await explorer.analyseData();
-        await smartContract.analyseData();
-        await wallet.analyseData();
+        const walletSendHistory = app
+            .select(wallet_send_history_module_1.WalletSendHistoryModule)
+            .get(wallet_send_history_analyse_service_1.WalletSendHistoryAnalyseService, { strict: true });
+        const walletDpWdHistory = app
+            .select(wallet_dp_wd_history_module_1.WalletDpWdHistoryModule)
+            .get(wallet_dp_wd_history_analyse_service_1.WalletDpWdHistoryAnalyseService, { strict: true });
+        if (!except || !except.includes('tx')) {
+            await tx.analyseData();
+        }
+        if (!except || !except.includes('explorer')) {
+            await explorer.analyseData();
+        }
+        if (!except || !except.includes('smartContract')) {
+            await smartContract.analyseData();
+        }
+        if (!except || !except.includes('wallet')) {
+            await wallet.analyseData();
+        }
         if (except && !except.includes('nft')) {
             await nft.analyseData(i);
         }
-        await stake.analyseData();
-        await nftStatistics.analyseData();
-        await walletTxHistory.analyseData();
+        if (except && !except.includes('stake')) {
+            await stake.analyseData();
+        }
+        if (except && !except.includes('nft-statistics')) {
+            await nftStatistics.analyseData();
+        }
+        if (except && !except.includes('wallet-send-history')) {
+            await walletSendHistory.analyse();
+        }
+        if (except && !except.includes('wallet-dp-wd-history')) {
+            await walletDpWdHistory.analyse();
+        }
         await new Promise((resolve) => setTimeout(resolve, 1000));
         app.close();
         i++;

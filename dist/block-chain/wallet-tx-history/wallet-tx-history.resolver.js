@@ -19,6 +19,7 @@ const wallet_tx_history_model_1 = require("./wallet-tx-history.model");
 const wallet_tx_history_service_1 = require("./wallet-tx-history.service");
 const graphql_1 = require("@nestjs/graphql");
 const graphql_2 = require("graphql");
+const moment = require('moment');
 let WalletTxHistoryResolver = class WalletTxHistoryResolver {
     constructor(walletTxHistoryService) {
         this.walletTxHistoryService = walletTxHistoryService;
@@ -36,7 +37,10 @@ let WalletTxHistoryResolver = class WalletTxHistoryResolver {
     }
     async ActivityHistory(info, walletAddress, startTime, endTime) {
         const history = new wallet_tx_history_model_1.HistoryTransactionsModel();
-        console.log((0, graphql_fields_list_1.fieldsList)(info));
+        if (!startTime)
+            startTime = moment().subtract(7, 'days').unix();
+        if (!endTime)
+            endTime = moment().unix();
         for (const field of (0, graphql_fields_list_1.fieldsList)(info)) {
             history[field] = await this.walletTxHistoryService.getActivityHistory(field, walletAddress.toLocaleLowerCase(), startTime, endTime);
         }

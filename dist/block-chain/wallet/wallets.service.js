@@ -23,7 +23,7 @@ const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const wallet_entity_1 = require("./wallet.entity");
 const active_wallets_entity_1 = require("./active-wallets.entity");
-const stake_entity_1 = require("../stake/stake.entity");
+const stake_model_1 = require("../stake/stake.model");
 let WalletService = class WalletService {
     constructor(cacheManager, walletRepository, latestStakeInfoRepository, activeWalletsRepository, marketInfo) {
         this.cacheManager = cacheManager;
@@ -90,7 +90,7 @@ let WalletService = class WalletService {
         const eenpStake = [];
         const vcpStake = [];
         const gcpRes = await this.latestStakeInfoRepository.findOne({
-            where: { node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.guardian }
+            where: { node_type: stake_model_1.STAKE_NODE_TYPE_ENUM.guardian }
         });
         const gcpList = JSON.parse(gcpRes.holder);
         const thetaPrice = await this.marketInfo.getPrice('theta');
@@ -118,7 +118,7 @@ let WalletService = class WalletService {
             });
         });
         const eenpRes = await this.latestStakeInfoRepository.findOne({
-            where: { node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.edge_cache }
+            where: { node_type: stake_model_1.STAKE_NODE_TYPE_ENUM.edge_cache }
         });
         const eenpList = JSON.parse(eenpRes.holder);
         eenpList.result.BlockHashEenpPairs[0].EENs.forEach((een) => {
@@ -143,7 +143,7 @@ let WalletService = class WalletService {
             });
         });
         const vaRes = await this.latestStakeInfoRepository.findOne({
-            where: { node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.validator }
+            where: { node_type: stake_model_1.STAKE_NODE_TYPE_ENUM.validator }
         });
         const validatorList = JSON.parse(vaRes.holder);
         validatorList.result.BlockHashVcpPairs[0].Vcp.SortedCandidates.forEach((vcp) => {

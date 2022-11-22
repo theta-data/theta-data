@@ -21,7 +21,7 @@ import { TxModule } from './block-chain/tx/tx.module'
 import { WalletModule } from './block-chain/wallet/wallet.module'
 import { WalletTxHistoryAnalyseService } from './block-chain/wallet-tx-history/wallet-tx-history-analyse.service'
 
-export async function analyseBootstrap(except: Array<string> | undefined) {
+export async function analyseBootstrap(except: Array<string> | undefined = undefined) {
   let i = 0
   while (1) {
     const app = await NestFactory.createApplicationContext(AppModule)

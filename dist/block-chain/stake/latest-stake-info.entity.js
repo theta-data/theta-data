@@ -11,7 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LatestStakeInfoEntity = void 0;
 const typeorm_1 = require("typeorm");
-const stake_entity_1 = require("./stake.entity");
+const stake_model_1 = require("./stake.model");
 let LatestStakeInfoEntity = class LatestStakeInfoEntity {
 };
 __decorate([

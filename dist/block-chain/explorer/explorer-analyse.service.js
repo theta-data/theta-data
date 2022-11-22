@@ -34,7 +34,6 @@ let ExplorerAnalyseService = class ExplorerAnalyseService {
         this.heightConfigFile = const_2.config.get('ORM_CONFIG')['database'] + 'explorer/record.height';
         this.current = {};
         this.transactionNum = 0;
-        this.utilsService = utilsService;
     }
     async analyseData() {
         try {
@@ -85,18 +84,17 @@ let ExplorerAnalyseService = class ExplorerAnalyseService {
                 this.utilsService.updateRecordHeight(this.heightConfigFile, Number(blockList.result[blockList.result.length - 1].height));
             }
             await this.explorerConnectionRunner.commitTransaction();
+            (0, utils_service_1.writeSucessExcuteLog)(const_2.config.get('EXPLORER.MONITOR_PATH'));
         }
         catch (e) {
             this.logger.error(e);
             console.error(e);
             this.logger.debug(JSON.stringify(this.current));
             await this.explorerConnectionRunner.rollbackTransaction();
-            await this.explorerConnectionRunner.release();
             (0, utils_service_1.writeFailExcuteLog)(const_2.config.get('EXPLORER.MONITOR_PATH'));
         }
         finally {
             await this.explorerConnectionRunner.release();
-            (0, utils_service_1.writeSucessExcuteLog)(const_2.config.get('EXPLORER.MONITOR_PATH'));
         }
     }
     async handleData(block) {

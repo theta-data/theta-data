@@ -1,3 +1,5 @@
+import { WalletDpWdHistoryModule } from './block-chain/wallet-tx-history/deposit-withdraw/wallet-dp-wd-history.module'
+import { WalletSendHistoryModule } from './block-chain/wallet-tx-history/send/wallet-send-history.module'
 import { WalletTxHistoryModule } from './block-chain/wallet-tx-history/wallet-tx-history.module'
 import { ExplorerModule } from './block-chain/explorer/explorer.module'
 import { CacheModule, MiddlewareConsumer, Module, NestModule } from '@nestjs/common'
@@ -139,7 +141,9 @@ import { ThetaTxNumByHoursEntity } from './block-chain/tx/theta-tx-num-by-hours.
     LoggerModule,
     NftStatisticsModule,
     ExplorerModule,
-    WalletTxHistoryModule
+    WalletTxHistoryModule,
+    WalletSendHistoryModule,
+    WalletDpWdHistoryModule
   ],
   providers: [
     {

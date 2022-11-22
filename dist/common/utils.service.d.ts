@@ -1,3 +1,4 @@
+import { RpcService } from './../block-chain/rpc/rpc.service';
 import { Logger } from '@nestjs/common';
 import { ethers } from 'ethers';
 export interface LOG_DECODE_INTERFACE {
@@ -39,8 +40,9 @@ export interface LOG_DECODE_INTERFACE {
     };
 }
 export declare class UtilsService {
+    private rpcService;
     logger: Logger;
-    constructor();
+    constructor(rpcService: RpcService);
     decodeLogs(logs: any, abi: any): Array<LOG_DECODE_INTERFACE>;
     checkTnt721(abi: any): boolean;
     checkTnt20(abi: any): boolean;
@@ -51,6 +53,7 @@ export declare class UtilsService {
     getBytecodeWithoutMetadata(bytecode: any): any;
     stampDate(sourceCode: any): string;
     getRecordHeight(path: string): number;
+    getHeightRangeToAnalyse(module: string, heightConfigFile: any): Promise<[number, number]>;
     updateRecordHeight(path: string, height: number): void;
     getRandomStr(length: number): string;
     downloadImage(urlPath: string, storePath: string): Promise<string | null>;

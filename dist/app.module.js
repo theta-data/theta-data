@@ -7,6 +7,8 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
+const wallet_dp_wd_history_module_1 = require("./block-chain/wallet-tx-history/deposit-withdraw/wallet-dp-wd-history.module");
+const wallet_send_history_module_1 = require("./block-chain/wallet-tx-history/send/wallet-send-history.module");
 const wallet_tx_history_module_1 = require("./block-chain/wallet-tx-history/wallet-tx-history.module");
 const explorer_module_1 = require("./block-chain/explorer/explorer.module");
 const common_1 = require("@nestjs/common");
@@ -49,6 +51,8 @@ AppModule = __decorate([
             typeorm_1.TypeOrmModule.forRoot(Object.assign(Object.assign({}, const_1.config.get('ORM_CONFIG')), { database: const_1.config.get('ORM_CONFIG')['database'] + 'nft-statistics/index.sqlite', name: 'nft-statistics', entities: [] })),
             typeorm_1.TypeOrmModule.forRoot(Object.assign(Object.assign({}, const_1.config.get('ORM_CONFIG')), { database: const_1.config.get('ORM_CONFIG')['database'] + 'explorer/index.sqlite', name: 'explorer', entities: [] })),
             typeorm_1.TypeOrmModule.forRoot(Object.assign(Object.assign({}, const_1.config.get('ORM_CONFIG')), { database: const_1.config.get('ORM_CONFIG')['database'] + 'wallet-tx-history/index.sqlite', name: 'wallet-tx-history', entities: [] })),
+            typeorm_1.TypeOrmModule.forRoot(Object.assign(Object.assign({}, const_1.config.get('ORM_CONFIG')), { database: const_1.config.get('ORM_CONFIG')['database'] + 'wallet-tx-history/send/index.sqlite', name: 'wallet-send-history', entities: [] })),
+            typeorm_1.TypeOrmModule.forRoot(Object.assign(Object.assign({}, const_1.config.get('ORM_CONFIG')), { database: const_1.config.get('ORM_CONFIG')['database'] + 'wallet-tx-history/deposit-withdraw/index.sqlite', name: 'wallet-deposit-withdraw-history', entities: [] })),
             graphql_1.GraphQLModule.forRoot({
                 driver: apollo_1.ApolloDriver,
                 installSubscriptionHandlers: true,
@@ -76,7 +80,9 @@ AppModule = __decorate([
             logger_module_1.LoggerModule,
             nft_statistics_module_1.NftStatisticsModule,
             explorer_module_1.ExplorerModule,
-            wallet_tx_history_module_1.WalletTxHistoryModule
+            wallet_tx_history_module_1.WalletTxHistoryModule,
+            wallet_send_history_module_1.WalletSendHistoryModule,
+            wallet_dp_wd_history_module_1.WalletDpWdHistoryModule
         ],
         providers: [
             {

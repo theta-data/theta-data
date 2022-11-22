@@ -7,6 +7,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CommonModule = void 0;
+const rpc_module_1 = require("./../block-chain/rpc/rpc.module");
 const common_1 = require("@nestjs/common");
 const logger_service_1 = require("./logger.service");
 const solc_service_1 = require("./solc.service");
@@ -15,7 +16,7 @@ let CommonModule = class CommonModule {
 };
 CommonModule = __decorate([
     (0, common_1.Module)({
-        imports: [],
+        imports: [rpc_module_1.RpcModule],
         providers: [solc_service_1.SolcService, utils_service_1.UtilsService, logger_service_1.LoggerService],
         exports: [solc_service_1.SolcService, utils_service_1.UtilsService, logger_service_1.LoggerService]
     })

@@ -76,6 +76,18 @@ export declare const DEFAULT_CONFIG: {
         ANALYSE_INTERVAL: number;
         MONITOR_PATH: string;
     };
+    WALLET_SEND_HISTORY: {
+        START_HEIGHT: number;
+        ANALYSE_NUMBER: number;
+        ANALYSE_INTERVAL: number;
+        MONITOR_PATH: string;
+    };
+    WALLET_DP_WD_HISTORY: {
+        START_HEIGHT: number;
+        ANALYSE_NUMBER: number;
+        ANALYSE_INTERVAL: number;
+        MONITOR_PATH: string;
+    };
 };
 export declare const config: {
     get: (str: string) => any;

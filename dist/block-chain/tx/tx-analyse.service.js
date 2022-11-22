@@ -16,28 +16,28 @@ exports.TxAnalyseService = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("typeorm");
 const enum_1 = require("theta-ts-sdk/dist/types/enum");
-const theta_ts_sdk_1 = require("theta-ts-sdk");
 const bignumber_js_1 = require("bignumber.js");
 const utils_service_1 = require("../../common/utils.service");
 const const_1 = require("../../const");
 const typeorm_2 = require("@nestjs/typeorm");
+const rpc_service_1 = require("../rpc/rpc.service");
 const moment = require('moment');
 let TxAnalyseService = class TxAnalyseService {
-    constructor(utilsService, connection) {
+    constructor(utilsService, connection, rpcService) {
         this.utilsService = utilsService;
         this.connection = connection;
+        this.rpcService = rpcService;
         this.logger = new common_1.Logger('tx analyse service');
         this.analyseKey = 'under_analyse';
         this.counter = 0;
         this.heightConfigFile = const_1.config.get('ORM_CONFIG')['database'] + 'tx/record.height';
-        theta_ts_sdk_1.thetaTsSdk.blockchain.setUrl(const_1.config.get('THETA_NODE_HOST'));
     }
     async analyseData() {
         try {
             this.txConnectionRunner = this.connection.createQueryRunner();
             await this.txConnectionRunner.startTransaction();
             let height = 0;
-            const lastfinalizedHeight = Number((await theta_ts_sdk_1.thetaTsSdk.blockchain.getStatus()).result.latest_finalized_block_height);
+            const lastfinalizedHeight = Number((await this.rpcService.getStatus()).latest_finalized_block_height);
             height = lastfinalizedHeight - 1000;
             if (const_1.config.get('TX.START_HEIGHT')) {
                 height = const_1.config.get('TX.START_HEIGHT');
@@ -56,21 +56,21 @@ let TxAnalyseService = class TxAnalyseService {
                 endHeight = height + analyseNumber;
             }
             this.logger.debug('start height: ' + height + '; end height: ' + endHeight);
-            const blockList = await theta_ts_sdk_1.thetaTsSdk.blockchain.getBlockSByRange(height.toString(), endHeight.toString());
-            this.logger.debug('block list length:' + blockList.result.length);
-            this.counter = blockList.result.length;
+            const blockList = await this.rpcService.getBlockSByRange(height, endHeight);
+            this.counter = blockList.length;
             this.logger.debug('init counter', this.counter);
-            for (let i = 0; i < blockList.result.length; i++) {
-                const block = blockList.result[i];
+            for (let i = 0; i < blockList.length; i++) {
+                const block = blockList[i];
                 this.logger.debug(block.height + ' start hanldle');
                 await this.handleOrderCreatedEvent(block, lastfinalizedHeight);
             }
             this.logger.debug('start update calltimes by period');
             await this.txConnectionRunner.commitTransaction();
             this.logger.debug('commit success');
-            if (blockList.result.length > 1) {
-                this.utilsService.updateRecordHeight(this.heightConfigFile, Number(blockList.result[blockList.result.length - 1].height));
+            if (blockList.length > 1) {
+                this.utilsService.updateRecordHeight(this.heightConfigFile, Number(blockList[blockList.length - 1].height));
             }
+            (0, utils_service_1.writeSucessExcuteLog)(const_1.config.get('TX.MONITOR_PATH'));
         }
         catch (e) {
             console.error(e.message);
@@ -82,7 +82,6 @@ let TxAnalyseService = class TxAnalyseService {
         finally {
             await this.txConnectionRunner.release();
             this.logger.debug('release success');
-            (0, utils_service_1.writeSucessExcuteLog)(const_1.config.get('TX.MONITOR_PATH'));
         }
     }
     async handleOrderCreatedEvent(block, latestFinalizedBlockHeight) {
@@ -163,7 +162,8 @@ TxAnalyseService = __decorate([
     (0, common_1.Injectable)(),
     __param(1, (0, typeorm_2.InjectConnection)('tx')),
     __metadata("design:paramtypes", [utils_service_1.UtilsService,
-        typeorm_1.Connection])
+        typeorm_1.Connection,
+        rpc_service_1.RpcService])
 ], TxAnalyseService);
 exports.TxAnalyseService = TxAnalyseService;
 //# sourceMappingURL=tx-analyse.service.js.map

@@ -13,7 +13,7 @@ const config = require('config')
 @Injectable()
 export class WalletSendHistoryAnalyseService {
   private readonly logger = new Logger('send history analyse service')
-  private recordLogFile = config.get('ORM_CONFIG')['database'] + 'wallet-tx-history/send/record.log'
+  private recordLogFile = config.get('ORM_CONFIG')['database'] + 'wallet-send-history/record.log'
   private runner: QueryRunner
   constructor(
     private utilsService: UtilsService,

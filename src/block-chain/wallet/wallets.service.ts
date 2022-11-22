@@ -10,12 +10,13 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { MoreThan, Repository } from 'typeorm'
 import { WalletEntity } from './wallet.entity'
 import { ActiveWalletsEntity } from './active-wallets.entity'
-import { STAKE_NODE_TYPE_ENUM } from '../stake/stake.entity'
+// import { STAKE_NODE_TYPE_ENUM } from '../stake/stake.entity'
 import {
   THETA_EENP_INTERFACE,
   THETA_GCP_INTERFACE,
   THETA_VCP_INTERFACE
 } from 'theta-ts-sdk/dist/types/interface'
+import { STAKE_NODE_TYPE_ENUM } from '../stake/stake.model'
 
 @Injectable()
 export class WalletService {

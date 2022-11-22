@@ -10,6 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.writeFailExcuteLog = exports.writeSucessExcuteLog = exports.UtilsService = void 0;
+const rpc_service_1 = require("./../block-chain/rpc/rpc.service");
 const common_1 = require("@nestjs/common");
 const ethers_1 = require("ethers");
 const theta_ts_sdk_1 = require("theta-ts-sdk");
@@ -22,7 +23,8 @@ const got = require('got');
 const path = require('path');
 const moment = require('moment');
 let UtilsService = class UtilsService {
-    constructor() {
+    constructor(rpcService) {
+        this.rpcService = rpcService;
         this.logger = new common_1.Logger();
         this.normalize = function (hash) {
             const regex = /^0x/i;
@@ -158,6 +160,28 @@ let UtilsService = class UtilsService {
             return Number(data) + 1;
         }
     }
+    async getHeightRangeToAnalyse(module, heightConfigFile) {
+        let height = 0;
+        const lastfinalizedHeight = Number((await this.rpcService.getStatus()).latest_finalized_block_height);
+        height = lastfinalizedHeight - 1000;
+        if (config.get(module + '.START_HEIGHT')) {
+            height = config.get(module + '.START_HEIGHT');
+        }
+        const recordHeight = this.getRecordHeight(heightConfigFile);
+        height = recordHeight > height ? recordHeight : height;
+        if (height >= lastfinalizedHeight) {
+            this.logger.debug('commit success');
+            this.logger.debug('no height to analyse');
+            return [0, 0];
+        }
+        let endHeight = lastfinalizedHeight;
+        const analyseNumber = config.get(module + '.ANALYSE_NUMBER');
+        if (lastfinalizedHeight - height > analyseNumber) {
+            endHeight = height + analyseNumber;
+        }
+        this.logger.debug('start height: ' + height + '; end height: ' + endHeight);
+        return [height, endHeight];
+    }
     updateRecordHeight(path, height) {
         const fs = require('fs');
         fs.writeFileSync(path, height.toString());
@@ -227,7 +251,7 @@ let UtilsService = class UtilsService {
 };
 UtilsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [])
+    __metadata("design:paramtypes", [rpc_service_1.RpcService])
 ], UtilsService);
 exports.UtilsService = UtilsService;
 function writeSucessExcuteLog(logPath) {

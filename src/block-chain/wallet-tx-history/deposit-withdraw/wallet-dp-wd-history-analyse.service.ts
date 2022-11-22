@@ -20,8 +20,7 @@ const config = require('config')
 @Injectable()
 export class WalletDpWdHistoryAnalyseService {
   private readonly logger = new Logger('deposit withdraw history analyse service')
-  private recordLogFile =
-    config.get('ORM_CONFIG')['database'] + 'wallet-tx-history/deposit-withdraw/record.log'
+  private recordLogFile = config.get('ORM_CONFIG')['database'] + 'wallet-dp-wd-history/record.log'
   private runner: QueryRunner
   private stakeRunner: QueryRunner
   constructor(

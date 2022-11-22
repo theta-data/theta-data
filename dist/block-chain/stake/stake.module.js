@@ -7,10 +7,10 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.StakeModule = void 0;
+const rpc_module_1 = require("./../rpc/rpc.module");
 const latest_stake_info_entity_1 = require("./latest-stake-info.entity");
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
-const stake_entity_1 = require("./stake.entity");
 const stake_service_1 = require("./stake.service");
 const stake_resolver_1 = require("./stake.resolver");
 const stake_statistics_entity_1 = require("./stake-statistics.entity");
@@ -27,7 +27,8 @@ StakeModule = __decorate([
         imports: [
             wallet_module_1.WalletModule,
             market_module_1.MarketModule,
-            typeorm_1.TypeOrmModule.forFeature([stake_entity_1.StakeEntity, stake_statistics_entity_1.StakeStatisticsEntity, stake_reward_entity_1.StakeRewardEntity, latest_stake_info_entity_1.LatestStakeInfoEntity], 'stake'),
+            rpc_module_1.RpcModule,
+            typeorm_1.TypeOrmModule.forFeature([stake_statistics_entity_1.StakeStatisticsEntity, stake_reward_entity_1.StakeRewardEntity, latest_stake_info_entity_1.LatestStakeInfoEntity], 'stake'),
             typeorm_1.TypeOrmModule.forFeature([wallet_entity_1.WalletEntity], 'wallet'),
             common_1.CacheModule.register(),
             common_module_1.CommonModule
