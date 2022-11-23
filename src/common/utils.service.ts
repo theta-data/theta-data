@@ -4,7 +4,8 @@ import { Injectable, Logger } from '@nestjs/common'
 import { ethers } from 'ethers'
 // import { Logger } from 'ethers/lib/utils'
 import { thetaTsSdk } from 'theta-ts-sdk'
-const config = require('config')
+import { config } from 'src/const'
+// const config = require('config')
 const fs = require('fs')
 const stream = require('stream')
 const url = require('url')
