@@ -38,6 +38,7 @@ export class WalletSendHistoryAnalyseService {
       }
 
       const blockList = await this.rpcService.getBlockSByRange(startHeight, endHeight)
+      this.logger.debug('get block length:' + blockList.length)
       for (const block of blockList) {
         await this.analyseBlock(block)
       }
@@ -66,6 +67,7 @@ export class WalletSendHistoryAnalyseService {
       switch (tx.type) {
         case THETA_TRANSACTION_TYPE_ENUM.send:
           if (tx.raw.inputs.length > 0) {
+            this.logger.debug('analyse ' + tx.hash + ' txs:' + tx.raw.inputs.length)
             for (let i = 0; i < tx.raw.inputs.length; i) {
               const theta = new BigNumber(tx.raw.inputs[i].coins.thetawei)
                 .dividedBy('1e18')
