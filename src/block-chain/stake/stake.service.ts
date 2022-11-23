@@ -8,7 +8,6 @@ import { StakeRewardEntity } from './stake-reward.entity'
 import { Cache } from 'cache-manager'
 
 const moment = require('moment')
-const config = require('config')
 
 @Injectable()
 export class StakeService {

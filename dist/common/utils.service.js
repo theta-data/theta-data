@@ -14,7 +14,7 @@ const rpc_service_1 = require("./../block-chain/rpc/rpc.service");
 const common_1 = require("@nestjs/common");
 const ethers_1 = require("ethers");
 const theta_ts_sdk_1 = require("theta-ts-sdk");
-const config = require('config');
+const const_1 = require("../const");
 const fs = require('fs');
 const stream = require('stream');
 const url = require('url');
@@ -164,8 +164,8 @@ let UtilsService = class UtilsService {
         let height = 0;
         const lastfinalizedHeight = Number((await this.rpcService.getStatus()).latest_finalized_block_height);
         height = lastfinalizedHeight - 1000;
-        if (config.get(module + '.START_HEIGHT')) {
-            height = config.get(module + '.START_HEIGHT');
+        if (const_1.config.get(module + '.START_HEIGHT')) {
+            height = const_1.config.get(module + '.START_HEIGHT');
         }
         const recordHeight = this.getRecordHeight(heightConfigFile);
         height = recordHeight > height ? recordHeight : height;
@@ -175,7 +175,7 @@ let UtilsService = class UtilsService {
             return [0, 0];
         }
         let endHeight = lastfinalizedHeight;
-        const analyseNumber = config.get(module + '.ANALYSE_NUMBER');
+        const analyseNumber = const_1.config.get(module + '.ANALYSE_NUMBER');
         if (lastfinalizedHeight - height > analyseNumber) {
             endHeight = height + analyseNumber;
         }

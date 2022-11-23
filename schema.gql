@@ -2,158 +2,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type NftTransferRecordEntity {
-  smart_contract_address: String!
-  from: String!
-  name: String!
-  img_uri: String
-  to: String!
-  token_id: Int!
-  payment_token_amount: Float!
-  tdrop_mined: Float!
-  height: Int!
-  transaction_hash: String!
-  timestamp: Int!
-}
-
-type StakeRewardEntity {
-  reward_amount: Float!
-  wallet_address: String!
-  reward_height: Int!
-  timestamp: Int!
-}
-
-type TransactionEntity {
-  tx_hash: String!
-  tx_type: THETA_TRANSACTION_TYPE_ENUM!
-  from: String
-  to: String
-  fee: String
-  gas_price: String
-  gas_limit: String
-  height: Int!
-  timestamp: Int!
-  theta: Float!
-  theta_fuel: Float!
-}
-
-enum THETA_TRANSACTION_TYPE_ENUM {
-  coinbase
-  slash
-  send
-  reserve_fund
-  release_fund
-  service_payment
-  split_rule
-  smart_contract
-  deposit_stake
-  withdraw_stake
-  tx_deposit_stake_v2
-  tx_stake_reward_distribution
-}
-
-type PaginatedHistoryTransactions {
-  nodes: [TransactionEntity!]
-  totalCount: Int!
-  hasNextPage: Boolean!
-  skip: Int!
-  endCursor: String!
-}
-
-type HistoryTransactionsModel {
-  stake_rewards: [StakeRewardEntity!]
-  nft_transfers: [NftTransferRecordEntity!]
-}
-
-type NftStatisticsEntity {
-  smart_contract_address: String!
-  name: String!
-  description: String!
-  unique_owners: Int!
-  items: Int!
-  destroyed_items: Int!
-  img_uri: String
-  contract_uri: String!
-  contract_uri_detail: String!
-  last_24_h_transactions: Int!
-  last_24_h_volume: Int!
-  last_24_h_users: Int!
-  last_24_h_floor_price: Float!
-  last_24_h_highest_price: Float!
-  last_7_days_transactions: Int!
-  last_7_days_volume: Int!
-  last_7_days_users: Int!
-  last_7_days_highest_price: Float!
-  last_7_days_floor_price: Float!
-  last_30_days_transactions: Int!
-  last_30_days_volume: Int!
-  last_30_days_users: Int!
-  last_30_days_highest_price: Float!
-  last_30_days_floor_price: Float!
-  update_timestamp: Int!
-  contract_uri_update_timestamp: Int!
-}
-
-type PaginatedNftStatistics {
-  nodes: [NftStatisticsEntity!]
-  totalCount: Int!
-  hasNextPage: Boolean!
-  skip: Int!
-  endCursor: String!
-}
-
-type NftDetailType {
-  contract_uri: String
-  smart_contract_address: String
-  contract_uri_detail: String
-  name: String
-  img_uri: String
-  description: String
-  unique_owners: Int!
-  items: Int!
-  destroyed_items: Int!
-  update_timestamp: Float
-  contract_uri_update_timestamp: Float
-  by_24_hours(
-    """
-    the timezone difference in minutes, between the UTC and the current local time.Such as PDT time is utc-07, should pass -420
-    """
-    timezoneOffset: Int = 0
-  ): [NftDetailByDate!]
-  by_7_days(
-    """
-    the timezone difference in minutes, between the UTC and the current local time.Such as PDT time is utc-07, should pass -420
-    """
-    timezoneOffset: Int = 0
-  ): [NftDetailByDate!]
-  by_30_days(
-    """
-    the timezone difference in minutes, between the UTC and the current local time.Such as PDT time is utc-07, should pass -420
-    """
-    timezoneOffset: Int = 0
-  ): [NftDetailByDate!]
-}
-
-type NftDetailByDate {
-  date: Int!
-  volume: Float!
-  transactions: Int!
-  users: Int!
-}
-
-type NftBalanceEntity {
-  smart_contract_address: String!
-  owner: String!
-  from: String!
-  contract_uri: String!
-  base_token_uri: String!
-  token_uri: String!
-  name: String!
-  img_uri: String
-  detail: String!
-  token_id: Int!
-}
-
 type CandidateStakeType {
   source: String!
   amount: String!
@@ -416,6 +264,21 @@ type transactionType {
   receipt: receiptType
 }
 
+enum THETA_TRANSACTION_TYPE_ENUM {
+  coinbase
+  slash
+  send
+  reserve_fund
+  release_fund
+  service_payment
+  split_rule
+  smart_contract
+  deposit_stake
+  withdraw_stake
+  tx_deposit_stake_v2
+  tx_stake_reward_distribution
+}
+
 type GetTransactionModel {
   block_hash: String!
   block_height: String!
@@ -474,6 +337,183 @@ type ThetaRpcModel {
   """This field returns the pending transactions in the mempool."""
   GetPendingTransactions: GetPendingTransactionsModel!
   GetStakeRewardDistributionByHeight(height: Int): BlockHashStakeRewardDistributionRuleSetPairsModel!
+}
+
+type FiatCurrencyType {
+  usd: Float!
+  cny: Float!
+  eur: Float!
+}
+
+type TokenBalanceType {
+  amount: Float!
+  fiat_currency_value: FiatCurrencyType!
+}
+
+type StakeBalanceType {
+  node_address: String!
+  amount: Float!
+  withdrawn: Boolean!
+  return_height: String!
+  fiat_currency_value: FiatCurrencyType!
+}
+
+type TotalBalanceType {
+  theta_amount: Float!
+  theta_fuel_amount: Float!
+  fiat_currency_value: FiatCurrencyType!
+}
+
+type BalanceModel {
+  theta: TokenBalanceType!
+  theta_fuel: TokenBalanceType!
+  stake_to_guardian: [StakeBalanceType!]
+  stake_to_elite_node: [StakeBalanceType!]
+  stake_to_validator_node: [StakeBalanceType!]
+  total: TotalBalanceType!
+}
+
+type StakeRewardModel {
+  last_24_hour: TokenBalanceType
+  last_3_days: TokenBalanceType
+  last_7_days: TokenBalanceType
+}
+
+type NftTransferRecordEntity {
+  smart_contract_address: String!
+  from: String!
+  name: String!
+  img_uri: String
+  to: String!
+  token_id: Int!
+  payment_token_amount: Float!
+  tdrop_mined: Float!
+  height: Int!
+  transaction_hash: String!
+  timestamp: Int!
+}
+
+type StakeRewardEntity {
+  reward_amount: Float!
+  wallet_address: String!
+  reward_height: Int!
+  timestamp: Int!
+}
+
+type TransactionEntity {
+  tx_hash: String!
+  tx_type: THETA_TRANSACTION_TYPE_ENUM!
+  from: String
+  to: String
+  fee: String
+  gas_price: String
+  gas_limit: String
+  height: Int!
+  timestamp: Int!
+  theta: Float!
+  theta_fuel: Float!
+}
+
+type PaginatedHistoryTransactions {
+  nodes: [TransactionEntity!]
+  totalCount: Int!
+  hasNextPage: Boolean!
+  skip: Int!
+  endCursor: String!
+}
+
+type HistoryTransactionsModel {
+  stake_rewards: [StakeRewardEntity!]
+  nft_transfers: [NftTransferRecordEntity!]
+}
+
+type NftStatisticsEntity {
+  smart_contract_address: String!
+  name: String!
+  description: String!
+  unique_owners: Int!
+  items: Int!
+  destroyed_items: Int!
+  img_uri: String
+  contract_uri: String!
+  contract_uri_detail: String!
+  last_24_h_transactions: Int!
+  last_24_h_volume: Int!
+  last_24_h_users: Int!
+  last_24_h_floor_price: Float!
+  last_24_h_highest_price: Float!
+  last_7_days_transactions: Int!
+  last_7_days_volume: Int!
+  last_7_days_users: Int!
+  last_7_days_highest_price: Float!
+  last_7_days_floor_price: Float!
+  last_30_days_transactions: Int!
+  last_30_days_volume: Int!
+  last_30_days_users: Int!
+  last_30_days_highest_price: Float!
+  last_30_days_floor_price: Float!
+  update_timestamp: Int!
+  contract_uri_update_timestamp: Int!
+}
+
+type PaginatedNftStatistics {
+  nodes: [NftStatisticsEntity!]
+  totalCount: Int!
+  hasNextPage: Boolean!
+  skip: Int!
+  endCursor: String!
+}
+
+type NftDetailType {
+  contract_uri: String
+  smart_contract_address: String
+  contract_uri_detail: String
+  name: String
+  img_uri: String
+  description: String
+  unique_owners: Int!
+  items: Int!
+  destroyed_items: Int!
+  update_timestamp: Float
+  contract_uri_update_timestamp: Float
+  by_24_hours(
+    """
+    the timezone difference in minutes, between the UTC and the current local time.Such as PDT time is utc-07, should pass -420
+    """
+    timezoneOffset: Int = 0
+  ): [NftDetailByDate!]
+  by_7_days(
+    """
+    the timezone difference in minutes, between the UTC and the current local time.Such as PDT time is utc-07, should pass -420
+    """
+    timezoneOffset: Int = 0
+  ): [NftDetailByDate!]
+  by_30_days(
+    """
+    the timezone difference in minutes, between the UTC and the current local time.Such as PDT time is utc-07, should pass -420
+    """
+    timezoneOffset: Int = 0
+  ): [NftDetailByDate!]
+}
+
+type NftDetailByDate {
+  date: Int!
+  volume: Float!
+  transactions: Int!
+  users: Int!
+}
+
+type NftBalanceEntity {
+  smart_contract_address: String!
+  owner: String!
+  from: String!
+  contract_uri: String!
+  base_token_uri: String!
+  token_uri: String!
+  name: String!
+  img_uri: String
+  detail: String!
+  token_id: Int!
 }
 
 type KlineObj {
@@ -564,47 +604,6 @@ type ContactEntity {
 
 type WalletModel {
   Balance(wallet_address: String!): BalanceModel!
-}
-
-type FiatCurrencyType {
-  usd: Float!
-  cny: Float!
-  eur: Float!
-}
-
-type TokenBalanceType {
-  amount: Float!
-  fiat_currency_value: FiatCurrencyType!
-}
-
-type StakeBalanceType {
-  node_address: String!
-  amount: Float!
-  withdrawn: Boolean!
-  return_height: String!
-  fiat_currency_value: FiatCurrencyType!
-}
-
-type TotalBalanceType {
-  theta_amount: Float!
-  theta_fuel_amount: Float!
-  fiat_currency_value: FiatCurrencyType!
-}
-
-type BalanceModel {
-  theta: TokenBalanceType!
-  theta_fuel: TokenBalanceType!
-  stake_to_guardian: [StakeBalanceType!]
-  stake_to_elite_node: [StakeBalanceType!]
-  stake_to_validator_node: [StakeBalanceType!]
-  total: TotalBalanceType!
-}
-
-type Stake {
-  source: String!
-  amount: String!
-  withdrawn: Boolean!
-  return_height: String!
 }
 
 type NftType {
@@ -842,12 +841,6 @@ type StakeStatisticsEntity {
   timestamp: Int!
 }
 
-type StakeRewardModel {
-  last_24_hour: TokenBalanceType
-  last_3_days: TokenBalanceType
-  last_7_days: TokenBalanceType
-}
-
 type LoggerEntity {
   query: String!
   hash: String!
@@ -859,8 +852,8 @@ type LoggerEntity {
 type Query {
   TransactionsStatistics: ThetaTransactionStatisticsType!
   Wallet: WalletModel!
-  MarketInformation: MarketInformationType!
   ThetaRpc: ThetaRpcModel!
+  MarketInformation: MarketInformationType!
 
   """Return to statistics related to token pledges"""
   StakeStatistics: [StakeStatisticsEntity!]

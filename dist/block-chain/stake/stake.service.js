@@ -20,7 +20,6 @@ const stake_statistics_entity_1 = require("./stake-statistics.entity");
 const common_1 = require("@nestjs/common");
 const stake_reward_entity_1 = require("./stake-reward.entity");
 const moment = require('moment');
-const config = require('config');
 let StakeService = class StakeService {
     constructor(stakeStatisticsRepository, stakeRewardRepository, cacheManager) {
         this.stakeStatisticsRepository = stakeStatisticsRepository;

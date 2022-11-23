@@ -7,8 +7,7 @@ import { Connection, QueryRunner } from 'typeorm'
 import { RpcService } from 'src/block-chain/rpc/rpc.service'
 import BigNumber from 'bignumber.js'
 import { WalletSendHistoryEntity } from './wallet-send-history.entity'
-
-const config = require('config')
+import { config } from 'src/const'
 
 @Injectable()
 export class WalletSendHistoryAnalyseService {
@@ -25,6 +24,7 @@ export class WalletSendHistoryAnalyseService {
 
   public async analyse() {
     try {
+      this.logger.debug('start analyse')
       this.runner = this.connection.createQueryRunner()
       await this.runner.startTransaction()
       const [startHeight, endHeight] = await this.utilsService.getHeightRangeToAnalyse(
@@ -49,6 +49,7 @@ export class WalletSendHistoryAnalyseService {
       }
       await this.runner.commitTransaction()
       writeSucessExcuteLog(config.get('WALLET_SEND_HISTORY.MONITOR_PATH'))
+      this.logger.debug('end analyse')
     } catch (e) {
       this.logger.error(e)
       console.error(e)
@@ -111,7 +112,8 @@ export class WalletSendHistoryAnalyseService {
               to: tx.raw.to.address,
               tx_hash: tx.hash,
               theta: theta,
-              tfuel: thetaFuel
+              tfuel: thetaFuel,
+              timestamp: Number(block.timestamp)
             })
           }
           break

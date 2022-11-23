@@ -51,8 +51,8 @@ AppModule = __decorate([
             typeorm_1.TypeOrmModule.forRoot(Object.assign(Object.assign({}, const_1.config.get('ORM_CONFIG')), { database: const_1.config.get('ORM_CONFIG')['database'] + 'nft-statistics/index.sqlite', name: 'nft-statistics', entities: [] })),
             typeorm_1.TypeOrmModule.forRoot(Object.assign(Object.assign({}, const_1.config.get('ORM_CONFIG')), { database: const_1.config.get('ORM_CONFIG')['database'] + 'explorer/index.sqlite', name: 'explorer', entities: [] })),
             typeorm_1.TypeOrmModule.forRoot(Object.assign(Object.assign({}, const_1.config.get('ORM_CONFIG')), { database: const_1.config.get('ORM_CONFIG')['database'] + 'wallet-tx-history/index.sqlite', name: 'wallet-tx-history', entities: [] })),
-            typeorm_1.TypeOrmModule.forRoot(Object.assign(Object.assign({}, const_1.config.get('ORM_CONFIG')), { database: const_1.config.get('ORM_CONFIG')['database'] + 'wallet-tx-history/send/index.sqlite', name: 'wallet-send-history', entities: [] })),
-            typeorm_1.TypeOrmModule.forRoot(Object.assign(Object.assign({}, const_1.config.get('ORM_CONFIG')), { database: const_1.config.get('ORM_CONFIG')['database'] + 'wallet-tx-history/deposit-withdraw/index.sqlite', name: 'wallet-deposit-withdraw-history', entities: [] })),
+            typeorm_1.TypeOrmModule.forRoot(Object.assign(Object.assign({}, const_1.config.get('ORM_CONFIG')), { database: const_1.config.get('ORM_CONFIG')['database'] + 'wallet-send-history/index.sqlite', name: 'wallet-send-history', entities: [] })),
+            typeorm_1.TypeOrmModule.forRoot(Object.assign(Object.assign({}, const_1.config.get('ORM_CONFIG')), { database: const_1.config.get('ORM_CONFIG')['database'] + 'wallet-dp-wd-history/index.sqlite', name: 'wallet-deposit-withdraw-history', entities: [] })),
             graphql_1.GraphQLModule.forRoot({
                 driver: apollo_1.ApolloDriver,
                 installSubscriptionHandlers: true,

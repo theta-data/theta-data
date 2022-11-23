@@ -103,14 +103,13 @@ import { ThetaTxNumByHoursEntity } from './block-chain/tx/theta-tx-num-by-hours.
     }),
     TypeOrmModule.forRoot({
       ...config.get('ORM_CONFIG'),
-      database: config.get('ORM_CONFIG')['database'] + 'wallet-tx-history/send/index.sqlite',
+      database: config.get('ORM_CONFIG')['database'] + 'wallet-send-history/index.sqlite',
       name: 'wallet-send-history',
       entities: []
     }),
     TypeOrmModule.forRoot({
       ...config.get('ORM_CONFIG'),
-      database:
-        config.get('ORM_CONFIG')['database'] + 'wallet-tx-history/deposit-withdraw/index.sqlite',
+      database: config.get('ORM_CONFIG')['database'] + 'wallet-dp-wd-history/index.sqlite',
       name: 'wallet-deposit-withdraw-history',
       entities: []
     }),

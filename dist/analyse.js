@@ -21,7 +21,7 @@ const app_module_1 = require("./app.module");
 const tx_analyse_service_1 = require("./block-chain/tx/tx-analyse.service");
 const tx_module_1 = require("./block-chain/tx/tx.module");
 const wallet_module_1 = require("./block-chain/wallet/wallet.module");
-async function analyseBootstrap(except = undefined) {
+async function analyseBootstrap(except = []) {
     let i = 0;
     while (1) {
         const app = await core_1.NestFactory.createApplicationContext(app_module_1.AppModule);
@@ -42,16 +42,16 @@ async function analyseBootstrap(except = undefined) {
         const walletDpWdHistory = app
             .select(wallet_dp_wd_history_module_1.WalletDpWdHistoryModule)
             .get(wallet_dp_wd_history_analyse_service_1.WalletDpWdHistoryAnalyseService, { strict: true });
-        if (!except || !except.includes('tx')) {
+        if (except && !except.includes('tx')) {
             await tx.analyseData();
         }
-        if (!except || !except.includes('explorer')) {
+        if (except && !except.includes('explorer')) {
             await explorer.analyseData();
         }
-        if (!except || !except.includes('smartContract')) {
+        if (except && !except.includes('smartContract')) {
             await smartContract.analyseData();
         }
-        if (!except || !except.includes('wallet')) {
+        if (except && !except.includes('wallet')) {
             await wallet.analyseData();
         }
         if (except && !except.includes('nft')) {

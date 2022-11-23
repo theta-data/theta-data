@@ -14,8 +14,7 @@ import { Connection, QueryRunner } from 'typeorm'
 import { RpcService } from 'src/block-chain/rpc/rpc.service'
 import BigNumber from 'bignumber.js'
 import { STAKE_NODE_TYPE_ENUM } from 'src/block-chain/stake/stake.model'
-
-const config = require('config')
+import { config } from 'src/const'
 
 @Injectable()
 export class WalletDpWdHistoryAnalyseService {
@@ -34,6 +33,7 @@ export class WalletDpWdHistoryAnalyseService {
 
   public async analyse() {
     try {
+      this.logger.debug('start analyse')
       this.runner = this.connection.createQueryRunner()
       // this.stakeRunner = this.stakeConnection.createQueryRunner()
       await this.runner.startTransaction()
@@ -59,6 +59,7 @@ export class WalletDpWdHistoryAnalyseService {
       }
       await this.runner.commitTransaction()
       writeSucessExcuteLog(config.get('WALLET_DP_WD_HISTORY.MONITOR_PATH'))
+      this.logger.debug('end analyse')
     } catch (e) {
       this.logger.error(e)
       console.error(e)

@@ -19,9 +19,8 @@ import { AppModule } from './app.module'
 import { TxAnalyseService } from './block-chain/tx/tx-analyse.service'
 import { TxModule } from './block-chain/tx/tx.module'
 import { WalletModule } from './block-chain/wallet/wallet.module'
-import { WalletTxHistoryAnalyseService } from './block-chain/wallet-tx-history/wallet-tx-history-analyse.service'
 
-export async function analyseBootstrap(except: Array<string> | undefined = undefined) {
+export async function analyseBootstrap(except: Array<string> = []) {
   let i = 0
   while (1) {
     const app = await NestFactory.createApplicationContext(AppModule)
@@ -49,19 +48,19 @@ export async function analyseBootstrap(except: Array<string> | undefined = undef
       .select(WalletDpWdHistoryModule)
       .get(WalletDpWdHistoryAnalyseService, { strict: true })
 
-    if (!except || !except.includes('tx')) {
+    if (except && !except.includes('tx')) {
       await tx.analyseData()
     }
 
-    if (!except || !except.includes('explorer')) {
+    if (except && !except.includes('explorer')) {
       await explorer.analyseData()
     }
 
-    if (!except || !except.includes('smartContract')) {
+    if (except && !except.includes('smartContract')) {
       await smartContract.analyseData()
     }
 
-    if (!except || !except.includes('wallet')) {
+    if (except && !except.includes('wallet')) {
       await wallet.analyseData()
     }
 

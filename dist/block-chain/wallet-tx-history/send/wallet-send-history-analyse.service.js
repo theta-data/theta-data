@@ -21,17 +21,18 @@ const typeorm_2 = require("typeorm");
 const rpc_service_1 = require("../../rpc/rpc.service");
 const bignumber_js_1 = require("bignumber.js");
 const wallet_send_history_entity_1 = require("./wallet-send-history.entity");
-const config = require('config');
+const const_1 = require("../../../const");
 let WalletSendHistoryAnalyseService = class WalletSendHistoryAnalyseService {
     constructor(utilsService, connection, rpcService) {
         this.utilsService = utilsService;
         this.connection = connection;
         this.rpcService = rpcService;
         this.logger = new common_1.Logger('send history analyse service');
-        this.recordLogFile = config.get('ORM_CONFIG')['database'] + 'wallet-send-history/record.log';
+        this.recordLogFile = const_1.config.get('ORM_CONFIG')['database'] + 'wallet-send-history/record.log';
     }
     async analyse() {
         try {
+            this.logger.debug('start analyse');
             this.runner = this.connection.createQueryRunner();
             await this.runner.startTransaction();
             const [startHeight, endHeight] = await this.utilsService.getHeightRangeToAnalyse('WALLET_SEND_HISTORY', this.recordLogFile);
@@ -48,13 +49,14 @@ let WalletSendHistoryAnalyseService = class WalletSendHistoryAnalyseService {
                 this.utilsService.updateRecordHeight(this.recordLogFile, Number(blockList[blockList.length - 1].height));
             }
             await this.runner.commitTransaction();
-            (0, utils_service_1.writeSucessExcuteLog)(config.get('WALLET_SEND_HISTORY.MONITOR_PATH'));
+            (0, utils_service_1.writeSucessExcuteLog)(const_1.config.get('WALLET_SEND_HISTORY.MONITOR_PATH'));
+            this.logger.debug('end analyse');
         }
         catch (e) {
             this.logger.error(e);
             console.error(e);
             await this.runner.rollbackTransaction();
-            (0, utils_service_1.writeFailExcuteLog)(config.get('WALLET_SEND_HISTORY.MONITOR_PATH'));
+            (0, utils_service_1.writeFailExcuteLog)(const_1.config.get('WALLET_SEND_HISTORY.MONITOR_PATH'));
         }
         finally {
             await this.runner.release();
@@ -112,7 +114,8 @@ let WalletSendHistoryAnalyseService = class WalletSendHistoryAnalyseService {
                             to: tx.raw.to.address,
                             tx_hash: tx.hash,
                             theta: theta,
-                            tfuel: thetaFuel
+                            tfuel: thetaFuel,
+                            timestamp: Number(block.timestamp)
                         });
                     }
                     break;
