@@ -91,7 +91,8 @@ export class WalletSendHistoryAnalyseService {
                 to: to,
                 tx_hash: txHash,
                 theta: theta,
-                tfuel: tfuel
+                tfuel: tfuel,
+                timestamp: Number(block.timestamp)
               })
             }
           } else {
