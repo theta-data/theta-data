@@ -81,7 +81,6 @@ export async function analyseBootstrap(except: Array<string> = []) {
     if (except && !except.includes('wallet-send-history')) {
       await walletSendHistory.analyse()
     }
-
     if (except && !except.includes('wallet-dp-wd-history')) {
       await walletDpWdHistory.analyse()
     }
