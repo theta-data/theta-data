@@ -1,3 +1,5 @@
+import { WalletDpWdHistoryEntity } from './deposit-withdraw/wallet-dp-wd-history.entity';
+import { WalletSendHistoryEntity } from './send/wallet-send-history.entity';
 import { NftTransferRecordEntity } from 'src/block-chain/smart-contract/nft/nft-transfer-record.entity';
 import { StakeRewardEntity } from './../stake/stake-reward.entity';
 import { THETA_TRANSACTION_TYPE_ENUM } from './../tx/theta.enum';
@@ -9,7 +11,10 @@ export declare class WalletTxHistoryService {
     private readonly transactionRepository;
     private readonly stakeRewardRepository;
     private readonly nftTransferRecordRepository;
-    constructor(walletTxHistoryRepository: Repository<WalletTxHistoryEntity>, transactionRepository: Repository<TransactionEntity>, stakeRewardRepository: Repository<StakeRewardEntity>, nftTransferRecordRepository: Repository<NftTransferRecordEntity>);
+    private readonly walletSendHistoryRepository;
+    private readonly walletDpWdHistoryRepository;
+    private readonly logger;
+    constructor(walletTxHistoryRepository: Repository<WalletTxHistoryEntity>, transactionRepository: Repository<TransactionEntity>, stakeRewardRepository: Repository<StakeRewardEntity>, nftTransferRecordRepository: Repository<NftTransferRecordEntity>, walletSendHistoryRepository: Repository<WalletSendHistoryEntity>, walletDpWdHistoryRepository: Repository<WalletDpWdHistoryEntity>);
     getTransactions(wallet: string, take: number, skip: number, txType: THETA_TRANSACTION_TYPE_ENUM | undefined): Promise<[boolean, number, TransactionEntity[]]>;
-    getActivityHistory(type: 'stake_rewards' | 'nft_transfers', wallet: string, startTime: number, endTime: number): Promise<any>;
+    getActivityHistory(type: 'stake_rewards' | 'nft_transfers' | 'send_transfers' | 'deposit_withdraw', wallet: string, startTime: number, endTime: number): Promise<any>;
 }

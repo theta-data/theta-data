@@ -9,6 +9,8 @@ import { TransactionEntity } from './../explorer/transaction.entity'
 import { Module } from '@nestjs/common'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { WalletEntity } from '../wallet/wallet.entity'
+import { WalletSendHistoryEntity } from './send/wallet-send-history.entity'
+import { WalletDpWdHistoryEntity } from './deposit-withdraw/wallet-dp-wd-history.entity'
 
 @Module({
   imports: [
@@ -17,6 +19,8 @@ import { WalletEntity } from '../wallet/wallet.entity'
     TypeOrmModule.forFeature([WalletTxHistoryEntity], 'wallet-tx-history'),
     TypeOrmModule.forFeature([StakeRewardEntity], 'stake'),
     TypeOrmModule.forFeature([NftTransferRecordEntity], 'nft'),
+    TypeOrmModule.forFeature([WalletSendHistoryEntity], 'wallet-send-history'),
+    TypeOrmModule.forFeature([WalletDpWdHistoryEntity], 'wallet-dp-wd-history'),
     CommonModule
   ],
   providers: [WalletTxHistoryAnalyseService, WalletTxHistoryService, WalletTxHistoryResolver],

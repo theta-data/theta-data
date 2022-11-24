@@ -144,6 +144,7 @@ let WalletDpWdHistoryAnalyseService = class WalletDpWdHistoryAnalyseService {
                             theta: thetaAmount,
                             tfuel: tfuelAmount,
                             tx_type: tx.type,
+                            tx_hash: tx.hash,
                             node_type: tx.raw.purpose,
                             timestamp: Number(block.timestamp)
                         });
@@ -178,6 +179,7 @@ let WalletDpWdHistoryAnalyseService = class WalletDpWdHistoryAnalyseService {
                             tfuel: tfuelAmount,
                             tx_type: tx.type,
                             node_type: tx.raw.purpose,
+                            tx_hash: tx.hash,
                             timestamp: Number(block.timestamp)
                         });
                     }
@@ -190,7 +192,7 @@ let WalletDpWdHistoryAnalyseService = class WalletDpWdHistoryAnalyseService {
 };
 WalletDpWdHistoryAnalyseService = __decorate([
     (0, common_1.Injectable)(),
-    __param(1, (0, typeorm_1.InjectConnection)('wallet-deposit-withdraw-history')),
+    __param(1, (0, typeorm_1.InjectConnection)('wallet-dp-wd-history')),
     __metadata("design:paramtypes", [utils_service_1.UtilsService,
         typeorm_2.Connection,
         rpc_service_1.RpcService])

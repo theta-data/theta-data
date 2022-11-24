@@ -9,7 +9,7 @@ import { TypeOrmModule } from '@nestjs/typeorm'
   imports: [
     RpcModule,
     CommonModule,
-    TypeOrmModule.forFeature([WalletDpWdHistoryEntity], 'wallet-deposit-withdraw-history')
+    TypeOrmModule.forFeature([WalletDpWdHistoryEntity], 'wallet-dp-wd-history')
   ],
   controllers: [],
   providers: [WalletDpWdHistoryAnalyseService],

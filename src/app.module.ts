@@ -110,7 +110,7 @@ import { ThetaTxNumByHoursEntity } from './block-chain/tx/theta-tx-num-by-hours.
     TypeOrmModule.forRoot({
       ...config.get('ORM_CONFIG'),
       database: config.get('ORM_CONFIG')['database'] + 'wallet-dp-wd-history/index.sqlite',
-      name: 'wallet-deposit-withdraw-history',
+      name: 'wallet-dp-wd-history',
       entities: []
     }),
     GraphQLModule.forRoot({

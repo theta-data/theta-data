@@ -18,6 +18,8 @@ const transaction_entity_1 = require("./../explorer/transaction.entity");
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const wallet_entity_1 = require("../wallet/wallet.entity");
+const wallet_send_history_entity_1 = require("./send/wallet-send-history.entity");
+const wallet_dp_wd_history_entity_1 = require("./deposit-withdraw/wallet-dp-wd-history.entity");
 let WalletTxHistoryModule = class WalletTxHistoryModule {
 };
 WalletTxHistoryModule = __decorate([
@@ -28,6 +30,8 @@ WalletTxHistoryModule = __decorate([
             typeorm_1.TypeOrmModule.forFeature([wallet_tx_history_entity_1.WalletTxHistoryEntity], 'wallet-tx-history'),
             typeorm_1.TypeOrmModule.forFeature([stake_reward_entity_1.StakeRewardEntity], 'stake'),
             typeorm_1.TypeOrmModule.forFeature([nft_transfer_record_entity_1.NftTransferRecordEntity], 'nft'),
+            typeorm_1.TypeOrmModule.forFeature([wallet_send_history_entity_1.WalletSendHistoryEntity], 'wallet-send-history'),
+            typeorm_1.TypeOrmModule.forFeature([wallet_dp_wd_history_entity_1.WalletDpWdHistoryEntity], 'wallet-dp-wd-history'),
             common_module_1.CommonModule
         ],
         providers: [wallet_tx_history_analyse_service_1.WalletTxHistoryAnalyseService, wallet_tx_history_service_1.WalletTxHistoryService, wallet_tx_history_resolver_1.WalletTxHistoryResolver],

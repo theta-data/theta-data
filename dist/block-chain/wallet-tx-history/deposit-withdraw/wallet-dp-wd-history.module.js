@@ -20,7 +20,7 @@ WalletDpWdHistoryModule = __decorate([
         imports: [
             rpc_module_1.RpcModule,
             common_module_1.CommonModule,
-            typeorm_1.TypeOrmModule.forFeature([wallet_dp_wd_history_entity_1.WalletDpWdHistoryEntity], 'wallet-deposit-withdraw-history')
+            typeorm_1.TypeOrmModule.forFeature([wallet_dp_wd_history_entity_1.WalletDpWdHistoryEntity], 'wallet-dp-wd-history')
         ],
         controllers: [],
         providers: [wallet_dp_wd_history_analyse_service_1.WalletDpWdHistoryAnalyseService],

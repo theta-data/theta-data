@@ -379,6 +379,33 @@ type StakeRewardModel {
   last_7_days: TokenBalanceType
 }
 
+type WalletDpWdHistoryEntity {
+  wallet_address: String!
+  tx_hash: String!
+  theta: Float!
+  tfuel: Float!
+  node_address: String!
+  node_type: STAKE_NODE_TYPE_ENUM!
+  tx_type: THETA_TRANSACTION_TYPE_ENUM!
+  height: Int!
+  timestamp: Int!
+}
+
+enum STAKE_NODE_TYPE_ENUM {
+  validator
+  guardian
+  edge_cache
+}
+
+type WalletSendHistoryEntity {
+  from: String!
+  to: String!
+  tx_hash: String!
+  theta: Float!
+  tfuel: Float!
+  timestamp: Int!
+}
+
 type NftTransferRecordEntity {
   smart_contract_address: String!
   from: String!
@@ -425,6 +452,10 @@ type PaginatedHistoryTransactions {
 type HistoryTransactionsModel {
   stake_rewards: [StakeRewardEntity!]
   nft_transfers: [NftTransferRecordEntity!]
+  send_transfers: [WalletSendHistoryEntity!]
+  deposit_withdraw: [WalletDpWdHistoryEntity!]
+  start_time: Int!
+  end_time: Int!
 }
 
 type NftStatisticsEntity {
@@ -865,7 +896,7 @@ type Query {
   NftDetail(contract_address: String!): NftDetailType!
   Explorer: ExplorerModelType!
   TxHistory(wallet_address: String!, take: Int = 10, skip: Int = 0, tx_type: THETA_TRANSACTION_TYPE_ENUM): PaginatedHistoryTransactions!
-  ActivityHistory(wallet_address: String!, start_time: Int!, end_time: Int!): HistoryTransactionsModel!
+  WalletActivityHistory(wallet_address: String!, start_time: Int, end_time: Int): HistoryTransactionsModel!
 }
 
 enum LoggerRankByEnum {

@@ -76,8 +76,8 @@ let WalletSendHistoryAnalyseService = class WalletSendHistoryAnalyseService {
                             const tfuel = new bignumber_js_1.default(tx.raw.inputs[i].coins.tfuelwei)
                                 .dividedBy('1e18')
                                 .toNumber();
-                            const from = tx.raw.inputs[i].address;
-                            const to = tx.raw.outputs[i].address;
+                            const from = tx.raw.inputs[i].address.toLocaleLowerCase();
+                            const to = tx.raw.outputs[i].address.toLocaleLowerCase();
                             const txHash = tx.hash;
                             const record = await this.runner.manager.findOne(wallet_send_history_entity_1.WalletSendHistoryEntity, {
                                 where: {
@@ -104,8 +104,8 @@ let WalletSendHistoryAnalyseService = class WalletSendHistoryAnalyseService {
                         const thetaFuel = new bignumber_js_1.default(tx.raw.from.coins.tfuelwei).dividedBy('1e18').toNumber();
                         const record = await this.runner.manager.findOne(wallet_send_history_entity_1.WalletSendHistoryEntity, {
                             where: {
-                                from: tx.raw.from.address,
-                                to: tx.raw.to.address,
+                                from: tx.raw.from.address.toLocaleLowerCase(),
+                                to: tx.raw.to.address.toLocaleLowerCase(),
                                 tx_hash: tx.hash
                             }
                         });
@@ -113,8 +113,8 @@ let WalletSendHistoryAnalyseService = class WalletSendHistoryAnalyseService {
                             continue;
                         }
                         await this.runner.manager.insert(wallet_send_history_entity_1.WalletSendHistoryEntity, {
-                            from: tx.raw.from.address,
-                            to: tx.raw.to.address,
+                            from: tx.raw.from.address.toLocaleLowerCase(),
+                            to: tx.raw.to.address.toLocaleLowerCase(),
                             tx_hash: tx.hash,
                             theta: theta,
                             tfuel: thetaFuel,

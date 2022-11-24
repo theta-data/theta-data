@@ -25,7 +25,7 @@ export class WalletDpWdHistoryAnalyseService {
   constructor(
     private utilsService: UtilsService,
 
-    @InjectConnection('wallet-deposit-withdraw-history')
+    @InjectConnection('wallet-dp-wd-history')
     private readonly connection: Connection,
 
     private rpcService: RpcService
@@ -172,6 +172,7 @@ export class WalletDpWdHistoryAnalyseService {
               theta: thetaAmount,
               tfuel: tfuelAmount,
               tx_type: tx.type,
+              tx_hash: tx.hash,
               node_type: tx.raw.purpose,
               timestamp: Number(block.timestamp)
             })
@@ -203,6 +204,7 @@ export class WalletDpWdHistoryAnalyseService {
               tfuel: tfuelAmount,
               tx_type: tx.type,
               node_type: tx.raw.purpose,
+              tx_hash: tx.hash,
               timestamp: Number(block.timestamp)
             })
           }

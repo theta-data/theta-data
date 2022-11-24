@@ -76,8 +76,8 @@ export class WalletSendHistoryAnalyseService {
               const tfuel = new BigNumber(tx.raw.inputs[i].coins.tfuelwei)
                 .dividedBy('1e18')
                 .toNumber()
-              const from = tx.raw.inputs[i].address
-              const to = tx.raw.outputs[i].address
+              const from = tx.raw.inputs[i].address.toLocaleLowerCase()
+              const to = tx.raw.outputs[i].address.toLocaleLowerCase()
               const txHash = tx.hash
               const record = await this.runner.manager.findOne(WalletSendHistoryEntity, {
                 where: {
@@ -103,8 +103,8 @@ export class WalletSendHistoryAnalyseService {
             const thetaFuel = new BigNumber(tx.raw.from.coins.tfuelwei).dividedBy('1e18').toNumber()
             const record = await this.runner.manager.findOne(WalletSendHistoryEntity, {
               where: {
-                from: tx.raw.from.address,
-                to: tx.raw.to.address,
+                from: tx.raw.from.address.toLocaleLowerCase(),
+                to: tx.raw.to.address.toLocaleLowerCase(),
                 tx_hash: tx.hash
               }
             })
@@ -112,8 +112,8 @@ export class WalletSendHistoryAnalyseService {
               continue
             }
             await this.runner.manager.insert(WalletSendHistoryEntity, {
-              from: tx.raw.from.address,
-              to: tx.raw.to.address,
+              from: tx.raw.from.address.toLocaleLowerCase(),
+              to: tx.raw.to.address.toLocaleLowerCase(),
               tx_hash: tx.hash,
               theta: theta,
               tfuel: thetaFuel,

@@ -11,5 +11,5 @@ export declare class WalletTxHistoryResolver {
         skip: number;
         endCursor: number;
     }>;
-    ActivityHistory(info: any, walletAddress: string, startTime: number, endTime: number): Promise<HistoryTransactionsModel>;
+    WalletActivityHistory(info: any, walletAddress: string, startTime: number, endTime: number): Promise<HistoryTransactionsModel>;
 }

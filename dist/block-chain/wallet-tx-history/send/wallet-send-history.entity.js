@@ -10,6 +10,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WalletSendHistoryEntity = void 0;
+const graphql_1 = require("@nestjs/graphql");
+const graphql_2 = require("graphql");
 const typeorm_1 = require("typeorm");
 let WalletSendHistoryEntity = class WalletSendHistoryEntity {
 };
@@ -18,30 +20,36 @@ __decorate([
     __metadata("design:type", Number)
 ], WalletSendHistoryEntity.prototype, "id", void 0);
 __decorate([
+    (0, graphql_1.Field)(),
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], WalletSendHistoryEntity.prototype, "from", void 0);
 __decorate([
+    (0, graphql_1.Field)(),
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], WalletSendHistoryEntity.prototype, "to", void 0);
 __decorate([
+    (0, graphql_1.Field)(),
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], WalletSendHistoryEntity.prototype, "tx_hash", void 0);
 __decorate([
+    (0, graphql_1.Field)(() => graphql_2.GraphQLFloat),
     (0, typeorm_1.Column)({
         type: 'float'
     }),
     __metadata("design:type", Number)
 ], WalletSendHistoryEntity.prototype, "theta", void 0);
 __decorate([
+    (0, graphql_1.Field)(() => graphql_2.GraphQLFloat),
     (0, typeorm_1.Column)({
         type: 'float'
     }),
     __metadata("design:type", Number)
 ], WalletSendHistoryEntity.prototype, "tfuel", void 0);
 __decorate([
+    (0, graphql_1.Field)(() => graphql_2.GraphQLInt),
     (0, typeorm_1.Column)({
         type: 'int'
     }),
@@ -56,6 +64,7 @@ __decorate([
     __metadata("design:type", Number)
 ], WalletSendHistoryEntity.prototype, "update_date", void 0);
 WalletSendHistoryEntity = __decorate([
+    (0, graphql_1.ObjectType)(),
     (0, typeorm_1.Entity)(),
     (0, typeorm_1.Index)(['from', 'timestamp']),
     (0, typeorm_1.Index)(['to', 'timestamp']),

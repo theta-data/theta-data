@@ -1,5 +1,5 @@
-import { THETA_TRANSACTION_TYPE_ENUM } from 'theta-ts-sdk/dist/types/enum';
 import { STAKE_NODE_TYPE_ENUM } from 'src/block-chain/stake/stake.model';
+import { THETA_TRANSACTION_TYPE_ENUM } from 'src/block-chain/tx/theta.enum';
 export declare class WalletDpWdHistoryEntity {
     id: number;
     wallet_address: string;

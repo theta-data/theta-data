@@ -35,7 +35,7 @@ let WalletTxHistoryResolver = class WalletTxHistoryResolver {
             endCursor: skip + res.length
         };
     }
-    async ActivityHistory(info, walletAddress, startTime, endTime) {
+    async WalletActivityHistory(info, walletAddress, startTime, endTime) {
         const history = new wallet_tx_history_model_1.HistoryTransactionsModel();
         if (!startTime)
             startTime = moment().subtract(7, 'days').unix();
@@ -44,6 +44,8 @@ let WalletTxHistoryResolver = class WalletTxHistoryResolver {
         for (const field of (0, graphql_fields_list_1.fieldsList)(info)) {
             history[field] = await this.walletTxHistoryService.getActivityHistory(field, walletAddress.toLocaleLowerCase(), startTime, endTime);
         }
+        history.start_time = startTime;
+        history.end_time = endTime;
         return history;
     }
 };
@@ -65,12 +67,12 @@ __decorate([
     (0, graphql_1.Query)(() => wallet_tx_history_model_1.HistoryTransactionsModel),
     __param(0, (0, graphql_1.Info)()),
     __param(1, (0, graphql_1.Args)('wallet_address')),
-    __param(2, (0, graphql_1.Args)('start_time', { type: () => graphql_2.GraphQLInt })),
-    __param(3, (0, graphql_1.Args)('end_time', { type: () => graphql_2.GraphQLInt })),
+    __param(2, (0, graphql_1.Args)('start_time', { type: () => graphql_2.GraphQLInt, nullable: true })),
+    __param(3, (0, graphql_1.Args)('end_time', { type: () => graphql_2.GraphQLInt, nullable: true })),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, String, Number, Number]),
     __metadata("design:returntype", Promise)
-], WalletTxHistoryResolver.prototype, "ActivityHistory", null);
+], WalletTxHistoryResolver.prototype, "WalletActivityHistory", null);
 WalletTxHistoryResolver = __decorate([
     (0, graphql_1.Resolver)(() => wallet_tx_history_model_1.PaginatedHistoryTransactions),
     __metadata("design:paramtypes", [wallet_tx_history_service_1.WalletTxHistoryService])

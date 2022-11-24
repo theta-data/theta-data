@@ -38,13 +38,14 @@ export class WalletTxHistoryResolver {
   }
 
   @Query(() => HistoryTransactionsModel)
-  async ActivityHistory(
+  async WalletActivityHistory(
     @Info() info,
     @Args('wallet_address') walletAddress: string,
-    @Args('start_time', { type: () => GraphQLInt }) startTime: number,
-    @Args('end_time', { type: () => GraphQLInt }) endTime: number
+    @Args('start_time', { type: () => GraphQLInt, nullable: true }) startTime: number,
+    @Args('end_time', { type: () => GraphQLInt, nullable: true }) endTime: number
   ) {
     const history = new HistoryTransactionsModel()
+
     if (!startTime) startTime = moment().subtract(7, 'days').unix()
     if (!endTime) endTime = moment().unix()
     for (const field of fieldsList(info)) {
@@ -56,6 +57,8 @@ export class WalletTxHistoryResolver {
         endTime
       )
     }
+    history.start_time = startTime
+    history.end_time = endTime
     return history
   }
 }
