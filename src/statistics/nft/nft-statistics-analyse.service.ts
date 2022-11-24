@@ -545,11 +545,14 @@ export class NftStatisticsAnalyseService {
     }
     for (const nft of nfts) {
       if (nft.refetch_times >= 3) continue
-      const smartContract = await this.nftConnectionRunner.manager.findOne(SmartContractEntity, {
-        where: {
-          contract_address: nft.smart_contract_address
+      const smartContract = await this.smartContractConnectionRunner.manager.findOne(
+        SmartContractEntity,
+        {
+          where: {
+            contract_address: nft.smart_contract_address
+          }
         }
-      })
+      )
       if (smartContract) {
         await this.syncNftInfo(smartContract, nft)
         nft.refetch_times = nft.refetch_times + 1
@@ -574,11 +577,14 @@ export class NftStatisticsAnalyseService {
       return
     }
     for (const nft of nfts) {
-      const smartContract = await this.nftConnectionRunner.manager.findOne(SmartContractEntity, {
-        where: {
-          contract_address: nft.smart_contract_address
+      const smartContract = await this.smartContractConnectionRunner.manager.findOne(
+        SmartContractEntity,
+        {
+          where: {
+            contract_address: nft.smart_contract_address
+          }
         }
-      })
+      )
       if (smartContract) {
         await this.syncNftInfo(smartContract, nft)
         nft.refetch_times = nft.refetch_times + 1
