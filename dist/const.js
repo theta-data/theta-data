@@ -22,7 +22,7 @@ exports.DEFAULT_CONFIG = {
     ANALYSE_INTERVAL: 1000,
     ANALYSE_NUMBER: 1000,
     IGNORE: false,
-    RESTORE_NFT_IMG_PATH: true,
+    RESTORE_NFT_IMG_PATH: false,
     RATE_LIMIT: {
         ttl: 60,
         limit: 10

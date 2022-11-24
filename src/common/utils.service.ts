@@ -306,10 +306,11 @@ export class UtilsService {
 
   async getPath(urlPath: string, storePath: string) {
     this.logger.debug('url path: ' + urlPath)
-    var parsed = url.parse(urlPath)
-    if (!parsed.pathname) return null
 
     if (!urlPath) return null
+
+    var parsed = url.parse(urlPath)
+    if (!parsed.pathname) return null
 
     if (!config.get('DL_NFT_IMG')) {
       return urlPath

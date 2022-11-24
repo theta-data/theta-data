@@ -232,10 +232,10 @@ let UtilsService = class UtilsService {
     }
     async getPath(urlPath, storePath) {
         this.logger.debug('url path: ' + urlPath);
+        if (!urlPath)
+            return null;
         var parsed = url.parse(urlPath);
         if (!parsed.pathname)
-            return null;
-        if (!urlPath)
             return null;
         if (!const_1.config.get('DL_NFT_IMG')) {
             return urlPath;
