@@ -99,7 +99,9 @@ let NftStatisticsAnalyseService = class NftStatisticsAnalyseService {
             }
             await Promise.all(promiseArr);
             await this.autoRefetchContractUri();
-            await this.restoreImgUri();
+            if (const_1.config.get('RESTORE_NFT_IMG_PATH')) {
+                await this.restoreImgUri();
+            }
             await this.nftStatisticsConnectionRunner.commitTransaction();
             try {
                 if (nftTransferRecordList.length > 0) {

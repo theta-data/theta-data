@@ -232,6 +232,7 @@ let UtilsService = class UtilsService {
     }
     async getPath(urlPath, storePath) {
         this.logger.debug('url path: ' + urlPath);
+        var parsed = url.parse(urlPath);
         if (!parsed.pathname)
             return null;
         if (!urlPath)
@@ -239,7 +240,6 @@ let UtilsService = class UtilsService {
         if (!const_1.config.get('DL_NFT_IMG')) {
             return urlPath;
         }
-        var parsed = url.parse(urlPath);
         if (!parsed.hostname) {
             return urlPath.replace(storePath, '');
         }

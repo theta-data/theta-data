@@ -306,6 +306,7 @@ export class UtilsService {
 
   async getPath(urlPath: string, storePath: string) {
     this.logger.debug('url path: ' + urlPath)
+    var parsed = url.parse(urlPath)
     if (!parsed.pathname) return null
 
     if (!urlPath) return null
@@ -314,7 +315,6 @@ export class UtilsService {
       return urlPath
     }
 
-    var parsed = url.parse(urlPath)
     // if(!pa)
     if (!parsed.hostname) {
       return urlPath.replace(storePath, '')
