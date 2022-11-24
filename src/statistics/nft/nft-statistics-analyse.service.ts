@@ -122,7 +122,9 @@ export class NftStatisticsAnalyseService {
       // await this.updateNftsImgUri()
       // console.log(333)
       await this.autoRefetchContractUri()
-      await this.restoreImgUri()
+      if (config.get('RESTORE_NFT_IMG_PATH')) {
+        await this.restoreImgUri()
+      }
 
       // await this.downloadAllImg()
       await this.nftStatisticsConnectionRunner.commitTransaction()

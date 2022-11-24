@@ -21,7 +21,7 @@ export const DEFAULT_CONFIG = {
   ANALYSE_NUMBER: 1000,
   IGNORE: false,
   //whether retore origin nft img path
-  RESTORE_NFT_IMG_PATH: true, //false,
+  RESTORE_NFT_IMG_PATH: false, //false,
   RATE_LIMIT: {
     ttl: 60,
     limit: 10
