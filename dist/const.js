@@ -15,12 +15,14 @@ exports.DEFAULT_CONFIG = {
             charset: 'utf8mb4_unicode_ci'
         }
     },
+    DL_NFT_IMG: false,
     START_HEIGHT: 17000000,
     THETA_NODE_HOST: 'https://theta-bridge-rpc.thetatoken.org/rpc',
     LOG_PATH: '/home/ubuntu/theta-data/logs/',
     ANALYSE_INTERVAL: 1000,
     ANALYSE_NUMBER: 1000,
     IGNORE: false,
+    RESTORE_NFT_IMG_PATH: true,
     RATE_LIMIT: {
         ttl: 60,
         limit: 10

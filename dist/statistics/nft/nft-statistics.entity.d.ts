@@ -26,6 +26,7 @@ export declare class NftStatisticsEntity {
     last_30_days_floor_price: number;
     update_timestamp: number;
     contract_uri_update_timestamp: number;
+    refetch_times: number;
     create_date: number;
     update_date: number;
 }

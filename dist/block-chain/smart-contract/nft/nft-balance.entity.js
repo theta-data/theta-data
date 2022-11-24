@@ -74,6 +74,10 @@ __decorate([
     __metadata("design:type", Number)
 ], NftBalanceEntity.prototype, "token_id", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ type: 'int', default: 0 }),
+    __metadata("design:type", Number)
+], NftBalanceEntity.prototype, "refetch_times", void 0);
+__decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
 ], NftBalanceEntity.prototype, "create_date", void 0);

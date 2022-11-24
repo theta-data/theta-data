@@ -36,6 +36,7 @@ let NftAnalyseService = class NftAnalyseService {
         this.analyseKey = 'under_analyse';
         this.heightConfigFile = const_1.config.get('ORM_CONFIG')['database'] + 'nft/record.height';
         this.retriveIdFile = const_1.config.get('ORM_CONFIG')['database'] + 'nft/retrive.id';
+        this.imgPathRestoreId = const_1.config.get('ORM_CONFIG')['database'] + 'nft/img-path-restore.id';
     }
     async analyseData(loop) {
         try {
@@ -67,6 +68,9 @@ let NftAnalyseService = class NftAnalyseService {
             }
             await this.retriveNfts();
             await this.autoRefetchTokenUri(loop);
+            if (const_1.config.get('RESTORE_NFT_IMG_PATH')) {
+                await this.restoreNftImgPath();
+            }
             this.logger.debug('start update calltimes by period');
             await this.nftConnectionRunner.commitTransaction();
             if (contractRecordList.length > 0) {
@@ -113,6 +117,8 @@ let NftAnalyseService = class NftAnalyseService {
         });
         for (const item of list) {
             this.logger.debug('start download ' + item.id + ' ' + item.name);
+            if (item.refetch_times >= 3)
+                continue;
             try {
                 const httpRes = await axios({
                     url: item.token_uri,
@@ -128,6 +134,7 @@ let NftAnalyseService = class NftAnalyseService {
                     continue;
                 item.detail = JSON.stringify(res);
                 item.name = res.name;
+                item.refetch_times = item.refetch_times + 1;
                 if ((await this.utilsService.getPath(res.image, const_1.config.get('NFT.STATIC_PATH'))) !=
                     item.img_uri) {
                     item.img_uri = await this.utilsService.downloadImage(res.image, const_1.config.get('NFT.STATIC_PATH'));
@@ -176,6 +183,33 @@ let NftAnalyseService = class NftAnalyseService {
             retrive.retrived = true;
             await this.nftConnectionRunner.manager.save(retrive);
         }
+    }
+    async restoreNftImgPath() {
+        const startId = this.utilsService.getRecordHeight(this.imgPathRestoreId);
+        const nftList = await this.nftConnectionRunner.manager.find(nft_balance_entity_1.NftBalanceEntity, {
+            where: {
+                id: (0, typeorm_1.MoreThanOrEqual)(startId)
+            },
+            take: 5000,
+            order: {
+                id: 'ASC'
+            }
+        });
+        this.logger.debug('nft img to restore:' + nftList.length);
+        if (nftList.length == 0)
+            return;
+        for (const nft of nftList) {
+            if (nft.detail) {
+                const nftDetail = JSON.parse(nft.detail);
+                nft.img_uri = nftDetail.image;
+                await this.nftConnectionRunner.manager.save(nft);
+                await this.nftConnectionRunner.manager.update(nft_transfer_record_entity_1.NftTransferRecordEntity, {
+                    smart_contract_address: nft.smart_contract_address,
+                    token_id: nft.token_id
+                }, { img_uri: nft.img_uri });
+            }
+        }
+        this.utilsService.updateRecordHeight(this.imgPathRestoreId, nftList[nftList.length - 1].id);
     }
 };
 NftAnalyseService = __decorate([

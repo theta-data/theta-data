@@ -150,6 +150,10 @@ __decorate([
     __metadata("design:type", Number)
 ], NftStatisticsEntity.prototype, "contract_uri_update_timestamp", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ type: 'int', default: 0 }),
+    __metadata("design:type", Number)
+], NftStatisticsEntity.prototype, "refetch_times", void 0);
+__decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Number)
 ], NftStatisticsEntity.prototype, "create_date", void 0);

@@ -12,8 +12,10 @@ export declare class NftAnalyseService {
     private nftConnectionRunner;
     private heightConfigFile;
     private retriveIdFile;
+    private imgPathRestoreId;
     constructor(nftService: NftService, utilsService: UtilsService, smartContractConnectionInjected: Connection, nftConnectionInjected: Connection);
     analyseData(loop: number): Promise<void>;
     autoRefetchTokenUri(loop: number): Promise<void>;
     retriveNfts(): Promise<void>;
+    restoreNftImgPath(): Promise<void>;
 }

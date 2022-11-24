@@ -15,6 +15,8 @@ export declare class NftStatisticsAnalyseService {
     private nftConnectionRunner;
     private nftStatisticsConnectionRunner;
     private heightConfigFile;
+    private refetchContractUriId;
+    private imgPathRestoreId;
     private tfuelPrice;
     constructor(utilsService: UtilsService, marketService: MarketService, smartContractConnectionInjected: Connection, nftConnectionInjected: Connection, nftStatisticsConnectionInjected: Connection);
     analyseData(): Promise<void>;
@@ -22,5 +24,7 @@ export declare class NftStatisticsAnalyseService {
     setZero(): Promise<void>;
     updateNftsImgUri(): Promise<void>;
     syncNftInfo(smartContract: SmartContractEntity, nftStatistics: NftStatisticsEntity): Promise<void>;
+    autoRefetchContractUri(): Promise<void>;
+    restoreImgUri(): Promise<void>;
     downloadAllImg(): Promise<void>;
 }

@@ -3,12 +3,18 @@ import { SmartContractEntity } from 'src/block-chain/smart-contract/smart-contra
 import { NftTransferRecordEntity } from 'src/block-chain/smart-contract/nft/nft-transfer-record.entity'
 import { NftBalanceEntity } from './nft-balance.entity'
 import { Injectable, Logger } from '@nestjs/common'
-import { Connection, getConnection, LessThan, MoreThan, QueryRunner } from 'typeorm'
+import {
+  Connection,
+  getConnection,
+  LessThan,
+  MoreThan,
+  MoreThanOrEqual,
+  QueryRunner
+} from 'typeorm'
 import { SmartContractCallRecordEntity } from 'src/block-chain/smart-contract/smart-contract-call-record.entity'
 import { NftService } from 'src/block-chain/smart-contract/nft/nft.service'
 import { UtilsService, writeFailExcuteLog, writeSucessExcuteLog } from 'src/common/utils.service'
 const fs = require('fs')
-import fetch from 'cross-fetch'
 import { config } from 'src/const'
 import { InjectConnection } from '@nestjs/typeorm'
 import { isEmpty } from 'rxjs'
@@ -22,6 +28,7 @@ export class NftAnalyseService {
   private nftConnectionRunner: QueryRunner
   private heightConfigFile = config.get('ORM_CONFIG')['database'] + 'nft/record.height'
   private retriveIdFile = config.get('ORM_CONFIG')['database'] + 'nft/retrive.id'
+  private imgPathRestoreId = config.get('ORM_CONFIG')['database'] + 'nft/img-path-restore.id'
 
   constructor(
     private nftService: NftService,
@@ -74,6 +81,9 @@ export class NftAnalyseService {
       }
       await this.retriveNfts()
       await this.autoRefetchTokenUri(loop)
+      if (config.get('RESTORE_NFT_IMG_PATH')) {
+        await this.restoreNftImgPath()
+      }
 
       this.logger.debug('start update calltimes by period')
       // if (config.get('NFT.DL_ALL_NFT_IMG') == true) {
@@ -136,6 +146,7 @@ export class NftAnalyseService {
       this.logger.debug('start download ' + item.id + ' ' + item.name)
       // let img = item.img_uri
       // if (!item.detail) {
+      if (item.refetch_times >= 3) continue
       try {
         const httpRes = await axios({
           url: item.token_uri,
@@ -151,6 +162,7 @@ export class NftAnalyseService {
         if (JSON.stringify(res) == item.detail) continue
         item.detail = JSON.stringify(res)
         item.name = res.name
+        item.refetch_times = item.refetch_times + 1
         if (
           (await this.utilsService.getPath(res.image, config.get('NFT.STATIC_PATH'))) !=
           item.img_uri
@@ -221,5 +233,36 @@ export class NftAnalyseService {
       retrive.retrived = true
       await this.nftConnectionRunner.manager.save(retrive)
     }
+  }
+
+  async restoreNftImgPath() {
+    const startId = this.utilsService.getRecordHeight(this.imgPathRestoreId)
+    const nftList = await this.nftConnectionRunner.manager.find(NftBalanceEntity, {
+      where: {
+        id: MoreThanOrEqual(startId)
+      },
+      take: 5000,
+      order: {
+        id: 'ASC'
+      }
+    })
+    this.logger.debug('nft img to restore:' + nftList.length)
+    if (nftList.length == 0) return
+    for (const nft of nftList) {
+      if (nft.detail) {
+        const nftDetail = JSON.parse(nft.detail)
+        nft.img_uri = nftDetail.image
+        await this.nftConnectionRunner.manager.save(nft)
+        await this.nftConnectionRunner.manager.update(
+          NftTransferRecordEntity,
+          {
+            smart_contract_address: nft.smart_contract_address,
+            token_id: nft.token_id
+          },
+          { img_uri: nft.img_uri }
+        )
+      }
+    }
+    this.utilsService.updateRecordHeight(this.imgPathRestoreId, nftList[nftList.length - 1].id)
   }
 }

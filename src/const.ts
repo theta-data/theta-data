@@ -12,12 +12,16 @@ export const DEFAULT_CONFIG = {
       charset: 'utf8mb4_unicode_ci'
     }
   },
+  //if download nft img to local path
+  DL_NFT_IMG: false,
   START_HEIGHT: 17000000,
   THETA_NODE_HOST: 'https://theta-bridge-rpc.thetatoken.org/rpc',
   LOG_PATH: '/home/ubuntu/theta-data/logs/',
   ANALYSE_INTERVAL: 1000,
   ANALYSE_NUMBER: 1000,
   IGNORE: false,
+  //whether retore origin nft img path
+  RESTORE_NFT_IMG_PATH: true, //false,
   RATE_LIMIT: {
     ttl: 60,
     limit: 10
