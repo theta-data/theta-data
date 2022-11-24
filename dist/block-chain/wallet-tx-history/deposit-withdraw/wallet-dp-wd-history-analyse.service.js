@@ -78,9 +78,7 @@ let WalletDpWdHistoryAnalyseService = class WalletDpWdHistoryAnalyseService {
                                 if (vcpNode.Holder.toLocaleLowerCase() == tx.raw.holder.address.toLocaleLowerCase()) {
                                     for (const stake of vcpNode.Stakes) {
                                         if (stake.source.toLocaleLowerCase() == tx.raw.source.address.toLocaleLowerCase()) {
-                                            thetaAmount = new bignumber_js_1.default(tx.raw.from.coins.thetawei)
-                                                .dividedBy('1e18')
-                                                .toNumber();
+                                            thetaAmount = new bignumber_js_1.default(stake.amount).dividedBy('1e18').toNumber();
                                         }
                                     }
                                 }
@@ -99,9 +97,7 @@ let WalletDpWdHistoryAnalyseService = class WalletDpWdHistoryAnalyseService {
                                 if (gcpNode.Holder.toLocaleLowerCase() == tx.raw.holder.address.toLocaleLowerCase()) {
                                     for (const stake of gcpNode.Stakes) {
                                         if (stake.source.toLocaleLowerCase() == tx.raw.source.address.toLocaleLowerCase()) {
-                                            thetaAmount = new bignumber_js_1.default(tx.raw.from.coins.thetawei)
-                                                .dividedBy('1e18')
-                                                .toNumber();
+                                            thetaAmount = new bignumber_js_1.default(stake.amount).dividedBy('1e18').toNumber();
                                         }
                                     }
                                 }
@@ -117,9 +113,7 @@ let WalletDpWdHistoryAnalyseService = class WalletDpWdHistoryAnalyseService {
                                 if (ecpNode.Holder.toLocaleLowerCase() == tx.raw.holder.address.toLocaleLowerCase()) {
                                     for (const stake of ecpNode.Stakes) {
                                         if (stake.source.toLocaleLowerCase() == tx.raw.source.address.toLocaleLowerCase()) {
-                                            tfuelAmount = new bignumber_js_1.default(tx.raw.from.coins.tfuelwei)
-                                                .dividedBy('1e18')
-                                                .toNumber();
+                                            tfuelAmount = new bignumber_js_1.default(stake.amount).dividedBy('1e18').toNumber();
                                         }
                                     }
                                 }

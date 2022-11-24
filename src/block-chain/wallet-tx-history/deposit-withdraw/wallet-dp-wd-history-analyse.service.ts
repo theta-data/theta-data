@@ -97,9 +97,7 @@ export class WalletDpWdHistoryAnalyseService {
                     if (
                       stake.source.toLocaleLowerCase() == tx.raw.source.address.toLocaleLowerCase()
                     ) {
-                      thetaAmount = new BigNumber(tx.raw.from.coins.thetawei)
-                        .dividedBy('1e18')
-                        .toNumber()
+                      thetaAmount = new BigNumber(stake.amount).dividedBy('1e18').toNumber()
                     }
                   }
                 }
@@ -123,9 +121,7 @@ export class WalletDpWdHistoryAnalyseService {
                     if (
                       stake.source.toLocaleLowerCase() == tx.raw.source.address.toLocaleLowerCase()
                     ) {
-                      thetaAmount = new BigNumber(tx.raw.from.coins.thetawei)
-                        .dividedBy('1e18')
-                        .toNumber()
+                      thetaAmount = new BigNumber(stake.amount).dividedBy('1e18').toNumber()
                     }
                   }
                 }
@@ -146,9 +142,7 @@ export class WalletDpWdHistoryAnalyseService {
                     if (
                       stake.source.toLocaleLowerCase() == tx.raw.source.address.toLocaleLowerCase()
                     ) {
-                      tfuelAmount = new BigNumber(tx.raw.from.coins.tfuelwei)
-                        .dividedBy('1e18')
-                        .toNumber()
+                      tfuelAmount = new BigNumber(stake.amount).dividedBy('1e18').toNumber()
                     }
                   }
                 }

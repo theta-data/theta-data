@@ -270,8 +270,6 @@ export class UtilsService {
     this.logger.debug('url path: ' + urlPath)
     if (!urlPath) return null
     const pipeline = promisify(stream.pipeline)
-    // const got: any = await import('got')
-    // got.default()
 
     var parsed = url.parse(urlPath)
     // if(!pa)
@@ -279,16 +277,7 @@ export class UtilsService {
       return urlPath.replace(storePath, '')
     }
     if (!parsed.pathname) return null
-    // const ext = ['gif', 'png', 'jpg', 'jpeg']
-    // if (
-    //   !parsed.pathname.includes('gif') &&
-    //   !parsed.pathname.includes('png') &&
-    //   !parsed.pathname.includes('jpg') &&
-    //   !parsed.pathname.includes('jpeg') &&
-    //   !parsed.pathname.includes('svg')
-    // ) {
-    //   return null
-    // }
+
     const imgPath = storePath + '/' + parsed.hostname.replace(/\./g, '-')
     const imgStorePath = imgPath + parsed.pathname
     const pathArr = imgStorePath.split('/')
@@ -315,9 +304,6 @@ export class UtilsService {
   async getPath(urlPath: string, storePath: string) {
     this.logger.debug('url path: ' + urlPath)
     if (!urlPath) return null
-    // const pipeline = promisify(stream.pipeline)
-    // const got: any = await import('got')
-    // got.default()
 
     var parsed = url.parse(urlPath)
     // if(!pa)
