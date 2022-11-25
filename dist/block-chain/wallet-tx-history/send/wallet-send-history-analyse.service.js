@@ -77,6 +77,8 @@ let WalletSendHistoryAnalyseService = class WalletSendHistoryAnalyseService {
                                 .dividedBy('1e18')
                                 .toNumber();
                             const from = tx.raw.inputs[i].address.toLocaleLowerCase();
+                            if (!tx.raw.outputs[i])
+                                continue;
                             const to = tx.raw.outputs[i].address.toLocaleLowerCase();
                             const txHash = tx.hash;
                             const record = await this.runner.manager.findOne(wallet_send_history_entity_1.WalletSendHistoryEntity, {
