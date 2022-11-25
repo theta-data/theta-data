@@ -83,45 +83,43 @@ export class WalletDpWdHistoryAnalyseService {
 
           if (tx.raw.purpose == STAKE_NODE_TYPE_ENUM.validator) {
             const vcp = await this.rpcService.getVcpByHeight(Number(block.height))
-            if (!vcp || !vcp.BlockHashVcpPairs)
-              throw new BadGatewayException(
-                block.height + ' can not find  vcp block hash vcp pairs'
-              )
-
-            for (const vcpPair of vcp.BlockHashVcpPairs) {
-              for (const vcpNode of vcpPair.Vcp.SortedCandidates) {
-                if (
-                  vcpNode.Holder.toLocaleLowerCase() == tx.raw.holder.address.toLocaleLowerCase()
-                ) {
-                  for (const stake of vcpNode.Stakes) {
-                    if (
-                      stake.source.toLocaleLowerCase() == tx.raw.source.address.toLocaleLowerCase()
-                    ) {
-                      thetaAmount = new BigNumber(stake.amount).dividedBy('1e18').toNumber()
+            if (vcp && vcp.BlockHashVcpPairs) {
+              // throw new BadGatewayException(
+              //   block.height + ' can not find  vcp block hash vcp pairs'
+              // )
+              // if()
+              for (const vcpPair of vcp.BlockHashVcpPairs) {
+                for (const vcpNode of vcpPair.Vcp.SortedCandidates) {
+                  if (
+                    vcpNode.Holder.toLocaleLowerCase() == tx.raw.holder.address.toLocaleLowerCase()
+                  ) {
+                    for (const stake of vcpNode.Stakes) {
+                      if (
+                        stake.source.toLocaleLowerCase() ==
+                        tx.raw.source.address.toLocaleLowerCase()
+                      ) {
+                        thetaAmount = new BigNumber(stake.amount).dividedBy('1e18').toNumber()
+                      }
                     }
                   }
                 }
               }
             }
-            if (thetaAmount == 0) {
-              throw new NotFoundException(tx.hash + ' can not found stake amount')
-            }
           } else if (tx.raw.purpose == STAKE_NODE_TYPE_ENUM.guardian) {
             const gcp = await this.rpcService.getGcpByHeight(Number(block.height))
-            if (!gcp || !gcp.BlockHashGcpPairs)
-              throw new BadGatewayException(
-                block.height + ' can not find  gcp block hash gcp pairs'
-              )
-            for (const gcpPair of gcp.BlockHashGcpPairs) {
-              for (const gcpNode of gcpPair.Gcp.SortedGuardians) {
-                if (
-                  gcpNode.Holder.toLocaleLowerCase() == tx.raw.holder.address.toLocaleLowerCase()
-                ) {
-                  for (const stake of gcpNode.Stakes) {
-                    if (
-                      stake.source.toLocaleLowerCase() == tx.raw.source.address.toLocaleLowerCase()
-                    ) {
-                      thetaAmount = new BigNumber(stake.amount).dividedBy('1e18').toNumber()
+            if (gcp && gcp.BlockHashGcpPairs) {
+              for (const gcpPair of gcp.BlockHashGcpPairs) {
+                for (const gcpNode of gcpPair.Gcp.SortedGuardians) {
+                  if (
+                    gcpNode.Holder.toLocaleLowerCase() == tx.raw.holder.address.toLocaleLowerCase()
+                  ) {
+                    for (const stake of gcpNode.Stakes) {
+                      if (
+                        stake.source.toLocaleLowerCase() ==
+                        tx.raw.source.address.toLocaleLowerCase()
+                      ) {
+                        thetaAmount = new BigNumber(stake.amount).dividedBy('1e18').toNumber()
+                      }
                     }
                   }
                 }
@@ -129,20 +127,19 @@ export class WalletDpWdHistoryAnalyseService {
             }
           } else if (tx.raw.purpose == STAKE_NODE_TYPE_ENUM.edge_cache) {
             const ecp = await this.rpcService.getEenpByHeight(Number(block.height))
-            if (!ecp || !ecp.BlockHashEenpPairs)
-              throw new BadGatewayException(
-                block.height + ' can not find  ecp block hash ecp pairs'
-              )
-            for (const ecpPair of ecp.BlockHashEenpPairs) {
-              for (const ecpNode of ecpPair.EENs) {
-                if (
-                  ecpNode.Holder.toLocaleLowerCase() == tx.raw.holder.address.toLocaleLowerCase()
-                ) {
-                  for (const stake of ecpNode.Stakes) {
-                    if (
-                      stake.source.toLocaleLowerCase() == tx.raw.source.address.toLocaleLowerCase()
-                    ) {
-                      tfuelAmount = new BigNumber(stake.amount).dividedBy('1e18').toNumber()
+            if (ecp && ecp.BlockHashEenpPairs) {
+              for (const ecpPair of ecp.BlockHashEenpPairs) {
+                for (const ecpNode of ecpPair.EENs) {
+                  if (
+                    ecpNode.Holder.toLocaleLowerCase() == tx.raw.holder.address.toLocaleLowerCase()
+                  ) {
+                    for (const stake of ecpNode.Stakes) {
+                      if (
+                        stake.source.toLocaleLowerCase() ==
+                        tx.raw.source.address.toLocaleLowerCase()
+                      ) {
+                        tfuelAmount = new BigNumber(stake.amount).dividedBy('1e18').toNumber()
+                      }
                     }
                   }
                 }
