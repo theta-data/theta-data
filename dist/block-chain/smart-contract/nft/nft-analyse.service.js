@@ -22,10 +22,10 @@ const typeorm_1 = require("typeorm");
 const smart_contract_call_record_entity_1 = require("../smart-contract-call-record.entity");
 const nft_service_1 = require("./nft.service");
 const utils_service_1 = require("../../../common/utils.service");
-const fs = require('fs');
 const const_1 = require("../../../const");
 const typeorm_2 = require("@nestjs/typeorm");
 const axios = require('axios');
+const fs = require('fs');
 let NftAnalyseService = class NftAnalyseService {
     constructor(nftService, utilsService, smartContractConnectionInjected, nftConnectionInjected) {
         this.nftService = nftService;
@@ -61,7 +61,6 @@ let NftAnalyseService = class NftAnalyseService {
                 take: const_1.config.get('NFT.ANALYSE_NUMBER'),
                 order: { id: 'ASC' }
             });
-            const promiseArr = [];
             this.logger.debug('records length:' + contractRecordList.length);
             for (const record of contractRecordList) {
                 await this.nftService.updateNftRecord(this.nftConnectionRunner, this.smartContractConnectionRunner, record);
@@ -117,19 +116,28 @@ let NftAnalyseService = class NftAnalyseService {
         });
         for (const item of list) {
             this.logger.debug('start download ' + item.id + ' ' + item.name);
+            const options = {
+                url: item.token_uri,
+                method: 'GET',
+                timeout: 10000,
+                responseType: 'json',
+                responseEncoding: 'utf8',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept-Encoding': 'gzip, deflate, br'
+                }
+            };
+            this.logger.debug(options);
             if (item.refetch_times >= 3)
                 continue;
             try {
-                const httpRes = await axios({
-                    url: item.token_uri,
-                    method: 'get',
-                    timeout: 3000,
-                    responseType: 'json'
-                });
+                const httpRes = await axios(options);
                 if (httpRes.status >= 400) {
                     throw new Error('Bad response from server');
                 }
                 const res = httpRes.data;
+                console.log(res);
+                this.logger.debug(res);
                 if (JSON.stringify(res) == item.detail)
                     continue;
                 item.detail = JSON.stringify(res);

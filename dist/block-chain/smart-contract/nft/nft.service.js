@@ -192,18 +192,19 @@ let NftService = class NftService {
                         if (hasTokenUri) {
                             try {
                                 tokenUri = await this.getTokenUri(logContract.contract_address, abiInfo, Number(log.decode.result.tokenId));
-                                this.logger.debug('axios fetch', JSON.stringify({
+                                const options = {
                                     url: tokenUri,
                                     method: 'GET',
                                     timeout: 10000,
-                                    responseType: 'json'
-                                }));
-                                const httpRes = await axios({
-                                    url: tokenUri,
-                                    method: 'GET',
-                                    timeout: 10000,
-                                    responseType: 'json'
-                                });
+                                    responseType: 'json',
+                                    responseEncoding: 'utf8',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Accept-Encoding': 'gzip, deflate, br'
+                                    }
+                                };
+                                this.logger.debug('axios fetch', JSON.stringify(options));
+                                const httpRes = await axios(options);
                                 if (httpRes.status >= 400) {
                                     throw new Error('Bad response from server');
                                 }

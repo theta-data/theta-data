@@ -48,6 +48,7 @@ export async function analyseBootstrap(except: Array<string> = []) {
       .select(WalletDpWdHistoryModule)
       .get(WalletDpWdHistoryAnalyseService, { strict: true })
 
+    // console.log('你好')
     if (except && !except.includes('tx')) {
       await tx.analyseData()
     }

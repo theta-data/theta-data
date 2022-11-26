@@ -14,11 +14,10 @@ import {
 import { SmartContractCallRecordEntity } from 'src/block-chain/smart-contract/smart-contract-call-record.entity'
 import { NftService } from 'src/block-chain/smart-contract/nft/nft.service'
 import { UtilsService, writeFailExcuteLog, writeSucessExcuteLog } from 'src/common/utils.service'
-const fs = require('fs')
 import { config } from 'src/const'
 import { InjectConnection } from '@nestjs/typeorm'
-import { isEmpty } from 'rxjs'
 const axios = require('axios')
+const fs = require('fs')
 @Injectable()
 export class NftAnalyseService {
   private readonly logger = new Logger('nft analyse service')
@@ -67,7 +66,7 @@ export class NftAnalyseService {
         }
       )
 
-      const promiseArr = []
+      // const promiseArr = []
       this.logger.debug('records length:' + contractRecordList.length)
       for (const record of contractRecordList) {
         // promiseArr.push(
@@ -144,21 +143,31 @@ export class NftAnalyseService {
     })
     for (const item of list) {
       this.logger.debug('start download ' + item.id + ' ' + item.name)
+      const options = {
+        url: item.token_uri,
+        method: 'GET',
+        timeout: 10000,
+        responseType: 'json',
+        responseEncoding: 'utf8',
+        // acceptEncoding: 'gzip,deflate,br'
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept-Encoding': 'gzip, deflate, br'
+          // ''
+        }
+      }
+      this.logger.debug(options)
       // let img = item.img_uri
       // if (!item.detail) {
       if (item.refetch_times >= 3) continue
       try {
-        const httpRes = await axios({
-          url: item.token_uri,
-          method: 'get',
-          // signal: controller.signal,
-          timeout: 3000,
-          responseType: 'json'
-        })
+        const httpRes = await axios(options)
         if (httpRes.status >= 400) {
           throw new Error('Bad response from server')
         }
         const res: any = httpRes.data
+        console.log(res)
+        this.logger.debug(res)
         if (JSON.stringify(res) == item.detail) continue
         item.detail = JSON.stringify(res)
         item.name = res.name
