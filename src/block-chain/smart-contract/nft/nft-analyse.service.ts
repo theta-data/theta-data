@@ -166,9 +166,9 @@ export class NftAnalyseService {
           throw new Error('Bad response from server')
         }
         const res: any = httpRes.data
-        console.log(res)
+        // console.log(res)
         this.logger.debug(res)
-        if (JSON.stringify(res) == item.detail) continue
+        // if (JSON.stringify(res) == item.detail) continue
         item.detail = JSON.stringify(res)
         item.name = res.name
         item.refetch_times = item.refetch_times + 1
