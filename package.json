@@ -1,6 +1,6 @@
 {
   "name": "theta-data",
-  "version": "0.1.62-beta.12",
+  "version": "0.1.62-beta.14",
   "description": "Theta Data is a Data Explorer and Analytics Tool for Theta Network. It collects data from Guardian Node, performs analysis and provides data and analysis result through convenient Graphql interfaces. Users can access the data with simple statements and queries.",
   "author": "larry",
   "license": "MIT",
@@ -32,7 +32,7 @@
     "@nestjs/throttler": "^2.0.0",
     "@nestjs/typeorm": "^9.0.1",
     "apollo-server-express": "^3.6.3",
-    "axios": "^1.0.0",
+    "axios": "<=1.1.2",
     "better-sqlite3": "^7.5.0",
     "cache-manager": "^3.6.0",
     "ethers": "^5.5.4",
