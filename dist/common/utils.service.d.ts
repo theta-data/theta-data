@@ -57,7 +57,7 @@ export declare class UtilsService {
     updateRecordHeight(path: string, height: number): void;
     getRandomStr(length: number): string;
     downloadImage(urlPath: string, storePath: string): Promise<string | null>;
-    getPath(urlPath: string, storePath: string): Promise<string>;
+    getPath(urlPath: string, storePath: string): string;
     timeout(timeout: number): Promise<unknown>;
 }
 export declare function writeSucessExcuteLog(logPath: string): void;

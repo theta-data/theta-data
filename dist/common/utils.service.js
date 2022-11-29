@@ -200,10 +200,10 @@ let UtilsService = class UtilsService {
         if (!const_1.config.get('DL_NFT_IMG')) {
             return urlPath;
         }
-        if (!urlPath)
+        var parsed = url.parse(urlPath);
+        if (!parsed.pathname.replace(/\//g, ''))
             return null;
         const pipeline = promisify(stream.pipeline);
-        var parsed = url.parse(urlPath);
         if (!parsed.hostname) {
             return urlPath.replace(storePath, '');
         }
@@ -230,7 +230,7 @@ let UtilsService = class UtilsService {
             return imgStorePath.replace(storePath, '');
         }
     }
-    async getPath(urlPath, storePath) {
+    getPath(urlPath, storePath) {
         this.logger.debug('url path: ' + urlPath);
         if (!urlPath)
             return null;
