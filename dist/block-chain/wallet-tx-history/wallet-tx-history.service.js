@@ -87,11 +87,13 @@ let WalletTxHistoryService = class WalletTxHistoryService {
                     where: [
                         { from: wallet, timestamp: (0, typeorm_2.Between)(startTime, endTime) },
                         { to: wallet, timestamp: (0, typeorm_2.Between)(startTime, endTime) }
-                    ]
+                    ],
+                    order: { timestamp: 'DESC' }
                 });
             case 'deposit_withdraw':
                 return await this.walletDpWdHistoryRepository.find({
-                    where: { wallet_address: wallet, timestamp: (0, typeorm_2.Between)(startTime, endTime) }
+                    where: { wallet_address: wallet, timestamp: (0, typeorm_2.Between)(startTime, endTime) },
+                    order: { timestamp: 'DESC' }
                 });
             default:
                 return null;

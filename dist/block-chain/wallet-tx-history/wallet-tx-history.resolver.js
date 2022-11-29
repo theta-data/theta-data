@@ -50,7 +50,6 @@ let WalletTxHistoryResolver = class WalletTxHistoryResolver {
     }
 };
 __decorate([
-    (0, graphql_1.Query)(() => wallet_tx_history_model_1.PaginatedHistoryTransactions),
     __param(0, (0, graphql_1.Args)('wallet_address')),
     __param(1, (0, graphql_1.Args)('take', { type: () => graphql_1.Int, defaultValue: 10 })),
     __param(2, (0, graphql_1.Args)('skip', { type: () => graphql_1.Int, defaultValue: 0 })),

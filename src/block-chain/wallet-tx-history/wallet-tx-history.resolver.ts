@@ -9,7 +9,7 @@ const moment = require('moment')
 export class WalletTxHistoryResolver {
   constructor(private walletTxHistoryService: WalletTxHistoryService) {}
 
-  @Query(() => PaginatedHistoryTransactions)
+  // @Query(() => PaginatedHistoryTransactions)
   async TxHistory(
     @Args('wallet_address') walletAddress: string,
     @Args('take', { type: () => Int, defaultValue: 10 }) take: number,
