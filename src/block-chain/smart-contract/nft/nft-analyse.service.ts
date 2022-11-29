@@ -172,10 +172,7 @@ export class NftAnalyseService {
         item.detail = JSON.stringify(res)
         item.name = res.name
         item.refetch_times = item.refetch_times + 1
-        if (
-          (await this.utilsService.getPath(res.image, config.get('NFT.STATIC_PATH'))) !=
-          item.img_uri
-        ) {
+        if (this.utilsService.getPath(res.image, config.get('NFT.STATIC_PATH')) != item.img_uri) {
           item.img_uri = await this.utilsService.downloadImage(
             res.image,
             config.get('NFT.STATIC_PATH')

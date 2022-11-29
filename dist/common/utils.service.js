@@ -235,7 +235,7 @@ let UtilsService = class UtilsService {
         if (!urlPath)
             return null;
         var parsed = url.parse(urlPath);
-        if (!parsed.pathname)
+        if (!parsed.pathname.replace(/\//g, ''))
             return null;
         if (!const_1.config.get('DL_NFT_IMG')) {
             return urlPath;

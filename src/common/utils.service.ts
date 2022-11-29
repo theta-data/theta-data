@@ -271,10 +271,9 @@ export class UtilsService {
     if (!config.get('DL_NFT_IMG')) {
       return urlPath
     }
-    if (!urlPath) return null
-    const pipeline = promisify(stream.pipeline)
-
     var parsed = url.parse(urlPath)
+    if (!parsed.pathname.replace(/\//g, '')) return null
+    const pipeline = promisify(stream.pipeline)
     // if(!pa)
     if (!parsed.hostname) {
       return urlPath.replace(storePath, '')
@@ -304,13 +303,13 @@ export class UtilsService {
     }
   }
 
-  async getPath(urlPath: string, storePath: string) {
+  getPath(urlPath: string, storePath: string) {
     this.logger.debug('url path: ' + urlPath)
 
     if (!urlPath) return null
 
     var parsed = url.parse(urlPath)
-    if (!parsed.pathname) return null
+    if (!parsed.pathname.replace(/\//g, '')) return null
 
     if (!config.get('DL_NFT_IMG')) {
       return urlPath
@@ -320,17 +319,6 @@ export class UtilsService {
     if (!parsed.hostname) {
       return urlPath.replace(storePath, '')
     }
-    // const ext = ['gif', 'png', 'jpg', 'jpeg']
-    // if (
-    //   !parsed.pathname.includes('gif') &&
-    //   !parsed.pathname.includes('png') &&
-    //   !parsed.pathname.includes('jpg') &&
-    //   !parsed.pathname.includes('jpeg') &&
-    //   !parsed.pathname.includes('svg')
-    // ) {
-    //   return null
-    // }
-
     const imgPath = storePath + '/' + parsed.hostname.replace(/\./g, '-')
     return imgPath + parsed.pathname
   }

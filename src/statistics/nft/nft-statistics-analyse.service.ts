@@ -475,10 +475,7 @@ export class NftStatisticsAnalyseService {
         where: { smart_contract_address: logo[0].toLowerCase() }
       })
       if (nft) {
-        const imgUri = await this.utilsService.getPath(
-          logo[1],
-          config.get('NFT_STATISTICS.STATIC_PATH')
-        )
+        const imgUri = this.utilsService.getPath(logo[1], config.get('NFT_STATISTICS.STATIC_PATH'))
         if (imgUri == nft.img_uri) continue
         nft.img_uri = await this.utilsService.downloadImage(
           logo[1],
@@ -491,7 +488,7 @@ export class NftStatisticsAnalyseService {
 
   async syncNftInfo(smartContract: SmartContractEntity, nftStatistics: NftStatisticsEntity) {
     // nftStatistics.img_uri = ''
-    const firstTokencontractUri = await this.nftConnectionRunner.manager.findOne(NftBalanceEntity, {
+    const firtstNft = await this.nftConnectionRunner.manager.findOne(NftBalanceEntity, {
       where: {
         smart_contract_address: smartContract.contract_address
       },
@@ -499,10 +496,10 @@ export class NftStatisticsAnalyseService {
         id: 'ASC'
       }
     })
-    if (!smartContract.contract_uri && firstTokencontractUri) {
-      nftStatistics.contract_uri = firstTokencontractUri.contract_uri
-      nftStatistics.contract_uri_detail = firstTokencontractUri.detail
-      nftStatistics.img_uri = firstTokencontractUri.img_uri
+    if (!smartContract.contract_uri && firtstNft) {
+      nftStatistics.contract_uri = firtstNft.contract_uri
+      nftStatistics.contract_uri_detail = firtstNft.detail
+      nftStatistics.img_uri = firtstNft.img_uri
     }
     if (smartContract.contract_uri) {
       nftStatistics.contract_uri = smartContract.contract_uri
@@ -518,9 +515,9 @@ export class NftStatisticsAnalyseService {
             config.get('NFT_STATISTICS.STATIC_PATH')
           )
         } else {
-          if (firstTokencontractUri.img_uri) {
+          if (firtstNft.img_uri) {
             nftStatistics.img_uri = await this.utilsService.downloadImage(
-              firstTokencontractUri.img_uri,
+              firtstNft.img_uri,
               config.get('NFT_STATISTICS.STATIC_PATH')
             )
           }
