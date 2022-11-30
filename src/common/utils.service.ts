@@ -13,6 +13,7 @@ const { promisify } = require('util')
 const got = require('got')
 const path = require('path')
 const moment = require('moment')
+const axios = require('axios')
 export interface LOG_DECODE_INTERFACE {
   address: string
   data: string
@@ -301,6 +302,31 @@ export class UtilsService {
     } else {
       return imgStorePath.replace(storePath, '')
     }
+  }
+
+  async getJsonRes(urlPath: string, timeout: number = 10000): Promise<any> {
+    var parsed = url.parse(urlPath)
+    if (parsed.host == 'api.thetadrop.com' && parsed.protocol == 'http') {
+      urlPath = urlPath.replace('http', 'https')
+    }
+    const options = {
+      url: urlPath,
+      method: 'GET',
+      timeout: 10000,
+      responseType: 'json',
+      responseEncoding: 'utf8',
+      // acceptEncoding: 'gzip,deflate,br'
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept-Encoding': 'gzip, deflate, br'
+        // ''
+      }
+    }
+    const httpRes = await axios(options)
+    if (httpRes.status >= 400) {
+      throw new Error('Bad response from server')
+    }
+    return httpRes.data
   }
 
   getPath(urlPath: string, storePath: string) {

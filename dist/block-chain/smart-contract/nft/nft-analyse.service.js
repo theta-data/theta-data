@@ -116,26 +116,10 @@ let NftAnalyseService = class NftAnalyseService {
         });
         for (const item of list) {
             this.logger.debug('start download ' + item.id + ' ' + item.name);
-            const options = {
-                url: item.token_uri,
-                method: 'GET',
-                timeout: 10000,
-                responseType: 'json',
-                responseEncoding: 'utf8',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept-Encoding': 'gzip, deflate, br'
-                }
-            };
-            this.logger.debug(options);
             if (item.refetch_times >= 3)
                 continue;
             try {
-                const httpRes = await axios(options);
-                if (httpRes.status >= 400) {
-                    throw new Error('Bad response from server');
-                }
-                const res = httpRes.data;
+                const res = await this.utilsService.getJsonRes(item.token_uri);
                 this.logger.debug(res);
                 item.detail = JSON.stringify(res);
                 item.name = res.name;

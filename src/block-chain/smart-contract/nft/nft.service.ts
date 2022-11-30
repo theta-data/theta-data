@@ -249,36 +249,36 @@ export class NftService {
                   abiInfo,
                   Number(log.decode.result.tokenId)
                 )
-                const options = {
-                  url: tokenUri,
-                  method: 'GET',
-                  timeout: 10000,
-                  responseType: 'json',
-                  responseEncoding: 'utf8',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'Accept-Encoding': 'gzip, deflate, br'
-                    // ''
-                  }
-                  // headers: {
-                  //   'Content-Type': 'application/json'
-                  // }
-                }
+                // const options = {
+                //   url: tokenUri,
+                //   method: 'GET',
+                //   timeout: 10000,
+                //   responseType: 'json',
+                //   responseEncoding: 'utf8',
+                //   headers: {
+                //     'Content-Type': 'application/json',
+                //     'Accept-Encoding': 'gzip, deflate, br'
+                //     // ''
+                //   }
+                //   // headers: {
+                //   //   'Content-Type': 'application/json'
+                //   // }
+                // }
                 // try {
-                this.logger.debug(
-                  'axios fetch',
-                  JSON.stringify(
-                    options
-                    // headers: {
-                    //   'Content-Type': 'application/json'
-                    // }
-                  )
-                )
-                const httpRes = await axios(options)
-                if (httpRes.status >= 400) {
-                  throw new Error('Bad response from server')
-                }
-                const res: any = httpRes.data
+                // this.logger.debug(
+                //   'axios fetch',
+                //   JSON.stringify(
+                //     options
+                //     // headers: {
+                //     //   'Content-Type': 'application/json'
+                //     // }
+                //   )
+                // )
+                // const httpRes = await axios(options)
+                // if (httpRes.status >= 400) {
+                //   throw new Error('Bad response from server')
+                // }
+                const res: any = await this.utilsService.getJsonRes(tokenUri)
 
                 // this.logger.debug(res)
                 name = res.name

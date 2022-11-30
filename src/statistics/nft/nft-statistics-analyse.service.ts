@@ -355,21 +355,23 @@ export class NftStatisticsAnalyseService {
           nft.contract_uri_update_timestamp = moment().unix()
           //update contract uri
           if (nft.contract_uri) {
-            const httpRes = await fetch(nft.contract_uri, {
-              method: 'GET',
-              headers: {
-                'Content-Type': 'application/json'
-              }
-            })
-            if (httpRes.status >= 400) {
-              throw new Error('Bad response from server')
-            }
-            const res: any = await httpRes.json()
+            // const httpRes = await fetch(nft.contract_uri, {
+            //   method: 'GET',
+            //   headers: {
+            //     'Content-Type': 'application/json'
+            //   }
+            // })
+            // if (httpRes.status >= 400) {
+            //   throw new Error('Bad response from server')
+            // }
+            // const res: any = await httpRes.json()
+            const res = await this.utilsService.getJsonRes(nft.contract_uri)
             nft.name = res.name
-            nft.img_uri = await this.utilsService.downloadImage(
+            const newImgUri = this.utilsService.getPath(
               res.image,
               config.get('NFT_STATISTICS.STATIC_PATH')
             )
+            if (newImgUri) nft.img_uri = newImgUri
             nft.contract_uri_detail = JSON.stringify(res)
             if (res.description) {
               nft.description = res.description
@@ -538,7 +540,7 @@ export class NftStatisticsAnalyseService {
       take: 100
     })
     if (nfts.length == 0) {
-      this.utilsService.updateRecordHeight(this.refetchContractUriId, 0)
+      return this.utilsService.updateRecordHeight(this.refetchContractUriId, 0)
     }
     for (const nft of nfts) {
       if (nft.refetch_times >= 3) continue

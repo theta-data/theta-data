@@ -32,7 +32,6 @@ let nftIgnore = [];
 if (fs.existsSync('resources/nft-ignore.json')) {
     nftIgnore = JSON.parse(fs.readFileSync('resources/nft-ignore.json'));
 }
-const cross_fetch_1 = require("cross-fetch");
 const const_1 = require("../../const");
 const typeorm_2 = require("@nestjs/typeorm");
 let NftStatisticsAnalyseService = class NftStatisticsAnalyseService {
@@ -286,18 +285,11 @@ let NftStatisticsAnalyseService = class NftStatisticsAnalyseService {
                 try {
                     nft.contract_uri_update_timestamp = moment().unix();
                     if (nft.contract_uri) {
-                        const httpRes = await (0, cross_fetch_1.default)(nft.contract_uri, {
-                            method: 'GET',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            }
-                        });
-                        if (httpRes.status >= 400) {
-                            throw new Error('Bad response from server');
-                        }
-                        const res = await httpRes.json();
+                        const res = await this.utilsService.getJsonRes(nft.contract_uri);
                         nft.name = res.name;
-                        nft.img_uri = await this.utilsService.downloadImage(res.image, const_1.config.get('NFT_STATISTICS.STATIC_PATH'));
+                        const newImgUri = this.utilsService.getPath(res.image, const_1.config.get('NFT_STATISTICS.STATIC_PATH'));
+                        if (newImgUri)
+                            nft.img_uri = newImgUri;
                         nft.contract_uri_detail = JSON.stringify(res);
                         if (res.description) {
                             nft.description = res.description;
@@ -434,7 +426,7 @@ let NftStatisticsAnalyseService = class NftStatisticsAnalyseService {
             take: 100
         });
         if (nfts.length == 0) {
-            this.utilsService.updateRecordHeight(this.refetchContractUriId, 0);
+            return this.utilsService.updateRecordHeight(this.refetchContractUriId, 0);
         }
         for (const nft of nfts) {
             if (nft.refetch_times >= 3)

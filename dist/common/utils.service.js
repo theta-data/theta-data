@@ -22,6 +22,7 @@ const { promisify } = require('util');
 const got = require('got');
 const path = require('path');
 const moment = require('moment');
+const axios = require('axios');
 let UtilsService = class UtilsService {
     constructor(rpcService) {
         this.rpcService = rpcService;
@@ -229,6 +230,28 @@ let UtilsService = class UtilsService {
         else {
             return imgStorePath.replace(storePath, '');
         }
+    }
+    async getJsonRes(urlPath, timeout = 10000) {
+        var parsed = url.parse(urlPath);
+        if (parsed.host == 'api.thetadrop.com' && parsed.protocol == 'http') {
+            urlPath = urlPath.replace('http', 'https');
+        }
+        const options = {
+            url: urlPath,
+            method: 'GET',
+            timeout: 10000,
+            responseType: 'json',
+            responseEncoding: 'utf8',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept-Encoding': 'gzip, deflate, br'
+            }
+        };
+        const httpRes = await axios(options);
+        if (httpRes.status >= 400) {
+            throw new Error('Bad response from server');
+        }
+        return httpRes.data;
     }
     getPath(urlPath, storePath) {
         this.logger.debug('url path: ' + urlPath);

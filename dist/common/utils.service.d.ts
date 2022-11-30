@@ -57,6 +57,7 @@ export declare class UtilsService {
     updateRecordHeight(path: string, height: number): void;
     getRandomStr(length: number): string;
     downloadImage(urlPath: string, storePath: string): Promise<string | null>;
+    getJsonRes(urlPath: string, timeout?: number): Promise<any>;
     getPath(urlPath: string, storePath: string): string;
     timeout(timeout: number): Promise<unknown>;
 }

@@ -143,29 +143,25 @@ export class NftAnalyseService {
     })
     for (const item of list) {
       this.logger.debug('start download ' + item.id + ' ' + item.name)
-      const options = {
-        url: item.token_uri,
-        method: 'GET',
-        timeout: 10000,
-        responseType: 'json',
-        responseEncoding: 'utf8',
-        // acceptEncoding: 'gzip,deflate,br'
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept-Encoding': 'gzip, deflate, br'
-          // ''
-        }
-      }
-      this.logger.debug(options)
+      // const options = {
+      //   url: item.token_uri,
+      //   method: 'GET',
+      //   timeout: 10000,
+      //   responseType: 'json',
+      //   responseEncoding: 'utf8',
+      //   // acceptEncoding: 'gzip,deflate,br'
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //     'Accept-Encoding': 'gzip, deflate, br'
+      //     // ''
+      //   }
+      // }
+      // this.logger.debug(options)
       // let img = item.img_uri
       // if (!item.detail) {
       if (item.refetch_times >= 3) continue
       try {
-        const httpRes = await axios(options)
-        if (httpRes.status >= 400) {
-          throw new Error('Bad response from server')
-        }
-        const res: any = httpRes.data
+        const res: any = await this.utilsService.getJsonRes(item.token_uri)
         // console.log(res)
         this.logger.debug(res)
         // if (JSON.stringify(res) == item.detail) continue
