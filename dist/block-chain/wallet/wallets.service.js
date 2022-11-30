@@ -96,7 +96,7 @@ let WalletService = class WalletService {
         const thetaPrice = await this.marketInfo.getPrice('theta');
         const tfuelPrice = await this.marketInfo.getPrice('tfuel');
         const usdRate = await this.getUsdRate();
-        gcpList.result.BlockHashGcpPairs[0].Gcp.SortedGuardians.forEach((guardian) => {
+        gcpList.BlockHashGcpPairs[0].Gcp.SortedGuardians.forEach((guardian) => {
             guardian.Stakes.forEach((stake) => {
                 if (stake.source === address) {
                     gcpStake.push({
@@ -121,7 +121,7 @@ let WalletService = class WalletService {
             where: { node_type: stake_model_1.STAKE_NODE_TYPE_ENUM.edge_cache }
         });
         const eenpList = JSON.parse(eenpRes.holder);
-        eenpList.result.BlockHashEenpPairs[0].EENs.forEach((een) => {
+        eenpList.BlockHashEenpPairs[0].EENs.forEach((een) => {
             een.Stakes.forEach((stake) => {
                 if (stake.source === address) {
                     eenpStake.push({
@@ -146,7 +146,7 @@ let WalletService = class WalletService {
             where: { node_type: stake_model_1.STAKE_NODE_TYPE_ENUM.validator }
         });
         const validatorList = JSON.parse(vaRes.holder);
-        validatorList.result.BlockHashVcpPairs[0].Vcp.SortedCandidates.forEach((vcp) => {
+        validatorList.BlockHashVcpPairs[0].Vcp.SortedCandidates.forEach((vcp) => {
             vcp.Stakes.forEach((stake) => {
                 if (stake.source === address) {
                     vcpStake.push({
