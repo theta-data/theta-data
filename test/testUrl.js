@@ -1,7 +1,9 @@
 const url = require('url')
-const urlPath = 'https://www.google.com'
+const urlPath = 'http://api.thetadrop.com/pack/pack_p356vgqy520jw6dpb3bkqd89ri1.json'
 // var parsed = url.parse(urlPath)
 var parsed = url.parse(urlPath)
+console.log(parsed.host)
+console.log(parsed.protocol)
 if (!parsed.pathname.replace(/\//g, '')) {
   console.log(1)
   console.log(parsed.pathname)

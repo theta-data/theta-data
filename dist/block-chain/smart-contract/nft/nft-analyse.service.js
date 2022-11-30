@@ -24,7 +24,6 @@ const nft_service_1 = require("./nft.service");
 const utils_service_1 = require("../../../common/utils.service");
 const const_1 = require("../../../const");
 const typeorm_2 = require("@nestjs/typeorm");
-const axios = require('axios');
 const fs = require('fs');
 let NftAnalyseService = class NftAnalyseService {
     constructor(nftService, utilsService, smartContractConnectionInjected, nftConnectionInjected) {

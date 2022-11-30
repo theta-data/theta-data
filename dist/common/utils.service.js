@@ -26,7 +26,7 @@ const axios = require('axios');
 let UtilsService = class UtilsService {
     constructor(rpcService) {
         this.rpcService = rpcService;
-        this.logger = new common_1.Logger();
+        this.logger = new common_1.Logger('utils service');
         this.normalize = function (hash) {
             const regex = /^0x/i;
             return regex.test(hash) ? hash : '0x' + hash;
@@ -198,6 +198,8 @@ let UtilsService = class UtilsService {
     }
     async downloadImage(urlPath, storePath) {
         this.logger.debug('url path: ' + urlPath);
+        if (!urlPath)
+            return null;
         var parsed = url.parse(urlPath);
         if (!parsed.pathname.replace(/\//g, ''))
             return null;
@@ -233,7 +235,7 @@ let UtilsService = class UtilsService {
     }
     async getJsonRes(urlPath, timeout = 10000) {
         var parsed = url.parse(urlPath);
-        if (parsed.host == 'api.thetadrop.com' && parsed.protocol == 'http') {
+        if (parsed.host == 'api.thetadrop.com' && parsed.protocol == 'http:') {
             urlPath = urlPath.replace('http', 'https');
         }
         const options = {
@@ -247,6 +249,7 @@ let UtilsService = class UtilsService {
                 'Accept-Encoding': 'gzip, deflate, br'
             }
         };
+        this.logger.debug(options);
         const httpRes = await axios(options);
         if (httpRes.status >= 400) {
             throw new Error('Bad response from server');

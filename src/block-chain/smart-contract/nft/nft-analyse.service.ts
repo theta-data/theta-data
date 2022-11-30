@@ -16,7 +16,6 @@ import { NftService } from 'src/block-chain/smart-contract/nft/nft.service'
 import { UtilsService, writeFailExcuteLog, writeSucessExcuteLog } from 'src/common/utils.service'
 import { config } from 'src/const'
 import { InjectConnection } from '@nestjs/typeorm'
-const axios = require('axios')
 const fs = require('fs')
 @Injectable()
 export class NftAnalyseService {

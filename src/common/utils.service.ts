@@ -55,7 +55,7 @@ export interface LOG_DECODE_INTERFACE {
 }
 @Injectable()
 export class UtilsService {
-  logger = new Logger()
+  logger = new Logger('utils service')
   constructor(private rpcService: RpcService) {
     // thetaTsSdk.blockchain.setUrl(config.get('THETA_NODE_HOST'))
   }
@@ -269,6 +269,7 @@ export class UtilsService {
 
   async downloadImage(urlPath: string, storePath: string): Promise<string | null> {
     this.logger.debug('url path: ' + urlPath)
+    if (!urlPath) return null
     var parsed = url.parse(urlPath)
     if (!parsed.pathname.replace(/\//g, '')) return null
     if (!config.get('DL_NFT_IMG')) {
@@ -306,7 +307,7 @@ export class UtilsService {
 
   async getJsonRes(urlPath: string, timeout: number = 10000): Promise<any> {
     var parsed = url.parse(urlPath)
-    if (parsed.host == 'api.thetadrop.com' && parsed.protocol == 'http') {
+    if (parsed.host == 'api.thetadrop.com' && parsed.protocol == 'http:') {
       urlPath = urlPath.replace('http', 'https')
     }
     const options = {
@@ -322,6 +323,7 @@ export class UtilsService {
         // ''
       }
     }
+    this.logger.debug(options)
     const httpRes = await axios(options)
     if (httpRes.status >= 400) {
       throw new Error('Bad response from server')

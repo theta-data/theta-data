@@ -23,7 +23,6 @@ const nft_transfer_record_entity_1 = require("./nft-transfer-record.entity");
 const utils_service_1 = require("../../../common/utils.service");
 const bignumber_js_1 = require("bignumber.js");
 const const_1 = require("../../../const");
-const axios = require('axios');
 let NftService = class NftService {
     constructor(nftTransferRecordRepository, nftBalanceRepository, smartContractCallRecordRepository, smartContractRepository, utilsService) {
         this.nftTransferRecordRepository = nftTransferRecordRepository;

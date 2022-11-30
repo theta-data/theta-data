@@ -22,7 +22,6 @@ import BigNumber from 'bignumber.js'
 import { config } from 'src/const'
 // import { json } from 'stream/consumers'
 // const config = require('config')
-const axios = require('axios')
 
 @Injectable()
 export class NftService {
