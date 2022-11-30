@@ -268,11 +268,11 @@ export class UtilsService {
 
   async downloadImage(urlPath: string, storePath: string): Promise<string | null> {
     this.logger.debug('url path: ' + urlPath)
+    var parsed = url.parse(urlPath)
+    if (!parsed.pathname.replace(/\//g, '')) return null
     if (!config.get('DL_NFT_IMG')) {
       return urlPath
     }
-    var parsed = url.parse(urlPath)
-    if (!parsed.pathname.replace(/\//g, '')) return null
     const pipeline = promisify(stream.pipeline)
     // if(!pa)
     if (!parsed.hostname) {
