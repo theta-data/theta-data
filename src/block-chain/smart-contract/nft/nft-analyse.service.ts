@@ -207,7 +207,8 @@ export class NftAnalyseService {
       const retrived = await this.nftConnectionRunner.manager.findOne(NftRetriveEntity, {
         where: {
           smart_contract_address: contract.contract_address
-        }
+        },
+        order: { id: 'ASC' }
       })
       if (retrived) {
         continue
@@ -217,7 +218,7 @@ export class NftAnalyseService {
         SmartContractCallRecordEntity,
         {
           where: {
-            contract_id: contract.id,
+            // contract_id: contract.id,
             timestamp: LessThan(contract.verification_date + 10 * 60)
           }
         }

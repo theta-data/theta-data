@@ -397,21 +397,30 @@ let NftStatisticsAnalyseService = class NftStatisticsAnalyseService {
             nftStatistics.contract_uri_detail = firtstNft.detail;
             nftStatistics.img_uri = firtstNft.img_uri;
         }
-        if (smartContract.contract_uri) {
+        if (smartContract.contract_uri && smartContract.contract_uri_detail) {
             nftStatistics.contract_uri = smartContract.contract_uri;
             nftStatistics.contract_uri_detail = smartContract.contract_uri_detail;
-            if (smartContract.contract_uri_detail) {
-                const contractDetail = JSON.parse(smartContract.contract_uri_detail);
-                nftStatistics.description = contractDetail.description;
-                if (this.utilsService.getPath(contractDetail.image, const_1.config.get('NFT_STATISTICS.STATIC_PATH'))) {
-                    nftStatistics.img_uri = await this.utilsService.downloadImage(contractDetail.image, const_1.config.get('NFT_STATISTICS.STATIC_PATH'));
-                }
-                else {
-                    if (firtstNft.img_uri) {
-                        nftStatistics.img_uri = await this.utilsService.downloadImage(firtstNft.img_uri, const_1.config.get('NFT_STATISTICS.STATIC_PATH'));
-                    }
-                }
+            const contractDetail = JSON.parse(smartContract.contract_uri_detail);
+            nftStatistics.description = contractDetail.description;
+            if (this.utilsService.getPath(contractDetail.image, const_1.config.get('NFT_STATISTICS.STATIC_PATH'))) {
+                nftStatistics.img_uri = await this.utilsService.downloadImage(contractDetail.image, const_1.config.get('NFT_STATISTICS.STATIC_PATH'));
             }
+        }
+        if (smartContract.contract_uri && !smartContract.contract_uri_detail) {
+            try {
+                const res = await this.utilsService.getJsonRes(smartContract.contract_uri);
+                nftStatistics.name = res.name;
+                const newImgUri = this.utilsService.getPath(res.image, const_1.config.get('NFT_STATISTICS.STATIC_PATH'));
+                if (newImgUri)
+                    nftStatistics.img_uri = newImgUri;
+                nftStatistics.contract_uri_detail = JSON.stringify(res);
+            }
+            catch (e) {
+                this.logger.error(e);
+            }
+        }
+        if (!nftStatistics.img_uri && firtstNft) {
+            nftStatistics.img_uri = firtstNft.img_uri;
         }
     }
     async autoRefetchContractUri() {
