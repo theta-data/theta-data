@@ -151,14 +151,14 @@ let NftAnalyseService = class NftAnalyseService {
             const retrived = await this.nftConnectionRunner.manager.findOne(nft_retrive_entity_1.NftRetriveEntity, {
                 where: {
                     smart_contract_address: contract.contract_address
-                }
+                },
+                order: { id: 'ASC' }
             });
             if (retrived) {
                 continue;
             }
             const nftRecords = await this.smartContractConnectionRunner.manager.find(smart_contract_call_record_entity_1.SmartContractCallRecordEntity, {
                 where: {
-                    contract_id: contract.id,
                     timestamp: (0, typeorm_1.LessThan)(contract.verification_date + 10 * 60)
                 }
             });
