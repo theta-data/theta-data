@@ -13,6 +13,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SmartContractAnalyseService = void 0;
+const smart_contract_call_log_entity_1 = require("./smart-contract-call-log.entity");
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("typeorm");
 const enum_1 = require("theta-ts-sdk/dist/types/enum");
@@ -125,7 +126,7 @@ let SmartContractAnalyseService = class SmartContractAnalyseService {
         for (const transaction of block.transactions) {
             switch (transaction.type) {
                 case enum_1.THETA_TRANSACTION_TYPE_ENUM.smart_contract:
-                    await this.smartContractConnectionRunner.query(`INSERT INTO smart_contract_entity(contract_address,height,call_times_update_timestamp) VALUES ('${transaction.receipt.ContractAddress}',${height},${moment().unix()})  ON CONFLICT (contract_address) DO UPDATE set call_times=call_times+1,call_times_update_timestamp=${moment().unix()};`);
+                    await this.smartContractConnectionRunner.query(`INSERT INTO smart_contract_entity(contract_address,height,call_times_update_timestamp) VALUES ('${transaction.receipt.ContractAddress}',${height},${moment().unix()})  ON CONFLICT (contract_address) DO UPDATE set call_times=call_times+1,call_times_update_timestamp=${Number(block.timestamp)};`);
                     if (this.smartContractList.indexOf(transaction.receipt.ContractAddress) == -1) {
                         this.smartContractList.push(transaction.receipt.ContractAddress);
                     }
@@ -147,14 +148,26 @@ let SmartContractAnalyseService = class SmartContractAnalyseService {
                     }
                     if (const_1.config.get('CONFLICT_TRANSACTIONS').indexOf(transaction.hash) !== -1)
                         break;
-                    await this.smartContractConnectionRunner.manager.insert(smart_contract_call_record_entity_1.SmartContractCallRecordEntity, {
-                        timestamp: Number(block.timestamp),
-                        data: transaction.raw.data,
-                        receipt: JSON.stringify(transaction.receipt),
-                        height: height,
-                        transaction_hash: transaction.hash,
-                        contract_id: smartContract.id
-                    });
+                    const contractRecord = await this.smartContractConnectionRunner.manager.findOne(smart_contract_call_record_entity_1.SmartContractCallRecordEntity, { where: { transaction_hash: transaction.hash, contract_id: smartContract.id } });
+                    if (!contractRecord) {
+                        await this.smartContractConnectionRunner.manager.insert(smart_contract_call_record_entity_1.SmartContractCallRecordEntity, {
+                            timestamp: Number(block.timestamp),
+                            data: transaction.raw.data,
+                            receipt: JSON.stringify(transaction.receipt),
+                            height: height,
+                            transaction_hash: transaction.hash,
+                            contract_id: smartContract.id
+                        });
+                    }
+                    for (const log of transaction.receipt.Logs) {
+                        await this.smartContractConnectionRunner.manager.insert(smart_contract_call_log_entity_1.SmartContractCallLogEntity, {
+                            address: log.address.toLocaleLowerCase(),
+                            data: log.data,
+                            height: height,
+                            transaction_hash: transaction.hash,
+                            timestamp: Number(block.timestamp)
+                        });
+                    }
                     break;
             }
         }
@@ -352,6 +365,9 @@ let SmartContractAnalyseService = class SmartContractAnalyseService {
                 }
             }
         }
+    }
+    async updateCallLogEntity() {
+        await this.smartContractConnectionRunner.manager.insert(smart_contract_call_record_entity_1.SmartContractCallRecordEntity, {});
     }
 };
 SmartContractAnalyseService = __decorate([

@@ -10,6 +10,7 @@ import {
   LessThan,
   MoreThan,
   MoreThanOrEqual,
+  Not,
   QueryRunner
 } from 'typeorm'
 import { SmartContractCallRecordEntity } from 'src/block-chain/smart-contract/smart-contract-call-record.entity'
@@ -215,11 +216,11 @@ export class NftAnalyseService {
         continue
       }
 
-      const nftRecords = await this.smartContractConnectionRunner.manager.find(
+      const allNftRecords = await this.smartContractConnectionRunner.manager.find(
         SmartContractCallRecordEntity,
         {
           where: {
-            // contract_id: contract.id,
+            contract_id: Not(contract.id),
             timestamp: Between(
               contract.verification_date - 60 * 60 * 2,
               contract.verification_date + 10 * 60
@@ -227,6 +228,16 @@ export class NftAnalyseService {
           }
         }
       )
+      const nftRelatedRecords = await this.smartContractConnectionRunner.manager.find(
+        SmartContractCallRecordEntity,
+        {
+          where: {
+            contract_id: contract.id,
+            timestamp: LessThan(contract.verification_date + 10 * 60)
+          }
+        }
+      )
+      const nftRecords = nftRelatedRecords.concat(allNftRecords)
       for (const record of nftRecords) {
         await this.nftService.updateNftRecord(
           this.nftConnectionRunner,

@@ -157,11 +157,19 @@ let NftAnalyseService = class NftAnalyseService {
             if (retrived) {
                 continue;
             }
-            const nftRecords = await this.smartContractConnectionRunner.manager.find(smart_contract_call_record_entity_1.SmartContractCallRecordEntity, {
+            const allNftRecords = await this.smartContractConnectionRunner.manager.find(smart_contract_call_record_entity_1.SmartContractCallRecordEntity, {
                 where: {
-                    timestamp: (0, typeorm_1.Between)(contract.verification_date - 60 * 60 * 24, contract.verification_date + 10 * 60)
+                    contract_id: (0, typeorm_1.Not)(contract.id),
+                    timestamp: (0, typeorm_1.Between)(contract.verification_date - 60 * 60 * 2, contract.verification_date + 10 * 60)
                 }
             });
+            const nftRelatedRecords = await this.smartContractConnectionRunner.manager.find(smart_contract_call_record_entity_1.SmartContractCallRecordEntity, {
+                where: {
+                    contract_id: contract.id,
+                    timestamp: (0, typeorm_1.LessThan)(contract.verification_date + 10 * 60)
+                }
+            });
+            const nftRecords = nftRelatedRecords.concat(allNftRecords);
             for (const record of nftRecords) {
                 await this.nftService.updateNftRecord(this.nftConnectionRunner, this.smartContractConnectionRunner, record);
             }

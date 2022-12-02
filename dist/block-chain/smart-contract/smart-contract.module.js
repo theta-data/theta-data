@@ -7,6 +7,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SmartContractModule = void 0;
+const smart_contract_call_log_entity_1 = require("./smart-contract-call-log.entity");
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const smart_contract_entity_1 = require("./smart-contract.entity");
@@ -21,7 +22,7 @@ let SmartContractModule = class SmartContractModule {
 SmartContractModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            typeorm_1.TypeOrmModule.forFeature([smart_contract_entity_1.SmartContractEntity, smart_contract_call_record_entity_1.SmartContractCallRecordEntity], 'smart_contract'),
+            typeorm_1.TypeOrmModule.forFeature([smart_contract_entity_1.SmartContractEntity, smart_contract_call_record_entity_1.SmartContractCallRecordEntity, smart_contract_call_log_entity_1.SmartContractCallLogEntity], 'smart_contract'),
             nft_module_1.NftModule,
             common_module_1.CommonModule
         ],

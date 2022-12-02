@@ -24,4 +24,5 @@ export declare class SmartContractAnalyseService {
     updateCallTimesByPeriod(contractAddress: string): Promise<void>;
     clearCallTimeByPeriod(): Promise<void>;
     getVerifyInfo(address: string, sourceCode: string, byteCode: string, version: string, versionFullName: string, optimizer: boolean, optimizerRuns: number): Promise<any>;
+    updateCallLogEntity(): Promise<void>;
 }

@@ -1,4 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { SmartContractCallLogEntity } from './smart-contract-call-log.entity'
+import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { Connection, getConnection, LessThan, MoreThan, QueryRunner } from 'typeorm'
 import { THETA_TRANSACTION_TYPE_ENUM } from 'theta-ts-sdk/dist/types/enum'
 import { thetaTsSdk } from 'theta-ts-sdk'
@@ -15,6 +16,7 @@ import fetch from 'cross-fetch'
 import { config } from 'src/const'
 import { InjectConnection } from '@nestjs/typeorm'
 import { SolcService } from 'src/common/solc.service'
+import { race } from 'rxjs'
 const moment = require('moment')
 const fs = require('fs')
 @Injectable()
@@ -140,7 +142,9 @@ export class SmartContractAnalyseService {
           await this.smartContractConnectionRunner.query(
             `INSERT INTO smart_contract_entity(contract_address,height,call_times_update_timestamp) VALUES ('${
               transaction.receipt.ContractAddress
-            }',${height},${moment().unix()})  ON CONFLICT (contract_address) DO UPDATE set call_times=call_times+1,call_times_update_timestamp=${moment().unix()};`
+            }',${height},${moment().unix()})  ON CONFLICT (contract_address) DO UPDATE set call_times=call_times+1,call_times_update_timestamp=${Number(
+              block.timestamp
+            )};`
           )
           if (this.smartContractList.indexOf(transaction.receipt.ContractAddress) == -1) {
             this.smartContractList.push(transaction.receipt.ContractAddress)
@@ -170,18 +174,34 @@ export class SmartContractAnalyseService {
             )
           }
           if (config.get('CONFLICT_TRANSACTIONS').indexOf(transaction.hash) !== -1) break
-          await this.smartContractConnectionRunner.manager.insert(
+          const contractRecord = await this.smartContractConnectionRunner.manager.findOne(
             SmartContractCallRecordEntity,
-            {
-              timestamp: Number(block.timestamp),
-              data: transaction.raw.data,
-              receipt: JSON.stringify(transaction.receipt),
+            { where: { transaction_hash: transaction.hash, contract_id: smartContract.id } }
+          )
+          if (!contractRecord) {
+            await this.smartContractConnectionRunner.manager.insert(
+              SmartContractCallRecordEntity,
+              {
+                timestamp: Number(block.timestamp),
+                data: transaction.raw.data,
+                receipt: JSON.stringify(transaction.receipt),
+                height: height,
+                transaction_hash: transaction.hash,
+                contract_id: smartContract.id
+              }
+              // ['transaction_hash']
+            )
+          }
+
+          for (const log of transaction.receipt.Logs) {
+            await this.smartContractConnectionRunner.manager.insert(SmartContractCallLogEntity, {
+              address: log.address.toLocaleLowerCase(),
+              data: log.data,
               height: height,
               transaction_hash: transaction.hash,
-              contract_id: smartContract.id
-            }
-            // ['transaction_hash']
-          )
+              timestamp: Number(block.timestamp)
+            })
+          }
           break
       }
     }
@@ -477,5 +497,9 @@ export class SmartContractAnalyseService {
         }
       }
     }
+  }
+
+  async updateCallLogEntity() {
+    await this.smartContractConnectionRunner.manager.insert(SmartContractCallRecordEntity, {})
   }
 }
