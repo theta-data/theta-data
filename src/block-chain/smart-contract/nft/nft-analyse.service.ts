@@ -1,3 +1,4 @@
+import { SmartContractCallLogEntity } from './../smart-contract-call-log.entity'
 import { NftRetriveEntity } from './nft-retrive.entity'
 import { SmartContractEntity } from 'src/block-chain/smart-contract/smart-contract.entity'
 import { NftTransferRecordEntity } from 'src/block-chain/smart-contract/nft/nft-transfer-record.entity'
@@ -57,7 +58,7 @@ export class NftAnalyseService {
       }
 
       const contractRecordList = await this.smartContractConnectionRunner.manager.find(
-        SmartContractCallRecordEntity,
+        SmartContractCallLogEntity,
         {
           where: {
             id: MoreThan(startId)
@@ -71,7 +72,7 @@ export class NftAnalyseService {
       this.logger.debug('records length:' + contractRecordList.length)
       for (const record of contractRecordList) {
         // promiseArr.push(
-        await this.nftService.updateNftRecord(
+        await this.nftService.updateNftLog(
           this.nftConnectionRunner,
           this.smartContractConnectionRunner,
           record

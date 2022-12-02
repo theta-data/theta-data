@@ -343,6 +343,209 @@ let NftService = class NftService {
         }
         return false;
     }
+    async updateNftLog(nftConnection, smartContractConnection, logEntity) {
+        const logDetail = JSON.parse(logEntity.data);
+        if (logDetail.data == '') {
+            logDetail.data = '0x';
+        }
+        else {
+            logDetail.data = this.utilsService.getHex(logDetail.data);
+        }
+        const tempContract = await smartContractConnection.manager.findOne(smart_contract_entity_1.SmartContractEntity, {
+            where: {
+                contract_address: logEntity.address
+            }
+        });
+        if (!tempContract || !tempContract.verified)
+            return false;
+        const logInfo = this.utilsService.decodeLogs([logDetail], JSON.parse(tempContract.abi));
+        for (const log of logInfo) {
+            let imgUri = '';
+            let name = '';
+            if (log.decode.eventName === 'Transfer' && log.decode.result.tokenId) {
+                this.logger.debug(JSON.stringify({
+                    from: log.decode.result.from.toLowerCase(),
+                    to: log.decode.result.to.toLowerCase(),
+                    token_id: Number(log.decode.result.tokenId),
+                    smart_contract_address: log.address,
+                    transaction_hash: logEntity.transaction_hash
+                }));
+                let detail = '';
+                let tokenUri = '';
+                let baseTokenUri = '';
+                let contractUri = tempContract.contract_uri;
+                const balance = await nftConnection.manager.findOne(nft_balance_entity_1.NftBalanceEntity, {
+                    where: {
+                        smart_contract_address: log.address.toLowerCase(),
+                        token_id: Number(log.decode.result.tokenId)
+                    }
+                });
+                if (balance && balance.detail) {
+                    const detailInfo = JSON.parse(balance.detail);
+                    imgUri = await this.utilsService.downloadImage(detailInfo.image, const_1.config.get('NFT.STATIC_PATH'));
+                    name = detailInfo.name;
+                    detail = balance.detail;
+                    tokenUri = balance.token_uri;
+                    baseTokenUri = balance.base_token_uri;
+                }
+                else {
+                    const abiInfo = JSON.parse(tempContract.abi);
+                    const hasTokenUri = abiInfo.find((v) => v.name == 'tokenURI');
+                    name = tempContract.name;
+                    if (hasTokenUri) {
+                        try {
+                            tokenUri = await this.getTokenUri(tempContract.contract_address, abiInfo, Number(log.decode.result.tokenId));
+                            const res = await this.utilsService.getJsonRes(tokenUri);
+                            name = res.name;
+                            imgUri = res.image;
+                            detail = JSON.stringify(res);
+                        }
+                        catch (e) {
+                            this.logger.error(e);
+                        }
+                    }
+                    const hasBaseTokenUri = abiInfo.find((v) => v.name == 'baseTokenURI');
+                    if (hasBaseTokenUri) {
+                        baseTokenUri = await this.getBaseTokenUri(tempContract.contract_address, abiInfo);
+                    }
+                    imgUri = await this.utilsService.downloadImage(imgUri, const_1.config.get('NFT.STATIC_PATH'));
+                }
+                const transferRecord = await nftConnection.manager.findOne(nft_transfer_record_entity_1.NftTransferRecordEntity, {
+                    where: {
+                        token_id: Number(log.decode.result.tokenId),
+                        smart_contract_address: log.address.toLowerCase(),
+                        timestamp: logEntity.timestamp
+                    }
+                });
+                if (!transferRecord) {
+                    this.logger.debug('insert nft transfer record:' +
+                        JSON.stringify({
+                            from: log.decode.result.from.toLowerCase(),
+                            to: log.decode.result.to.toLowerCase(),
+                            token_id: Number(log.decode.result.tokenId),
+                            smart_contract_address: log.address.toLowerCase(),
+                            height: logEntity.height,
+                            name: tempContract.name,
+                            timestamp: logEntity.timestamp
+                        }));
+                    await nftConnection.manager.insert(nft_transfer_record_entity_1.NftTransferRecordEntity, {
+                        from: log.decode.result.from.toLowerCase(),
+                        to: log.decode.result.to.toLowerCase(),
+                        token_id: Number(log.decode.result.tokenId),
+                        smart_contract_address: log.address.toLowerCase(),
+                        height: logEntity.height,
+                        name: name,
+                        img_uri: imgUri,
+                        transaction_hash: logEntity.transaction_hash,
+                        timestamp: logEntity.timestamp
+                    });
+                }
+                else {
+                    transferRecord.img_uri = imgUri;
+                    transferRecord.name = name;
+                    await nftConnection.manager.save(transferRecord);
+                }
+                if (balance) {
+                    if (balance.img_uri) {
+                        imgUri = balance.img_uri;
+                    }
+                    const latestRecord = await nftConnection.manager.findOne(nft_transfer_record_entity_1.NftTransferRecordEntity, {
+                        where: {
+                            smart_contract_address: log.address.toLowerCase(),
+                            token_id: Number(log.decode.result.tokenId)
+                        },
+                        order: {
+                            height: 'DESC'
+                        }
+                    });
+                    await nftConnection.manager.update(nft_balance_entity_1.NftBalanceEntity, {
+                        id: balance.id
+                    }, {
+                        owner: latestRecord.to,
+                        from: latestRecord.from,
+                        name: name,
+                        img_uri: imgUri
+                    });
+                }
+                else {
+                    await nftConnection.manager.insert(nft_balance_entity_1.NftBalanceEntity, {
+                        smart_contract_address: tempContract.contract_address,
+                        owner: log.decode.result.to.toLowerCase(),
+                        from: log.decode.result.from.toLowerCase(),
+                        token_id: Number(log.decode.result.tokenId),
+                        name: name,
+                        img_uri: imgUri,
+                        detail: detail,
+                        contract_uri: contractUri,
+                        token_uri: tokenUri,
+                        base_token_uri: baseTokenUri
+                    });
+                }
+            }
+            if ((log.decode.eventName === 'NFTTraded' &&
+                log.decode.result.nftTokenID &&
+                log.decode.result.nftTokenAddress) ||
+                (log.decode.eventName === 'MarketItemSale' &&
+                    log.decode.result.isSold == 'true' &&
+                    log.decode.result.tokenId &&
+                    log.decode.result.nftContract)) {
+                this.logger.debug('parse nft trade:' + logEntity.transaction_hash);
+                this.logger.debug(JSON.stringify(log.decode.result));
+                const nftTokenId = log.decode.result.nftTokenID
+                    ? Number(log.decode.result.nftTokenID)
+                    : Number(log.decode.result.tokenId);
+                const nftContractAddress = log.decode.result.nftTokenAddress
+                    ? log.decode.result.nftTokenAddress.toLowerCase()
+                    : log.decode.result.nftContract.toLowerCase();
+                const paymentTokenAmount = log.decode.result.paymentTokenAmount
+                    ? log.decode.result.paymentTokenAmount
+                    : log.decode.result.price;
+                const tdropMined = log.decode.result.tdropMined ? Number(log.decode.result.tdropMined) : 0;
+                const buyer = log.decode.result.buyer
+                    ? log.decode.result.buyer.toLowerCase()
+                    : log.decode.result.owner.toLowerCase();
+                const seller = log.decode.result.seller.toLowerCase();
+                const logContract = await smartContractConnection.manager.findOne(smart_contract_entity_1.SmartContractEntity, {
+                    where: { contract_address: nftContractAddress }
+                });
+                if (!logContract ||
+                    !logContract.verified ||
+                    logContract.protocol !== smart_contract_entity_1.SmartContractProtocolEnum.tnt721)
+                    continue;
+                this.logger.debug('nft traded: ' + JSON.stringify(log.decode.result));
+                const searchCondition = {
+                    token_id: nftTokenId,
+                    smart_contract_address: nftContractAddress,
+                    timestamp: logEntity.timestamp
+                };
+                this.logger.debug('search condition: ' + JSON.stringify(searchCondition));
+                const tradeRecord = await nftConnection.manager.findOne(nft_transfer_record_entity_1.NftTransferRecordEntity, { where: searchCondition });
+                if (tradeRecord) {
+                    this.logger.debug('get nft trade record:' + JSON.stringify(tradeRecord));
+                    tradeRecord.payment_token_amount = Number(new bignumber_js_1.default(paymentTokenAmount).dividedBy('1e18').toFixed());
+                    tradeRecord.tdrop_mined = Number(new bignumber_js_1.default(tdropMined).dividedBy('1e18').toFixed());
+                    const res = await nftConnection.manager.save(nft_transfer_record_entity_1.NftTransferRecordEntity, tradeRecord);
+                    this.logger.debug('nft traded updated: ' + JSON.stringify(res));
+                }
+                else {
+                    this.logger.debug('no nft trade record:' + JSON.stringify(log.decode));
+                    await nftConnection.manager.insert(nft_transfer_record_entity_1.NftTransferRecordEntity, {
+                        from: seller,
+                        to: buyer,
+                        token_id: nftTokenId,
+                        smart_contract_address: nftContractAddress,
+                        height: logEntity.height,
+                        name: logContract.name,
+                        transaction_hash: logEntity.transaction_hash,
+                        timestamp: logEntity.timestamp,
+                        payment_token_amount: Number(new bignumber_js_1.default(paymentTokenAmount).dividedBy('1e18').toFixed()),
+                        tdrop_mined: Number(new bignumber_js_1.default(tdropMined).dividedBy('1e18').toFixed())
+                    });
+                }
+            }
+        }
+        return false;
+    }
     async updateNftBalance(contract_address, from, to, tokenId) {
         await this.nftBalanceRepository.upsert({
             smart_contract_address: contract_address,

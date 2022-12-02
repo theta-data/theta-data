@@ -193,9 +193,10 @@ export class SmartContractAnalyseService {
           }
 
           for (const log of transaction.receipt.Logs) {
+            this.logger.debug(JSON.stringify(log))
             await this.smartContractConnectionRunner.manager.insert(SmartContractCallLogEntity, {
               address: log.address.toLocaleLowerCase(),
-              data: log.data,
+              data: JSON.stringify(log),
               height: height,
               transaction_hash: transaction.hash,
               timestamp: Number(block.timestamp)

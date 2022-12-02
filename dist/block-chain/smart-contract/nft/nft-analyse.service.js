@@ -13,6 +13,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NftAnalyseService = void 0;
+const smart_contract_call_log_entity_1 = require("./../smart-contract-call-log.entity");
 const nft_retrive_entity_1 = require("./nft-retrive.entity");
 const smart_contract_entity_1 = require("../smart-contract.entity");
 const nft_transfer_record_entity_1 = require("./nft-transfer-record.entity");
@@ -53,7 +54,7 @@ let NftAnalyseService = class NftAnalyseService {
                     startId = Number(data);
                 }
             }
-            const contractRecordList = await this.smartContractConnectionRunner.manager.find(smart_contract_call_record_entity_1.SmartContractCallRecordEntity, {
+            const contractRecordList = await this.smartContractConnectionRunner.manager.find(smart_contract_call_log_entity_1.SmartContractCallLogEntity, {
                 where: {
                     id: (0, typeorm_1.MoreThan)(startId)
                 },
@@ -62,7 +63,7 @@ let NftAnalyseService = class NftAnalyseService {
             });
             this.logger.debug('records length:' + contractRecordList.length);
             for (const record of contractRecordList) {
-                await this.nftService.updateNftRecord(this.nftConnectionRunner, this.smartContractConnectionRunner, record);
+                await this.nftService.updateNftLog(this.nftConnectionRunner, this.smartContractConnectionRunner, record);
             }
             await this.retriveNfts();
             await this.autoRefetchTokenUri(loop);
@@ -160,7 +161,7 @@ let NftAnalyseService = class NftAnalyseService {
             const allNftRecords = await this.smartContractConnectionRunner.manager.find(smart_contract_call_record_entity_1.SmartContractCallRecordEntity, {
                 where: {
                     contract_id: (0, typeorm_1.Not)(contract.id),
-                    timestamp: (0, typeorm_1.Between)(contract.verification_date - 60 * 60 * 2, contract.verification_date + 10 * 60)
+                    timestamp: (0, typeorm_1.Between)(contract.verification_date - 60 * 60 * 1, contract.verification_date + 10 * 60)
                 }
             });
             const nftRelatedRecords = await this.smartContractConnectionRunner.manager.find(smart_contract_call_record_entity_1.SmartContractCallRecordEntity, {
