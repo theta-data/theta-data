@@ -65,21 +65,20 @@ export class SmartContractAnalyseService {
           height = Number(data) + 1
         }
       }
+      // const latestRecord = await this.smartContractConnectionRunner.manager.findOne(
+      //   SmartContractCallRecordEntity,
+      //   {
+      //     order: {
+      //       height: 'DESC'
+      //     },
+      //     where: {}
+      //   }
+      // )
+      // const latestRecordHeight = latestRecord ? latestRecord.height : 0
 
-      const latestRecord = await this.smartContractConnectionRunner.manager.findOne(
-        SmartContractCallRecordEntity,
-        {
-          order: {
-            height: 'DESC'
-          },
-          where: {}
-        }
-      )
-      const latestRecordHeight = latestRecord ? latestRecord.height : 0
-
-      if (latestRecordHeight >= height) {
-        height = latestRecordHeight + 1
-      }
+      // if (latestRecordHeight >= height) {
+      //   height = latestRecordHeight + 1
+      // }
 
       if (height >= lastfinalizedHeight) {
         await this.smartContractConnectionRunner.commitTransaction()

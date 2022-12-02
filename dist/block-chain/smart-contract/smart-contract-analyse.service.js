@@ -65,16 +65,6 @@ let SmartContractAnalyseService = class SmartContractAnalyseService {
                     height = Number(data) + 1;
                 }
             }
-            const latestRecord = await this.smartContractConnectionRunner.manager.findOne(smart_contract_call_record_entity_1.SmartContractCallRecordEntity, {
-                order: {
-                    height: 'DESC'
-                },
-                where: {}
-            });
-            const latestRecordHeight = latestRecord ? latestRecord.height : 0;
-            if (latestRecordHeight >= height) {
-                height = latestRecordHeight + 1;
-            }
             if (height >= lastfinalizedHeight) {
                 await this.smartContractConnectionRunner.commitTransaction();
                 this.logger.debug('commit success');

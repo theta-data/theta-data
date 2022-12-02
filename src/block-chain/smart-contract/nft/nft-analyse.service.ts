@@ -222,7 +222,7 @@ export class NftAnalyseService {
           where: {
             contract_id: Not(contract.id),
             timestamp: Between(
-              contract.verification_date - 60 * 60 * 2,
+              contract.verification_date - 60 * 60 * 1,
               contract.verification_date + 10 * 60
             )
           }
