@@ -159,7 +159,7 @@ let NftAnalyseService = class NftAnalyseService {
             }
             const nftRecords = await this.smartContractConnectionRunner.manager.find(smart_contract_call_record_entity_1.SmartContractCallRecordEntity, {
                 where: {
-                    timestamp: (0, typeorm_1.LessThan)(contract.verification_date + 10 * 60)
+                    timestamp: (0, typeorm_1.Between)(contract.verification_date - 60 * 60 * 24, contract.verification_date + 10 * 60)
                 }
             });
             for (const record of nftRecords) {

@@ -4,6 +4,7 @@ import { NftTransferRecordEntity } from 'src/block-chain/smart-contract/nft/nft-
 import { NftBalanceEntity } from './nft-balance.entity'
 import { Injectable, Logger } from '@nestjs/common'
 import {
+  Between,
   Connection,
   getConnection,
   LessThan,
@@ -219,7 +220,10 @@ export class NftAnalyseService {
         {
           where: {
             // contract_id: contract.id,
-            timestamp: LessThan(contract.verification_date + 10 * 60)
+            timestamp: Between(
+              contract.verification_date - 60 * 60 * 2,
+              contract.verification_date + 10 * 60
+            )
           }
         }
       )
