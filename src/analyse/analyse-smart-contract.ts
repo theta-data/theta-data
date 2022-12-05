@@ -14,7 +14,7 @@ async function bootstrap() {
         .get(SmartContractAnalyseService, { strict: true })
 
       await Promise.race([
-        service.analyseData(),
+        service.analyse(),
         new Promise((resolve, reject) => {
           setTimeout(() => {
             resolve('timeout')

@@ -186,9 +186,9 @@ let WalletDpWdHistoryAnalyseService = class WalletDpWdHistoryAnalyseService {
 };
 WalletDpWdHistoryAnalyseService = __decorate([
     (0, common_1.Injectable)(),
-    __param(1, (0, typeorm_1.InjectConnection)('wallet-dp-wd-history')),
+    __param(1, (0, typeorm_1.InjectDataSource)('wallet-dp-wd-history')),
     __metadata("design:paramtypes", [utils_service_1.UtilsService,
-        typeorm_2.Connection,
+        typeorm_2.DataSource,
         rpc_service_1.RpcService])
 ], WalletDpWdHistoryAnalyseService);
 exports.WalletDpWdHistoryAnalyseService = WalletDpWdHistoryAnalyseService;

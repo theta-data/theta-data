@@ -47,7 +47,7 @@ let NftStatisticsAnalyseService = class NftStatisticsAnalyseService {
         this.refetchContractUriId = const_1.config.get('ORM_CONFIG')['database'] + 'nft-statistics/refetch-uri.id';
         this.imgPathRestoreId = const_1.config.get('ORM_CONFIG')['database'] + 'nft-statistics/img-path-restore.id';
     }
-    async analyseData() {
+    async analyse() {
         try {
             this.logger.debug('start analyse nft data');
             this.smartContractConnectionRunner = this.smartContractConnectionInjected.createQueryRunner();
@@ -102,16 +102,11 @@ let NftStatisticsAnalyseService = class NftStatisticsAnalyseService {
                 await this.restoreImgUri();
             }
             await this.nftStatisticsConnectionRunner.commitTransaction();
-            try {
-                if (nftTransferRecordList.length > 0) {
-                    this.logger.debug('end height:' + Number(nftTransferRecordList[nftTransferRecordList.length - 1].id));
-                    this.utilsService.updateRecordHeight(this.heightConfigFile, nftTransferRecordList[nftTransferRecordList.length - 1].id);
-                }
+            if (nftTransferRecordList.length > 0) {
+                this.logger.debug('end height:' + Number(nftTransferRecordList[nftTransferRecordList.length - 1].id));
+                this.utilsService.updateRecordHeight(this.heightConfigFile, nftTransferRecordList[nftTransferRecordList.length - 1].id);
             }
-            catch (error) {
-                console.error(error);
-                this.logger.error(error);
-            }
+            (0, utils_service_1.writeSucessExcuteLog)(const_1.config.get('NFT_STATISTICS.MONITOR_PATH'));
         }
         catch (e) {
             console.error(e.message);
@@ -124,7 +119,6 @@ let NftStatisticsAnalyseService = class NftStatisticsAnalyseService {
             await this.nftStatisticsConnectionRunner.release();
             this.logger.debug('end analyse nft data');
             this.logger.debug('release success');
-            (0, utils_service_1.writeSucessExcuteLog)(const_1.config.get('NFT_STATISTICS.MONITOR_PATH'));
         }
     }
     async nftStatistics(smartContractAddress) {
@@ -493,14 +487,14 @@ let NftStatisticsAnalyseService = class NftStatisticsAnalyseService {
 };
 NftStatisticsAnalyseService = __decorate([
     (0, common_1.Injectable)(),
-    __param(2, (0, typeorm_2.InjectConnection)('smart_contract')),
-    __param(3, (0, typeorm_2.InjectConnection)('nft')),
-    __param(4, (0, typeorm_2.InjectConnection)('nft-statistics')),
+    __param(2, (0, typeorm_2.InjectDataSource)('smart_contract')),
+    __param(3, (0, typeorm_2.InjectDataSource)('nft')),
+    __param(4, (0, typeorm_2.InjectDataSource)('nft-statistics')),
     __metadata("design:paramtypes", [utils_service_1.UtilsService,
         market_service_1.MarketService,
-        typeorm_1.Connection,
-        typeorm_1.Connection,
-        typeorm_1.Connection])
+        typeorm_1.DataSource,
+        typeorm_1.DataSource,
+        typeorm_1.DataSource])
 ], NftStatisticsAnalyseService);
 exports.NftStatisticsAnalyseService = NftStatisticsAnalyseService;
 //# sourceMappingURL=nft-statistics-analyse.service.js.map

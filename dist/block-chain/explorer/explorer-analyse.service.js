@@ -35,7 +35,7 @@ let ExplorerAnalyseService = class ExplorerAnalyseService {
         this.current = {};
         this.transactionNum = 0;
     }
-    async analyseData() {
+    async analyse() {
         try {
             this.explorerConnectionRunner = this.explorerConnectionInjected.createQueryRunner();
             await this.explorerConnectionRunner.startTransaction();
@@ -213,9 +213,9 @@ let ExplorerAnalyseService = class ExplorerAnalyseService {
 };
 ExplorerAnalyseService = __decorate([
     (0, common_1.Injectable)(),
-    __param(1, (0, typeorm_2.InjectConnection)('explorer')),
+    __param(1, (0, typeorm_2.InjectDataSource)('explorer')),
     __metadata("design:paramtypes", [utils_service_1.UtilsService,
-        typeorm_1.Connection])
+        typeorm_1.DataSource])
 ], ExplorerAnalyseService);
 exports.ExplorerAnalyseService = ExplorerAnalyseService;
 //# sourceMappingURL=explorer-analyse.service.js.map

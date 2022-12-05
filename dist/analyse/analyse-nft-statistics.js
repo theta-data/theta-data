@@ -15,7 +15,7 @@ async function bootstrap() {
                 .get(nft_statistics_analyse_service_1.NftStatisticsAnalyseService, { strict: true });
             console.log('do while');
             await Promise.race([
-                service.analyseData(),
+                service.analyse(),
                 new Promise((resolve, reject) => {
                     setTimeout(() => {
                         resolve('timeout');

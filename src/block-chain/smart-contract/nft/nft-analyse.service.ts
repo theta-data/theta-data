@@ -36,7 +36,7 @@ export class NftAnalyseService {
     @InjectDataSource('nft') private nftConnectionInjected: DataSource
   ) {}
 
-  public async analyseData(loop: number) {
+  public async analyse(loop: number) {
     try {
       this.logger.debug(loop + ' start analyse nft data')
       // console.log(config.get('NFT'))
@@ -99,6 +99,7 @@ export class NftAnalyseService {
           contractRecordList[contractRecordList.length - 1].id
         )
       }
+      writeSucessExcuteLog(config.get('NFT.MONITOR_PATH'))
       this.logger.debug('commit success')
     } catch (e) {
       console.error(e.message)
@@ -108,7 +109,7 @@ export class NftAnalyseService {
       writeFailExcuteLog(config.get('NFT.MONITOR_PATH'))
     } finally {
       await this.nftConnectionRunner.release()
-      writeSucessExcuteLog(config.get('NFT.MONITOR_PATH'))
+
       this.logger.debug('end analyse nft data')
       this.logger.debug('release success')
     }

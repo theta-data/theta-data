@@ -15,7 +15,7 @@ export async function analyseNftBootstrap() {
       // const a = {}
       // console.log(a['b']['c'])
       // await Promise.race([
-      await service.analyseData(i)
+      await service.analyse(i)
       //   new Promise((resolve, reject) => {
       //     setTimeout(() => {
       //       resolve('timeout')

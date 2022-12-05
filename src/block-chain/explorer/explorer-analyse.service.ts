@@ -34,7 +34,7 @@ export class ExplorerAnalyseService {
   ) {
     // this.utilsService = utilsService
   }
-  public async analyseData() {
+  public async analyse() {
     try {
       this.explorerConnectionRunner = this.explorerConnectionInjected.createQueryRunner()
       // await this.explorerConnectionInjected.connect()

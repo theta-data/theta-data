@@ -37,7 +37,7 @@ let StakeAnalyseService = class StakeAnalyseService {
         this.heightConfigFile = const_1.config.get('ORM_CONFIG')['database'] + 'stake/record.height';
         this.logger.debug(const_1.config.get('THETA_NODE_HOST'));
     }
-    async analyseData() {
+    async analyse() {
         try {
             this.stakeConnectionRunner = this.stakeConnectionInjected.createQueryRunner();
             await this.stakeConnectionRunner.startTransaction();
@@ -316,10 +316,10 @@ let StakeAnalyseService = class StakeAnalyseService {
 };
 StakeAnalyseService = __decorate([
     (0, common_1.Injectable)(),
-    __param(2, (0, typeorm_2.InjectConnection)('stake')),
+    __param(2, (0, typeorm_2.InjectDataSource)('stake')),
     __metadata("design:paramtypes", [utils_service_1.UtilsService,
         rpc_service_1.RpcService,
-        typeorm_1.Connection])
+        typeorm_1.DataSource])
 ], StakeAnalyseService);
 exports.StakeAnalyseService = StakeAnalyseService;
 //# sourceMappingURL=stake-analyse.service.js.map

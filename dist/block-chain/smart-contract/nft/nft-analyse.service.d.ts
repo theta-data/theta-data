@@ -1,4 +1,4 @@
-import { Connection } from 'typeorm';
+import { DataSource } from 'typeorm';
 import { NftService } from 'src/block-chain/smart-contract/nft/nft.service';
 import { UtilsService } from 'src/common/utils.service';
 export declare class NftAnalyseService {
@@ -13,8 +13,8 @@ export declare class NftAnalyseService {
     private heightConfigFile;
     private retriveIdFile;
     private imgPathRestoreId;
-    constructor(nftService: NftService, utilsService: UtilsService, smartContractConnectionInjected: Connection, nftConnectionInjected: Connection);
-    analyseData(loop: number): Promise<void>;
+    constructor(nftService: NftService, utilsService: UtilsService, smartContractConnectionInjected: DataSource, nftConnectionInjected: DataSource);
+    analyse(loop: number): Promise<void>;
     autoRefetchTokenUri(loop: number): Promise<void>;
     retriveNfts(): Promise<void>;
     restoreNftImgPath(): Promise<void>;

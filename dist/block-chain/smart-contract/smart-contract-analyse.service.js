@@ -44,7 +44,7 @@ let SmartContractAnalyseService = class SmartContractAnalyseService {
         this.smartContractList = [];
         this.logger.debug(const_1.config.get('SMART_CONTRACT.THETA_NODE_HOST'));
     }
-    async analyseData() {
+    async analyse() {
         try {
             this.smartContractConnectionRunner = this.smartContractConnectionInjected.createQueryRunner();
             await this.smartContractConnectionRunner.startTransaction();
@@ -96,6 +96,7 @@ let SmartContractAnalyseService = class SmartContractAnalyseService {
             if (blockList.result.length > 1) {
                 this.utilsService.updateRecordHeight(this.heightConfigFile, Number(blockList.result[blockList.result.length - 1].height));
             }
+            (0, utils_service_1.writeSucessExcuteLog)(const_1.config.get('SMART_CONTRACT.MONITOR_PATH'));
         }
         catch (e) {
             console.error(e.message);
@@ -107,7 +108,6 @@ let SmartContractAnalyseService = class SmartContractAnalyseService {
         finally {
             await this.smartContractConnectionRunner.release();
             this.logger.debug('release success');
-            (0, utils_service_1.writeSucessExcuteLog)(const_1.config.get('SMART_CONTRACT.MONITOR_PATH'));
         }
     }
     async handleOrderCreatedEvent(block, latestFinalizedBlockHeight) {
@@ -363,12 +363,12 @@ let SmartContractAnalyseService = class SmartContractAnalyseService {
 };
 SmartContractAnalyseService = __decorate([
     (0, common_1.Injectable)(),
-    __param(4, (0, typeorm_2.InjectConnection)('smart_contract')),
+    __param(4, (0, typeorm_2.InjectDataSource)('smart_contract')),
     __metadata("design:paramtypes", [logger_service_1.LoggerService,
         utils_service_1.UtilsService,
         smart_contract_service_1.SmartContractService,
         solc_service_1.SolcService,
-        typeorm_1.Connection])
+        typeorm_1.DataSource])
 ], SmartContractAnalyseService);
 exports.SmartContractAnalyseService = SmartContractAnalyseService;
 //# sourceMappingURL=smart-contract-analyse.service.js.map

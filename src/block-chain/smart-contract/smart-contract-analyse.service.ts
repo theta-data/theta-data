@@ -38,7 +38,7 @@ export class SmartContractAnalyseService {
     this.logger.debug(config.get('SMART_CONTRACT.THETA_NODE_HOST'))
   }
 
-  public async analyseData() {
+  public async analyse() {
     try {
       this.smartContractConnectionRunner = this.smartContractConnectionInjected.createQueryRunner()
       // await this.smartContractConnection.connect()
@@ -117,6 +117,7 @@ export class SmartContractAnalyseService {
           Number(blockList.result[blockList.result.length - 1].height)
         )
       }
+      writeSucessExcuteLog(config.get('SMART_CONTRACT.MONITOR_PATH'))
     } catch (e) {
       console.error(e.message)
       this.logger.error(e.message)
@@ -126,7 +127,6 @@ export class SmartContractAnalyseService {
     } finally {
       await this.smartContractConnectionRunner.release()
       this.logger.debug('release success')
-      writeSucessExcuteLog(config.get('SMART_CONTRACT.MONITOR_PATH'))
     }
     // await this.
   }

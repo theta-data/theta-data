@@ -37,7 +37,7 @@ let NftAnalyseService = class NftAnalyseService {
         this.retriveIdFile = const_1.config.get('ORM_CONFIG')['database'] + 'nft/retrive.id';
         this.imgPathRestoreId = const_1.config.get('ORM_CONFIG')['database'] + 'nft/img-path-restore.id';
     }
-    async analyseData(loop) {
+    async analyse(loop) {
         try {
             this.logger.debug(loop + ' start analyse nft data');
             this.smartContractConnectionRunner = this.smartContractConnectionInjected.createQueryRunner();
@@ -75,6 +75,7 @@ let NftAnalyseService = class NftAnalyseService {
                 this.logger.debug('end height:' + Number(contractRecordList[contractRecordList.length - 1].height));
                 this.utilsService.updateRecordHeight(this.heightConfigFile, contractRecordList[contractRecordList.length - 1].id);
             }
+            (0, utils_service_1.writeSucessExcuteLog)(const_1.config.get('NFT.MONITOR_PATH'));
             this.logger.debug('commit success');
         }
         catch (e) {
@@ -86,7 +87,6 @@ let NftAnalyseService = class NftAnalyseService {
         }
         finally {
             await this.nftConnectionRunner.release();
-            (0, utils_service_1.writeSucessExcuteLog)(const_1.config.get('NFT.MONITOR_PATH'));
             this.logger.debug('end analyse nft data');
             this.logger.debug('release success');
         }
@@ -209,8 +209,8 @@ NftAnalyseService = __decorate([
     __param(3, (0, typeorm_2.InjectDataSource)('nft')),
     __metadata("design:paramtypes", [nft_service_1.NftService,
         utils_service_1.UtilsService,
-        typeorm_1.Connection,
-        typeorm_1.Connection])
+        typeorm_1.DataSource,
+        typeorm_1.DataSource])
 ], NftAnalyseService);
 exports.NftAnalyseService = NftAnalyseService;
 //# sourceMappingURL=nft-analyse.service.js.map

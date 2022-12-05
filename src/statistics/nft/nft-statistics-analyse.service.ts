@@ -45,7 +45,7 @@ export class NftStatisticsAnalyseService {
     private nftStatisticsConnectionInjected: DataSource
   ) {}
 
-  public async analyseData() {
+  public async analyse() {
     try {
       // console.log(config.get('NFT_STATISTICS.ANALYSE_NUMBER'))
       this.logger.debug('start analyse nft data')
@@ -118,21 +118,17 @@ export class NftStatisticsAnalyseService {
       // await this.downloadAllImg()
       await this.nftStatisticsConnectionRunner.commitTransaction()
 
-      try {
-        if (nftTransferRecordList.length > 0) {
-          this.logger.debug(
-            'end height:' + Number(nftTransferRecordList[nftTransferRecordList.length - 1].id)
-          )
-          this.utilsService.updateRecordHeight(
-            this.heightConfigFile,
-            nftTransferRecordList[nftTransferRecordList.length - 1].id
-          )
-        }
-      } catch (error) {
-        console.error(error)
-        this.logger.error(error)
+      // try {
+      if (nftTransferRecordList.length > 0) {
+        this.logger.debug(
+          'end height:' + Number(nftTransferRecordList[nftTransferRecordList.length - 1].id)
+        )
+        this.utilsService.updateRecordHeight(
+          this.heightConfigFile,
+          nftTransferRecordList[nftTransferRecordList.length - 1].id
+        )
       }
-      // this.logger.debug('commit success')
+      writeSucessExcuteLog(config.get('NFT_STATISTICS.MONITOR_PATH'))
     } catch (e) {
       console.error(e.message)
       this.logger.error(e.message)
@@ -143,7 +139,6 @@ export class NftStatisticsAnalyseService {
       await this.nftStatisticsConnectionRunner.release()
       this.logger.debug('end analyse nft data')
       this.logger.debug('release success')
-      writeSucessExcuteLog(config.get('NFT_STATISTICS.MONITOR_PATH'))
     }
   }
 

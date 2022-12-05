@@ -43,25 +43,25 @@ async function analyseBootstrap(except = []) {
             .select(wallet_dp_wd_history_module_1.WalletDpWdHistoryModule)
             .get(wallet_dp_wd_history_analyse_service_1.WalletDpWdHistoryAnalyseService, { strict: true });
         if (except && !except.includes('tx')) {
-            await tx.analyseData();
+            await tx.analyse();
         }
         if (except && !except.includes('explorer')) {
-            await explorer.analyseData();
+            await explorer.analyse();
         }
         if (except && !except.includes('smartContract')) {
-            await smartContract.analyseData();
+            await smartContract.analyse();
         }
         if (except && !except.includes('wallet')) {
-            await wallet.analyseData();
+            await wallet.analyse();
         }
         if (except && !except.includes('nft')) {
-            await nft.analyseData(i);
+            await nft.analyse(i);
         }
         if (except && !except.includes('stake')) {
-            await stake.analyseData();
+            await stake.analyse();
         }
         if (except && !except.includes('nft-statistics')) {
-            await nftStatistics.analyseData();
+            await nftStatistics.analyse();
         }
         if (except && !except.includes('wallet-send-history')) {
             await walletSendHistory.analyse();

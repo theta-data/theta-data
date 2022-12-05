@@ -148,13 +148,13 @@ let WalletTxHistoryAnalyseService = class WalletTxHistoryAnalyseService {
 };
 WalletTxHistoryAnalyseService = __decorate([
     (0, common_1.Injectable)(),
-    __param(1, (0, typeorm_2.InjectConnection)('wallet')),
-    __param(2, (0, typeorm_2.InjectConnection)('explorer')),
-    __param(3, (0, typeorm_2.InjectConnection)('wallet-tx-history')),
+    __param(1, (0, typeorm_2.InjectDataSource)('wallet')),
+    __param(2, (0, typeorm_2.InjectDataSource)('explorer')),
+    __param(3, (0, typeorm_2.InjectDataSource)('wallet-tx-history')),
     __metadata("design:paramtypes", [utils_service_1.UtilsService,
-        typeorm_1.Connection,
-        typeorm_1.Connection,
-        typeorm_1.Connection])
+        typeorm_1.DataSource,
+        typeorm_1.DataSource,
+        typeorm_1.DataSource])
 ], WalletTxHistoryAnalyseService);
 exports.WalletTxHistoryAnalyseService = WalletTxHistoryAnalyseService;
 //# sourceMappingURL=wallet-tx-history-analyse.service.js.map

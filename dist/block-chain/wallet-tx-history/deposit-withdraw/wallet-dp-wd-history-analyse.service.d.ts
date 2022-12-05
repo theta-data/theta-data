@@ -1,5 +1,5 @@
 import { UtilsService } from 'src/common/utils.service';
-import { Connection } from 'typeorm';
+import { DataSource } from 'typeorm';
 import { RpcService } from 'src/block-chain/rpc/rpc.service';
 export declare class WalletDpWdHistoryAnalyseService {
     private utilsService;
@@ -9,7 +9,7 @@ export declare class WalletDpWdHistoryAnalyseService {
     private recordLogFile;
     private runner;
     private stakeRunner;
-    constructor(utilsService: UtilsService, connection: Connection, rpcService: RpcService);
+    constructor(utilsService: UtilsService, connection: DataSource, rpcService: RpcService);
     analyse(): Promise<void>;
     private analyseBlock;
 }

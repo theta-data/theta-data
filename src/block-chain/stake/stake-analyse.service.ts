@@ -32,7 +32,7 @@ export class StakeAnalyseService {
     this.logger.debug(config.get('THETA_NODE_HOST'))
   }
 
-  public async analyseData() {
+  public async analyse() {
     try {
       this.stakeConnectionRunner = this.stakeConnectionInjected.createQueryRunner()
       await this.stakeConnectionRunner.startTransaction()

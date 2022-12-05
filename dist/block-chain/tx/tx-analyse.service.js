@@ -32,7 +32,7 @@ let TxAnalyseService = class TxAnalyseService {
         this.counter = 0;
         this.heightConfigFile = const_1.config.get('ORM_CONFIG')['database'] + 'tx/record.height';
     }
-    async analyseData() {
+    async analyse() {
         try {
             this.txConnectionRunner = this.connection.createQueryRunner();
             await this.txConnectionRunner.startTransaction();
@@ -160,9 +160,9 @@ let TxAnalyseService = class TxAnalyseService {
 };
 TxAnalyseService = __decorate([
     (0, common_1.Injectable)(),
-    __param(1, (0, typeorm_2.InjectConnection)('tx')),
+    __param(1, (0, typeorm_2.InjectDataSource)('tx')),
     __metadata("design:paramtypes", [utils_service_1.UtilsService,
-        typeorm_1.Connection,
+        typeorm_1.DataSource,
         rpc_service_1.RpcService])
 ], TxAnalyseService);
 exports.TxAnalyseService = TxAnalyseService;

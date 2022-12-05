@@ -132,9 +132,9 @@ let WalletSendHistoryAnalyseService = class WalletSendHistoryAnalyseService {
 };
 WalletSendHistoryAnalyseService = __decorate([
     (0, common_1.Injectable)(),
-    __param(1, (0, typeorm_1.InjectConnection)('wallet-send-history')),
+    __param(1, (0, typeorm_1.InjectDataSource)('wallet-send-history')),
     __metadata("design:paramtypes", [utils_service_1.UtilsService,
-        typeorm_2.Connection,
+        typeorm_2.DataSource,
         rpc_service_1.RpcService])
 ], WalletSendHistoryAnalyseService);
 exports.WalletSendHistoryAnalyseService = WalletSendHistoryAnalyseService;

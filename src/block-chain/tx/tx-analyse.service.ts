@@ -29,7 +29,7 @@ export class TxAnalyseService {
     // this.logger.debug(config.get('THETA_NODE_HOST'))
   }
 
-  public async analyseData() {
+  public async analyse() {
     try {
       this.txConnectionRunner = this.connection.createQueryRunner()
       // await this.txConnectionRunner.connect()
