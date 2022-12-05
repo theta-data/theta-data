@@ -1,5 +1,5 @@
-import { Injectable, Logger, SerializeOptions } from '@nestjs/common'
-import { Connection, getConnection, getConnectionManager, QueryRunner } from 'typeorm'
+import { Injectable, Logger } from '@nestjs/common'
+import { DataSource, QueryRunner } from 'typeorm'
 import { THETA_TRANSACTION_TYPE_ENUM } from 'theta-ts-sdk/dist/types/enum'
 // import { thetaTsSdk } from 'theta-ts-sdk'
 import { THETA_BLOCK_INTERFACE } from 'theta-ts-sdk/src/types/interface'
@@ -7,7 +7,7 @@ import BigNumber from 'bignumber.js'
 import { SmartContractEntity } from 'src/block-chain/smart-contract/smart-contract.entity'
 import { UtilsService, writeFailExcuteLog, writeSucessExcuteLog } from 'src/common/utils.service'
 import { config } from 'src/const'
-import { InjectConnection } from '@nestjs/typeorm'
+import { InjectDataSource } from '@nestjs/typeorm'
 import { RpcService } from '../rpc/rpc.service'
 const moment = require('moment')
 
@@ -21,8 +21,8 @@ export class TxAnalyseService {
   private heightConfigFile = config.get('ORM_CONFIG')['database'] + 'tx/record.height'
   constructor(
     private utilsService: UtilsService,
-    @InjectConnection('tx')
-    private readonly connection: Connection,
+    @InjectDataSource('tx')
+    private readonly connection: DataSource,
     private rpcService: RpcService
   ) {
     // thetaTsSdk.blockchain.setUrl(config.get('THETA_NODE_HOST'))

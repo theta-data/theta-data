@@ -3,14 +3,14 @@ import { CountEntity } from './count.entity'
 import { TransactionEntity } from './transaction.entity'
 import { BlokcListEntity } from './block-list.entity'
 import { UtilsService, writeFailExcuteLog, writeSucessExcuteLog } from 'src/common/utils.service'
-import { Connection, getConnection, QueryRunner } from 'typeorm'
+import { DataSource, QueryRunner } from 'typeorm'
 import { Injectable, Logger } from '@nestjs/common'
 import { thetaTsSdk } from 'theta-ts-sdk'
 import { THETA_BLOCK_INTERFACE } from 'theta-ts-sdk/dist/types/interface'
 import BigNumber from 'bignumber.js'
 import { THETA_TRANSACTION_TYPE_ENUM } from 'theta-ts-sdk/dist/types/enum'
 import { config } from 'src/const'
-import { InjectConnection } from '@nestjs/typeorm'
+import { InjectDataSource } from '@nestjs/typeorm'
 
 const path = require('path')
 // console.log('get path', path.basename(path.resolve(process.cwd())))
@@ -29,8 +29,8 @@ export class ExplorerAnalyseService {
 
   constructor(
     private utilsService: UtilsService,
-    @InjectConnection('explorer')
-    private readonly explorerConnectionInjected: Connection
+    @InjectDataSource('explorer')
+    private readonly explorerConnectionInjected: DataSource
   ) {
     // this.utilsService = utilsService
   }

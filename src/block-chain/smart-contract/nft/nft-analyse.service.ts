@@ -5,20 +5,18 @@ import { NftTransferRecordEntity } from 'src/block-chain/smart-contract/nft/nft-
 import { NftBalanceEntity } from './nft-balance.entity'
 import { Injectable, Logger } from '@nestjs/common'
 import {
-  Between,
   Connection,
-  getConnection,
+  DataSource,
   LessThan,
   MoreThan,
   MoreThanOrEqual,
   Not,
   QueryRunner
 } from 'typeorm'
-import { SmartContractCallRecordEntity } from 'src/block-chain/smart-contract/smart-contract-call-record.entity'
 import { NftService } from 'src/block-chain/smart-contract/nft/nft.service'
 import { UtilsService, writeFailExcuteLog, writeSucessExcuteLog } from 'src/common/utils.service'
 import { config } from 'src/const'
-import { InjectConnection } from '@nestjs/typeorm'
+import { InjectDataSource } from '@nestjs/typeorm'
 const fs = require('fs')
 @Injectable()
 export class NftAnalyseService {
@@ -34,8 +32,8 @@ export class NftAnalyseService {
   constructor(
     private nftService: NftService,
     private utilsService: UtilsService,
-    @InjectConnection('smart_contract') private smartContractConnectionInjected: Connection,
-    @InjectConnection('nft') private nftConnectionInjected: Connection
+    @InjectDataSource('smart_contract') private smartContractConnectionInjected: DataSource,
+    @InjectDataSource('nft') private nftConnectionInjected: DataSource
   ) {}
 
   public async analyseData(loop: number) {
@@ -218,29 +216,33 @@ export class NftAnalyseService {
       }
 
       const allNftRecords = await this.smartContractConnectionRunner.manager.find(
-        SmartContractCallRecordEntity,
+        SmartContractCallLogEntity,
         {
           where: {
-            contract_id: Not(contract.id),
-            timestamp: Between(
-              contract.verification_date - 60 * 60 * 1,
-              contract.verification_date + 10 * 60
-            )
-          }
-        }
-      )
-      const nftRelatedRecords = await this.smartContractConnectionRunner.manager.find(
-        SmartContractCallRecordEntity,
-        {
-          where: {
-            contract_id: contract.id,
+            address: contract.contract_address,
             timestamp: LessThan(contract.verification_date + 10 * 60)
+            // timestamp: Between(
+            //   contract.verification_date - 60 * 60 * 1,
+            //   contract.verification_date + 10 * 60
+            // )
+          },
+          order: {
+            id: 'ASC'
           }
         }
       )
-      const nftRecords = nftRelatedRecords.concat(allNftRecords)
-      for (const record of nftRecords) {
-        await this.nftService.updateNftRecord(
+      // const nftRelatedRecords = await this.smartContractConnectionRunner.manager.find(
+      //   SmartContractCallRecordEntity,
+      //   {
+      //     where: {
+      //       contract_id: contract.id,
+      //       timestamp: LessThan(contract.verification_date + 10 * 60)
+      //     }
+      //   }
+      // )
+      // const nftRecords = nftRelatedRecords.concat(allNftRecords)
+      for (const record of allNftRecords) {
+        await this.nftService.updateNftLog(
           this.nftConnectionRunner,
           this.smartContractConnectionRunner,
           record

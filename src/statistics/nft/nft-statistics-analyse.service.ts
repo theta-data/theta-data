@@ -1,4 +1,3 @@
-import { Paginated } from 'src/common/common.model'
 import { TokenMarketInformationType } from './../../market/market.model'
 import { Injectable, Logger } from '@nestjs/common'
 import { NftBalanceEntity } from 'src/block-chain/smart-contract/nft/nft-balance.entity'
@@ -7,16 +6,7 @@ import { SmartContractEntity } from 'src/block-chain/smart-contract/smart-contra
 import { UtilsService, writeFailExcuteLog, writeSucessExcuteLog } from 'src/common/utils.service'
 import { SmartContractProtocolEnum } from 'src/contact/contact.entity'
 import { MarketService } from 'src/market/market.service'
-import {
-  Connection,
-  getConnection,
-  LessThan,
-  MoreThan,
-  MoreThanOrEqual,
-  Not,
-  QueryRunner,
-  Repository
-} from 'typeorm'
+import { DataSource, LessThan, MoreThan, MoreThanOrEqual, Not, QueryRunner } from 'typeorm'
 import { NftStatisticsEntity } from './nft-statistics.entity'
 const fs = require('fs')
 const moment = require('moment')
@@ -28,9 +18,8 @@ let nftIgnore = []
 if (fs.existsSync('resources/nft-ignore.json')) {
   nftIgnore = JSON.parse(fs.readFileSync('resources/nft-ignore.json'))
 }
-import fetch from 'cross-fetch'
 import { config } from 'src/const'
-import { InjectConnection } from '@nestjs/typeorm'
+import { InjectDataSource } from '@nestjs/typeorm'
 @Injectable()
 export class NftStatisticsAnalyseService {
   private readonly logger = new Logger('nft statistics analyse service')
@@ -49,11 +38,11 @@ export class NftStatisticsAnalyseService {
   constructor(
     private utilsService: UtilsService,
     private marketService: MarketService,
-    @InjectConnection('smart_contract')
-    private smartContractConnectionInjected: Connection,
-    @InjectConnection('nft') private nftConnectionInjected: Connection,
-    @InjectConnection('nft-statistics')
-    private nftStatisticsConnectionInjected: Connection
+    @InjectDataSource('smart_contract')
+    private smartContractConnectionInjected: DataSource,
+    @InjectDataSource('nft') private nftConnectionInjected: DataSource,
+    @InjectDataSource('nft-statistics')
+    private nftStatisticsConnectionInjected: DataSource
   ) {}
 
   public async analyseData() {

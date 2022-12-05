@@ -1,7 +1,7 @@
 import { RpcService } from 'src/block-chain/rpc/rpc.service'
 import { LatestStakeInfoEntity } from './latest-stake-info.entity'
 import { Injectable, Logger } from '@nestjs/common'
-import { Connection, getConnection, LessThan, MoreThan, QueryRunner } from 'typeorm'
+import { DataSource, LessThan, MoreThan, QueryRunner } from 'typeorm'
 import { THETA_TRANSACTION_TYPE_ENUM } from 'theta-ts-sdk/dist/types/enum'
 import { THETA_BLOCK_INTERFACE } from 'theta-ts-sdk/src/types/interface'
 import BigNumber from 'bignumber.js'
@@ -10,7 +10,7 @@ import { StakeRewardEntity } from '../../block-chain/stake/stake-reward.entity'
 import { UtilsService, writeFailExcuteLog, writeSucessExcuteLog } from 'src/common/utils.service'
 // import { STAKE_NODE_TYPE_ENUM } from './stake.entity'
 import { config } from 'src/const'
-import { InjectConnection } from '@nestjs/typeorm'
+import { InjectDataSource } from '@nestjs/typeorm'
 import { STAKE_NODE_TYPE_ENUM } from './stake.model'
 const moment = require('moment')
 @Injectable()
@@ -27,7 +27,7 @@ export class StakeAnalyseService {
     // private loggerService: LoggerService,
     private utilsService: UtilsService,
     private rpcService: RpcService,
-    @InjectConnection('stake') private stakeConnectionInjected: Connection
+    @InjectDataSource('stake') private stakeConnectionInjected: DataSource
   ) {
     this.logger.debug(config.get('THETA_NODE_HOST'))
   }

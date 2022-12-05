@@ -20,7 +20,6 @@ const nft_transfer_record_entity_1 = require("./nft-transfer-record.entity");
 const nft_balance_entity_1 = require("./nft-balance.entity");
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("typeorm");
-const smart_contract_call_record_entity_1 = require("../smart-contract-call-record.entity");
 const nft_service_1 = require("./nft.service");
 const utils_service_1 = require("../../../common/utils.service");
 const const_1 = require("../../../const");
@@ -158,21 +157,17 @@ let NftAnalyseService = class NftAnalyseService {
             if (retrived) {
                 continue;
             }
-            const allNftRecords = await this.smartContractConnectionRunner.manager.find(smart_contract_call_record_entity_1.SmartContractCallRecordEntity, {
+            const allNftRecords = await this.smartContractConnectionRunner.manager.find(smart_contract_call_log_entity_1.SmartContractCallLogEntity, {
                 where: {
-                    contract_id: (0, typeorm_1.Not)(contract.id),
-                    timestamp: (0, typeorm_1.Between)(contract.verification_date - 60 * 60 * 1, contract.verification_date + 10 * 60)
-                }
-            });
-            const nftRelatedRecords = await this.smartContractConnectionRunner.manager.find(smart_contract_call_record_entity_1.SmartContractCallRecordEntity, {
-                where: {
-                    contract_id: contract.id,
+                    address: contract.contract_address,
                     timestamp: (0, typeorm_1.LessThan)(contract.verification_date + 10 * 60)
+                },
+                order: {
+                    id: 'ASC'
                 }
             });
-            const nftRecords = nftRelatedRecords.concat(allNftRecords);
-            for (const record of nftRecords) {
-                await this.nftService.updateNftRecord(this.nftConnectionRunner, this.smartContractConnectionRunner, record);
+            for (const record of allNftRecords) {
+                await this.nftService.updateNftLog(this.nftConnectionRunner, this.smartContractConnectionRunner, record);
             }
             const retrive = new nft_retrive_entity_1.NftRetriveEntity();
             retrive.smart_contract_address = contract.contract_address;
@@ -210,8 +205,8 @@ let NftAnalyseService = class NftAnalyseService {
 };
 NftAnalyseService = __decorate([
     (0, common_1.Injectable)(),
-    __param(2, (0, typeorm_2.InjectConnection)('smart_contract')),
-    __param(3, (0, typeorm_2.InjectConnection)('nft')),
+    __param(2, (0, typeorm_2.InjectDataSource)('smart_contract')),
+    __param(3, (0, typeorm_2.InjectDataSource)('nft')),
     __metadata("design:paramtypes", [nft_service_1.NftService,
         utils_service_1.UtilsService,
         typeorm_1.Connection,

@@ -1,16 +1,10 @@
 import { WalletDpWdHistoryEntity } from './wallet-dp-wd-history.entity'
 import { THETA_TRANSACTION_TYPE_ENUM } from 'theta-ts-sdk/dist/types/enum'
 import { THETA_BLOCK_INTERFACE } from 'theta-ts-sdk/dist/types/interface'
-import {
-  BadGatewayException,
-  ForbiddenException,
-  Injectable,
-  Logger,
-  NotFoundException
-} from '@nestjs/common'
-import { InjectConnection } from '@nestjs/typeorm'
+import { ForbiddenException, Injectable, Logger } from '@nestjs/common'
+import { InjectDataSource } from '@nestjs/typeorm'
 import { UtilsService, writeFailExcuteLog, writeSucessExcuteLog } from 'src/common/utils.service'
-import { Connection, QueryRunner } from 'typeorm'
+import { DataSource, QueryRunner } from 'typeorm'
 import { RpcService } from 'src/block-chain/rpc/rpc.service'
 import BigNumber from 'bignumber.js'
 import { STAKE_NODE_TYPE_ENUM } from 'src/block-chain/stake/stake.model'
@@ -25,8 +19,8 @@ export class WalletDpWdHistoryAnalyseService {
   constructor(
     private utilsService: UtilsService,
 
-    @InjectConnection('wallet-dp-wd-history')
-    private readonly connection: Connection,
+    @InjectDataSource('wallet-dp-wd-history')
+    private readonly connection: DataSource,
 
     private rpcService: RpcService
   ) {}

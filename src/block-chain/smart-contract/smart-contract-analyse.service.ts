@@ -1,6 +1,6 @@
 import { SmartContractCallLogEntity } from './smart-contract-call-log.entity'
-import { Injectable, Logger, NotFoundException } from '@nestjs/common'
-import { Connection, getConnection, LessThan, MoreThan, QueryRunner } from 'typeorm'
+import { Injectable, Logger } from '@nestjs/common'
+import { DataSource, LessThan, MoreThan, QueryRunner } from 'typeorm'
 import { THETA_TRANSACTION_TYPE_ENUM } from 'theta-ts-sdk/dist/types/enum'
 import { thetaTsSdk } from 'theta-ts-sdk'
 import { THETA_BLOCK_INTERFACE } from 'theta-ts-sdk/src/types/interface'
@@ -14,9 +14,8 @@ import { UtilsService, writeFailExcuteLog, writeSucessExcuteLog } from 'src/comm
 import { SmartContractService } from 'src/block-chain/smart-contract/smart-contract.service'
 import fetch from 'cross-fetch'
 import { config } from 'src/const'
-import { InjectConnection } from '@nestjs/typeorm'
+import { InjectDataSource } from '@nestjs/typeorm'
 import { SolcService } from 'src/common/solc.service'
-import { race } from 'rxjs'
 const moment = require('moment')
 const fs = require('fs')
 @Injectable()
@@ -33,7 +32,7 @@ export class SmartContractAnalyseService {
     private utilsService: UtilsService,
     private smartContractService: SmartContractService,
     private solcService: SolcService,
-    @InjectConnection('smart_contract') private smartContractConnectionInjected: Connection
+    @InjectDataSource('smart_contract') private smartContractConnectionInjected: DataSource
   ) {
     // thetaTsSdk.blockchain.setUrl(config.get('SMART_CONTRACT.THETA_NODE_HOST'))
     this.logger.debug(config.get('SMART_CONTRACT.THETA_NODE_HOST'))

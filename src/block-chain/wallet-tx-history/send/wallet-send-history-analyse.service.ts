@@ -1,9 +1,9 @@
 import { THETA_TRANSACTION_TYPE_ENUM } from 'theta-ts-sdk/dist/types/enum'
 import { THETA_BLOCK_INTERFACE } from 'theta-ts-sdk/dist/types/interface'
 import { Injectable, Logger } from '@nestjs/common'
-import { InjectConnection } from '@nestjs/typeorm'
+import { InjectDataSource } from '@nestjs/typeorm'
 import { UtilsService, writeFailExcuteLog, writeSucessExcuteLog } from 'src/common/utils.service'
-import { Connection, QueryRunner } from 'typeorm'
+import { DataSource, QueryRunner } from 'typeorm'
 import { RpcService } from 'src/block-chain/rpc/rpc.service'
 import BigNumber from 'bignumber.js'
 import { WalletSendHistoryEntity } from './wallet-send-history.entity'
@@ -17,8 +17,8 @@ export class WalletSendHistoryAnalyseService {
   constructor(
     private utilsService: UtilsService,
 
-    @InjectConnection('wallet-send-history')
-    private readonly connection: Connection,
+    @InjectDataSource('wallet-send-history')
+    private readonly connection: DataSource,
     private rpcService: RpcService
   ) {}
 
