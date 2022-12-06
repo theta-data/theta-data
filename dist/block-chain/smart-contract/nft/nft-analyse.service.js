@@ -193,12 +193,24 @@ let NftAnalyseService = class NftAnalyseService {
             if (nft.detail) {
                 const nftDetail = JSON.parse(nft.detail);
                 nft.img_uri = nftDetail.image;
-                await this.nftConnectionRunner.manager.save(nft);
-                await this.nftConnectionRunner.manager.update(nft_transfer_record_entity_1.NftTransferRecordEntity, {
-                    smart_contract_address: nft.smart_contract_address,
-                    token_id: nft.token_id
-                }, { img_uri: nft.img_uri });
             }
+            else {
+                try {
+                    const res = await this.utilsService.getJsonRes(nft.token_uri);
+                    this.logger.debug(res);
+                    nft.detail = JSON.stringify(res);
+                    nft.name = res.name;
+                    nft.img_uri = await this.utilsService.downloadImage(res.image, const_1.config.get('NFT.STATIC_PATH'));
+                }
+                catch (e) {
+                    this.logger.error(e);
+                }
+            }
+            await this.nftConnectionRunner.manager.save(nft);
+            await this.nftConnectionRunner.manager.update(nft_transfer_record_entity_1.NftTransferRecordEntity, {
+                smart_contract_address: nft.smart_contract_address,
+                token_id: nft.token_id
+            }, { img_uri: nft.img_uri });
         }
         this.utilsService.updateRecordHeight(this.imgPathRestoreId, nftList[nftList.length - 1].id);
     }
