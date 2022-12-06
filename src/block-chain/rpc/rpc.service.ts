@@ -48,4 +48,9 @@ export class RpcService {
     return (await thetaTsSdk.blockchain.getStakeRewardDistributionByHeight(height.toString()))
       .result
   }
+
+  public async getBlockSByRange(height: number, endHeight: number) {
+    return (await thetaTsSdk.blockchain.getBlockSByRange(height.toString(), endHeight.toString()))
+      .result
+  }
 }

@@ -13,6 +13,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SmartContractAnalyseService = void 0;
+const smart_contract_call_log_entity_1 = require("./smart-contract-call-log.entity");
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("typeorm");
 const enum_1 = require("theta-ts-sdk/dist/types/enum");
@@ -43,7 +44,7 @@ let SmartContractAnalyseService = class SmartContractAnalyseService {
         this.smartContractList = [];
         this.logger.debug(const_1.config.get('SMART_CONTRACT.THETA_NODE_HOST'));
     }
-    async analyseData() {
+    async analyse() {
         try {
             this.smartContractConnectionRunner = this.smartContractConnectionInjected.createQueryRunner();
             await this.smartContractConnectionRunner.startTransaction();
@@ -63,16 +64,6 @@ let SmartContractAnalyseService = class SmartContractAnalyseService {
                 if (data && Number(data) > height) {
                     height = Number(data) + 1;
                 }
-            }
-            const latestRecord = await this.smartContractConnectionRunner.manager.findOne(smart_contract_call_record_entity_1.SmartContractCallRecordEntity, {
-                order: {
-                    height: 'DESC'
-                },
-                where: {}
-            });
-            const latestRecordHeight = latestRecord ? latestRecord.height : 0;
-            if (latestRecordHeight >= height) {
-                height = latestRecordHeight + 1;
             }
             if (height >= lastfinalizedHeight) {
                 await this.smartContractConnectionRunner.commitTransaction();
@@ -105,6 +96,7 @@ let SmartContractAnalyseService = class SmartContractAnalyseService {
             if (blockList.result.length > 1) {
                 this.utilsService.updateRecordHeight(this.heightConfigFile, Number(blockList.result[blockList.result.length - 1].height));
             }
+            (0, utils_service_1.writeSucessExcuteLog)(const_1.config.get('SMART_CONTRACT.MONITOR_PATH'));
         }
         catch (e) {
             console.error(e.message);
@@ -116,7 +108,6 @@ let SmartContractAnalyseService = class SmartContractAnalyseService {
         finally {
             await this.smartContractConnectionRunner.release();
             this.logger.debug('release success');
-            (0, utils_service_1.writeSucessExcuteLog)(const_1.config.get('SMART_CONTRACT.MONITOR_PATH'));
         }
     }
     async handleOrderCreatedEvent(block, latestFinalizedBlockHeight) {
@@ -125,7 +116,7 @@ let SmartContractAnalyseService = class SmartContractAnalyseService {
         for (const transaction of block.transactions) {
             switch (transaction.type) {
                 case enum_1.THETA_TRANSACTION_TYPE_ENUM.smart_contract:
-                    await this.smartContractConnectionRunner.query(`INSERT INTO smart_contract_entity(contract_address,height,call_times_update_timestamp) VALUES ('${transaction.receipt.ContractAddress}',${height},${moment().unix()})  ON CONFLICT (contract_address) DO UPDATE set call_times=call_times+1,call_times_update_timestamp=${moment().unix()};`);
+                    await this.smartContractConnectionRunner.query(`INSERT INTO smart_contract_entity(contract_address,height,call_times_update_timestamp) VALUES ('${transaction.receipt.ContractAddress}',${height},${moment().unix()})  ON CONFLICT (contract_address) DO UPDATE set call_times=call_times+1,call_times_update_timestamp=${Number(block.timestamp)};`);
                     if (this.smartContractList.indexOf(transaction.receipt.ContractAddress) == -1) {
                         this.smartContractList.push(transaction.receipt.ContractAddress);
                     }
@@ -147,14 +138,27 @@ let SmartContractAnalyseService = class SmartContractAnalyseService {
                     }
                     if (const_1.config.get('CONFLICT_TRANSACTIONS').indexOf(transaction.hash) !== -1)
                         break;
-                    await this.smartContractConnectionRunner.manager.insert(smart_contract_call_record_entity_1.SmartContractCallRecordEntity, {
-                        timestamp: Number(block.timestamp),
-                        data: transaction.raw.data,
-                        receipt: JSON.stringify(transaction.receipt),
-                        height: height,
-                        transaction_hash: transaction.hash,
-                        contract_id: smartContract.id
-                    });
+                    const contractRecord = await this.smartContractConnectionRunner.manager.findOne(smart_contract_call_record_entity_1.SmartContractCallRecordEntity, { where: { transaction_hash: transaction.hash, contract_id: smartContract.id } });
+                    if (!contractRecord) {
+                        await this.smartContractConnectionRunner.manager.insert(smart_contract_call_record_entity_1.SmartContractCallRecordEntity, {
+                            timestamp: Number(block.timestamp),
+                            data: transaction.raw.data,
+                            receipt: JSON.stringify(transaction.receipt),
+                            height: height,
+                            transaction_hash: transaction.hash,
+                            contract_id: smartContract.id
+                        });
+                    }
+                    for (const log of transaction.receipt.Logs) {
+                        this.logger.debug(JSON.stringify(log));
+                        await this.smartContractConnectionRunner.manager.insert(smart_contract_call_log_entity_1.SmartContractCallLogEntity, {
+                            address: log.address.toLocaleLowerCase(),
+                            data: JSON.stringify(log),
+                            height: height,
+                            transaction_hash: transaction.hash,
+                            timestamp: Number(block.timestamp)
+                        });
+                    }
                     break;
             }
         }
@@ -353,15 +357,18 @@ let SmartContractAnalyseService = class SmartContractAnalyseService {
             }
         }
     }
+    async updateCallLogEntity() {
+        await this.smartContractConnectionRunner.manager.insert(smart_contract_call_record_entity_1.SmartContractCallRecordEntity, {});
+    }
 };
 SmartContractAnalyseService = __decorate([
     (0, common_1.Injectable)(),
-    __param(4, (0, typeorm_2.InjectConnection)('smart_contract')),
+    __param(4, (0, typeorm_2.InjectDataSource)('smart_contract')),
     __metadata("design:paramtypes", [logger_service_1.LoggerService,
         utils_service_1.UtilsService,
         smart_contract_service_1.SmartContractService,
         solc_service_1.SolcService,
-        typeorm_1.Connection])
+        typeorm_1.DataSource])
 ], SmartContractAnalyseService);
 exports.SmartContractAnalyseService = SmartContractAnalyseService;
 //# sourceMappingURL=smart-contract-analyse.service.js.map

@@ -13,7 +13,7 @@ async function bootstrap() {
 
       // console.log('do while')
       await Promise.race([
-        service.analyseData(),
+        service.analyse(),
         new Promise((resolve, reject) => {
           setTimeout(() => {
             resolve('timeout')

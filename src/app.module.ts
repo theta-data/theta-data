@@ -1,3 +1,5 @@
+import { WalletDpWdHistoryModule } from './block-chain/wallet-tx-history/deposit-withdraw/wallet-dp-wd-history.module'
+import { WalletSendHistoryModule } from './block-chain/wallet-tx-history/send/wallet-send-history.module'
 import { WalletTxHistoryModule } from './block-chain/wallet-tx-history/wallet-tx-history.module'
 import { ExplorerModule } from './block-chain/explorer/explorer.module'
 import { CacheModule, MiddlewareConsumer, Module, NestModule } from '@nestjs/common'
@@ -99,6 +101,18 @@ import { ThetaTxNumByHoursEntity } from './block-chain/tx/theta-tx-num-by-hours.
       name: 'wallet-tx-history',
       entities: []
     }),
+    TypeOrmModule.forRoot({
+      ...config.get('ORM_CONFIG'),
+      database: config.get('ORM_CONFIG')['database'] + 'wallet-send-history/index.sqlite',
+      name: 'wallet-send-history',
+      entities: []
+    }),
+    TypeOrmModule.forRoot({
+      ...config.get('ORM_CONFIG'),
+      database: config.get('ORM_CONFIG')['database'] + 'wallet-dp-wd-history/index.sqlite',
+      name: 'wallet-dp-wd-history',
+      entities: []
+    }),
     GraphQLModule.forRoot({
       driver: ApolloDriver,
       installSubscriptionHandlers: true,
@@ -126,7 +140,9 @@ import { ThetaTxNumByHoursEntity } from './block-chain/tx/theta-tx-num-by-hours.
     LoggerModule,
     NftStatisticsModule,
     ExplorerModule,
-    WalletTxHistoryModule
+    WalletTxHistoryModule,
+    WalletSendHistoryModule,
+    WalletDpWdHistoryModule
   ],
   providers: [
     {

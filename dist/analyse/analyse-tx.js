@@ -12,7 +12,7 @@ async function bootstrap() {
             const app = await core_1.NestFactory.createApplicationContext(app_module_1.AppModule);
             const service = app.select(tx_module_1.TxModule).get(tx_analyse_service_1.TxAnalyseService, { strict: true });
             await Promise.race([
-                service.analyseData(),
+                service.analyse(),
                 new Promise((resolve, reject) => {
                     setTimeout(() => {
                         resolve('timeout');

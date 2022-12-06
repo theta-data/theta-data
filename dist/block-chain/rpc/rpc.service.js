@@ -48,6 +48,10 @@ let RpcService = class RpcService {
         return (await theta_ts_sdk_1.thetaTsSdk.blockchain.getStakeRewardDistributionByHeight(height.toString()))
             .result;
     }
+    async getBlockSByRange(height, endHeight) {
+        return (await theta_ts_sdk_1.thetaTsSdk.blockchain.getBlockSByRange(height.toString(), endHeight.toString()))
+            .result;
+    }
 };
 RpcService = __decorate([
     (0, common_1.Injectable)(),

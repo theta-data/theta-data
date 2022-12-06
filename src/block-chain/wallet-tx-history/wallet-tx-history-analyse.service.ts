@@ -1,11 +1,11 @@
 import { TransactionEntity } from './../explorer/transaction.entity'
 import { Injectable, Logger } from '@nestjs/common'
 import { UtilsService, writeFailExcuteLog, writeSucessExcuteLog } from 'src/common/utils.service'
-import { Connection, getConnection, MoreThan, QueryRunner } from 'typeorm'
+import { DataSource, MoreThan, QueryRunner } from 'typeorm'
 import { THETA_TRANSACTION_TYPE_ENUM } from '../tx/theta.enum'
 import { WalletTxHistoryEntity } from './wallet-tx-history.entity'
 import { config } from 'src/const'
-import { InjectConnection } from '@nestjs/typeorm'
+import { InjectDataSource } from '@nestjs/typeorm'
 const fs = require('fs')
 @Injectable()
 export class WalletTxHistoryAnalyseService {
@@ -18,9 +18,9 @@ export class WalletTxHistoryAnalyseService {
 
   constructor(
     private utilsService: UtilsService,
-    @InjectConnection('wallet') private walletConnectionInjected: Connection,
-    @InjectConnection('explorer') private explorerConnectionInjected: Connection,
-    @InjectConnection('wallet-tx-history') private walletTxHistoryConnectionInjected: Connection
+    @InjectDataSource('wallet') private walletConnectionInjected: DataSource,
+    @InjectDataSource('explorer') private explorerConnectionInjected: DataSource,
+    @InjectDataSource('wallet-tx-history') private walletTxHistoryConnectionInjected: DataSource
   ) {}
 
   public async analyseData() {

@@ -1,5 +1,6 @@
+import { SmartContractCallLogEntity } from './smart-contract-call-log.entity'
 import { Injectable, Logger } from '@nestjs/common'
-import { Connection, getConnection, LessThan, MoreThan, QueryRunner } from 'typeorm'
+import { DataSource, LessThan, MoreThan, QueryRunner } from 'typeorm'
 import { THETA_TRANSACTION_TYPE_ENUM } from 'theta-ts-sdk/dist/types/enum'
 import { thetaTsSdk } from 'theta-ts-sdk'
 import { THETA_BLOCK_INTERFACE } from 'theta-ts-sdk/src/types/interface'
@@ -13,7 +14,7 @@ import { UtilsService, writeFailExcuteLog, writeSucessExcuteLog } from 'src/comm
 import { SmartContractService } from 'src/block-chain/smart-contract/smart-contract.service'
 import fetch from 'cross-fetch'
 import { config } from 'src/const'
-import { InjectConnection } from '@nestjs/typeorm'
+import { InjectDataSource } from '@nestjs/typeorm'
 import { SolcService } from 'src/common/solc.service'
 const moment = require('moment')
 const fs = require('fs')
@@ -31,13 +32,13 @@ export class SmartContractAnalyseService {
     private utilsService: UtilsService,
     private smartContractService: SmartContractService,
     private solcService: SolcService,
-    @InjectConnection('smart_contract') private smartContractConnectionInjected: Connection
+    @InjectDataSource('smart_contract') private smartContractConnectionInjected: DataSource
   ) {
     // thetaTsSdk.blockchain.setUrl(config.get('SMART_CONTRACT.THETA_NODE_HOST'))
     this.logger.debug(config.get('SMART_CONTRACT.THETA_NODE_HOST'))
   }
 
-  public async analyseData() {
+  public async analyse() {
     try {
       this.smartContractConnectionRunner = this.smartContractConnectionInjected.createQueryRunner()
       // await this.smartContractConnection.connect()
@@ -63,21 +64,20 @@ export class SmartContractAnalyseService {
           height = Number(data) + 1
         }
       }
+      // const latestRecord = await this.smartContractConnectionRunner.manager.findOne(
+      //   SmartContractCallRecordEntity,
+      //   {
+      //     order: {
+      //       height: 'DESC'
+      //     },
+      //     where: {}
+      //   }
+      // )
+      // const latestRecordHeight = latestRecord ? latestRecord.height : 0
 
-      const latestRecord = await this.smartContractConnectionRunner.manager.findOne(
-        SmartContractCallRecordEntity,
-        {
-          order: {
-            height: 'DESC'
-          },
-          where: {}
-        }
-      )
-      const latestRecordHeight = latestRecord ? latestRecord.height : 0
-
-      if (latestRecordHeight >= height) {
-        height = latestRecordHeight + 1
-      }
+      // if (latestRecordHeight >= height) {
+      //   height = latestRecordHeight + 1
+      // }
 
       if (height >= lastfinalizedHeight) {
         await this.smartContractConnectionRunner.commitTransaction()
@@ -117,6 +117,7 @@ export class SmartContractAnalyseService {
           Number(blockList.result[blockList.result.length - 1].height)
         )
       }
+      writeSucessExcuteLog(config.get('SMART_CONTRACT.MONITOR_PATH'))
     } catch (e) {
       console.error(e.message)
       this.logger.error(e.message)
@@ -126,7 +127,6 @@ export class SmartContractAnalyseService {
     } finally {
       await this.smartContractConnectionRunner.release()
       this.logger.debug('release success')
-      writeSucessExcuteLog(config.get('SMART_CONTRACT.MONITOR_PATH'))
     }
     // await this.
   }
@@ -140,7 +140,9 @@ export class SmartContractAnalyseService {
           await this.smartContractConnectionRunner.query(
             `INSERT INTO smart_contract_entity(contract_address,height,call_times_update_timestamp) VALUES ('${
               transaction.receipt.ContractAddress
-            }',${height},${moment().unix()})  ON CONFLICT (contract_address) DO UPDATE set call_times=call_times+1,call_times_update_timestamp=${moment().unix()};`
+            }',${height},${moment().unix()})  ON CONFLICT (contract_address) DO UPDATE set call_times=call_times+1,call_times_update_timestamp=${Number(
+              block.timestamp
+            )};`
           )
           if (this.smartContractList.indexOf(transaction.receipt.ContractAddress) == -1) {
             this.smartContractList.push(transaction.receipt.ContractAddress)
@@ -170,18 +172,35 @@ export class SmartContractAnalyseService {
             )
           }
           if (config.get('CONFLICT_TRANSACTIONS').indexOf(transaction.hash) !== -1) break
-          await this.smartContractConnectionRunner.manager.insert(
+          const contractRecord = await this.smartContractConnectionRunner.manager.findOne(
             SmartContractCallRecordEntity,
-            {
-              timestamp: Number(block.timestamp),
-              data: transaction.raw.data,
-              receipt: JSON.stringify(transaction.receipt),
+            { where: { transaction_hash: transaction.hash, contract_id: smartContract.id } }
+          )
+          if (!contractRecord) {
+            await this.smartContractConnectionRunner.manager.insert(
+              SmartContractCallRecordEntity,
+              {
+                timestamp: Number(block.timestamp),
+                data: transaction.raw.data,
+                receipt: JSON.stringify(transaction.receipt),
+                height: height,
+                transaction_hash: transaction.hash,
+                contract_id: smartContract.id
+              }
+              // ['transaction_hash']
+            )
+          }
+
+          for (const log of transaction.receipt.Logs) {
+            this.logger.debug(JSON.stringify(log))
+            await this.smartContractConnectionRunner.manager.insert(SmartContractCallLogEntity, {
+              address: log.address.toLocaleLowerCase(),
+              data: JSON.stringify(log),
               height: height,
               transaction_hash: transaction.hash,
-              contract_id: smartContract.id
-            }
-            // ['transaction_hash']
-          )
+              timestamp: Number(block.timestamp)
+            })
+          }
           break
       }
     }
@@ -477,5 +496,9 @@ export class SmartContractAnalyseService {
         }
       }
     }
+  }
+
+  async updateCallLogEntity() {
+    await this.smartContractConnectionRunner.manager.insert(SmartContractCallRecordEntity, {})
   }
 }

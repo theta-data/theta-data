@@ -37,7 +37,7 @@ let WalletsAnalyseService = class WalletsAnalyseService {
         this.heightConfigFile = const_1.config.get('ORM_CONFIG')['database'] + 'wallet/record.height';
         this.logger.debug(const_1.config.get('THETA_NODE_HOST'));
     }
-    async analyseData() {
+    async analyse() {
         try {
             this.walletConnectionRunner = this.walletConnectionInjected.createQueryRunner();
             this.smartContractConnectionRunner = this.smartContractConnectionInjected.createQueryRunner();
@@ -309,12 +309,12 @@ let WalletsAnalyseService = class WalletsAnalyseService {
 };
 WalletsAnalyseService = __decorate([
     (0, common_1.Injectable)(),
-    __param(2, (0, typeorm_2.InjectConnection)('wallet')),
-    __param(3, (0, typeorm_2.InjectConnection)('smart_contract')),
+    __param(2, (0, typeorm_2.InjectDataSource)('wallet')),
+    __param(3, (0, typeorm_2.InjectDataSource)('smart_contract')),
     __metadata("design:paramtypes", [logger_service_1.LoggerService,
         utils_service_1.UtilsService,
-        typeorm_1.Connection,
-        typeorm_1.Connection])
+        typeorm_1.DataSource,
+        typeorm_1.DataSource])
 ], WalletsAnalyseService);
 exports.WalletsAnalyseService = WalletsAnalyseService;
 //# sourceMappingURL=wallets-analyse.service.js.map

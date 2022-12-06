@@ -1,4 +1,4 @@
-import { Connection } from 'typeorm';
+import { DataSource } from 'typeorm';
 import { THETA_BLOCK_INTERFACE } from 'theta-ts-sdk/src/types/interface';
 import { LoggerService } from 'src/common/logger.service';
 import { UtilsService } from 'src/common/utils.service';
@@ -17,11 +17,12 @@ export declare class SmartContractAnalyseService {
     private smartContractConnectionRunner;
     private heightConfigFile;
     private smartContractList;
-    constructor(loggerService: LoggerService, utilsService: UtilsService, smartContractService: SmartContractService, solcService: SolcService, smartContractConnectionInjected: Connection);
-    analyseData(): Promise<void>;
+    constructor(loggerService: LoggerService, utilsService: UtilsService, smartContractService: SmartContractService, solcService: SolcService, smartContractConnectionInjected: DataSource);
+    analyse(): Promise<void>;
     handleOrderCreatedEvent(block: THETA_BLOCK_INTERFACE, latestFinalizedBlockHeight: number): Promise<void>;
     verifyWithThetaExplorer(address: string): Promise<any>;
     updateCallTimesByPeriod(contractAddress: string): Promise<void>;
     clearCallTimeByPeriod(): Promise<void>;
     getVerifyInfo(address: string, sourceCode: string, byteCode: string, version: string, versionFullName: string, optimizer: boolean, optimizerRuns: number): Promise<any>;
+    updateCallLogEntity(): Promise<void>;
 }

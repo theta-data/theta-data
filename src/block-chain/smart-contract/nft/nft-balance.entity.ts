@@ -63,6 +63,9 @@ export class NftBalanceEntity {
   @Field(() => Int)
   @Column({ type: 'int' })
   token_id: number
+
+  @Column({ type: 'int', default: 0 })
+  refetch_times: number
   //   @Column({ type: 'int' })
   //   status: NftStatusEnum
 

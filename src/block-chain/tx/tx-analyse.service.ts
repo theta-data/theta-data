@@ -1,15 +1,14 @@
-import { Injectable, Logger, SerializeOptions } from '@nestjs/common'
-import { Connection, getConnection, getConnectionManager, QueryRunner } from 'typeorm'
+import { Injectable, Logger } from '@nestjs/common'
+import { DataSource, QueryRunner } from 'typeorm'
 import { THETA_TRANSACTION_TYPE_ENUM } from 'theta-ts-sdk/dist/types/enum'
-import { thetaTsSdk } from 'theta-ts-sdk'
+// import { thetaTsSdk } from 'theta-ts-sdk'
 import { THETA_BLOCK_INTERFACE } from 'theta-ts-sdk/src/types/interface'
 import BigNumber from 'bignumber.js'
 import { SmartContractEntity } from 'src/block-chain/smart-contract/smart-contract.entity'
 import { UtilsService, writeFailExcuteLog, writeSucessExcuteLog } from 'src/common/utils.service'
 import { config } from 'src/const'
-import { InjectConnection } from '@nestjs/typeorm'
-import { createConnection } from 'net'
-// const config = require('config')
+import { InjectDataSource } from '@nestjs/typeorm'
+import { RpcService } from '../rpc/rpc.service'
 const moment = require('moment')
 
 @Injectable()
@@ -22,14 +21,15 @@ export class TxAnalyseService {
   private heightConfigFile = config.get('ORM_CONFIG')['database'] + 'tx/record.height'
   constructor(
     private utilsService: UtilsService,
-    @InjectConnection('tx')
-    private readonly connection: Connection
+    @InjectDataSource('tx')
+    private readonly connection: DataSource,
+    private rpcService: RpcService
   ) {
-    thetaTsSdk.blockchain.setUrl(config.get('THETA_NODE_HOST'))
+    // thetaTsSdk.blockchain.setUrl(config.get('THETA_NODE_HOST'))
     // this.logger.debug(config.get('THETA_NODE_HOST'))
   }
 
-  public async analyseData() {
+  public async analyse() {
     try {
       this.txConnectionRunner = this.connection.createQueryRunner()
       // await this.txConnectionRunner.connect()
@@ -37,7 +37,7 @@ export class TxAnalyseService {
 
       let height: number = 0
       const lastfinalizedHeight = Number(
-        (await thetaTsSdk.blockchain.getStatus()).result.latest_finalized_block_height
+        (await this.rpcService.getStatus()).latest_finalized_block_height
       )
       height = lastfinalizedHeight - 1000
 
@@ -60,27 +60,25 @@ export class TxAnalyseService {
       }
       this.logger.debug('start height: ' + height + '; end height: ' + endHeight)
       //   this.startTimestamp = moment().unix()
-      const blockList = await thetaTsSdk.blockchain.getBlockSByRange(
-        height.toString(),
-        endHeight.toString()
-      )
-      this.logger.debug('block list length:' + blockList.result.length)
-      this.counter = blockList.result.length
+      const blockList = await this.rpcService.getBlockSByRange(height, endHeight)
+      // this.logger.debug('block list length:' + blockList.result.length)
+      this.counter = blockList.length
       this.logger.debug('init counter', this.counter)
-      for (let i = 0; i < blockList.result.length; i++) {
-        const block = blockList.result[i]
+      for (let i = 0; i < blockList.length; i++) {
+        const block = blockList[i]
         this.logger.debug(block.height + ' start hanldle')
         await this.handleOrderCreatedEvent(block, lastfinalizedHeight)
       }
       this.logger.debug('start update calltimes by period')
       await this.txConnectionRunner.commitTransaction()
       this.logger.debug('commit success')
-      if (blockList.result.length > 1) {
+      if (blockList.length > 1) {
         this.utilsService.updateRecordHeight(
           this.heightConfigFile,
-          Number(blockList.result[blockList.result.length - 1].height)
+          Number(blockList[blockList.length - 1].height)
         )
       }
+      writeSucessExcuteLog(config.get('TX.MONITOR_PATH'))
     } catch (e) {
       // console.log(e)
       console.error(e.message)
@@ -92,7 +90,6 @@ export class TxAnalyseService {
     } finally {
       await this.txConnectionRunner.release()
       this.logger.debug('release success')
-      writeSucessExcuteLog(config.get('TX.MONITOR_PATH'))
     }
   }
 

@@ -1,3 +1,4 @@
+import { SmartContractCallLogEntity } from './../smart-contract-call-log.entity';
 import { Logger } from '@nestjs/common';
 import { QueryRunner, Repository } from 'typeorm';
 import { SmartContractCallRecordEntity } from '../smart-contract-call-record.entity';
@@ -16,6 +17,7 @@ export declare class NftService {
     parseRecordByContractAddress(contractAddress: string): Promise<number>;
     parseRecordByContractAddressWithConnection(nftConnection: QueryRunner, smartContractConnection: QueryRunner, contract: SmartContractEntity): Promise<number>;
     updateNftRecord(nftConnection: QueryRunner, smartContractConnection: QueryRunner, record: SmartContractCallRecordEntity): Promise<boolean>;
+    updateNftLog(nftConnection: QueryRunner, smartContractConnection: QueryRunner, logEntity: SmartContractCallLogEntity): Promise<boolean>;
     updateNftBalance(contract_address: string, from: string, to: string, tokenId: number): Promise<void>;
     getContractUri(address: string, abi: any): Promise<any>;
     getBaseTokenUri(address: string, abi: any): Promise<any>;

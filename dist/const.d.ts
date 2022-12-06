@@ -12,12 +12,14 @@ export declare const DEFAULT_CONFIG: {
             charset: string;
         };
     };
+    DL_NFT_IMG: boolean;
     START_HEIGHT: number;
     THETA_NODE_HOST: string;
     LOG_PATH: string;
     ANALYSE_INTERVAL: number;
     ANALYSE_NUMBER: number;
     IGNORE: boolean;
+    RESTORE_NFT_IMG_PATH: boolean;
     RATE_LIMIT: {
         ttl: number;
         limit: number;
@@ -71,6 +73,18 @@ export declare const DEFAULT_CONFIG: {
         MONITOR_PATH: string;
     };
     WALLET_TX_HISTORY: {
+        START_HEIGHT: number;
+        ANALYSE_NUMBER: number;
+        ANALYSE_INTERVAL: number;
+        MONITOR_PATH: string;
+    };
+    WALLET_SEND_HISTORY: {
+        START_HEIGHT: number;
+        ANALYSE_NUMBER: number;
+        ANALYSE_INTERVAL: number;
+        MONITOR_PATH: string;
+    };
+    WALLET_DP_WD_HISTORY: {
         START_HEIGHT: number;
         ANALYSE_NUMBER: number;
         ANALYSE_INTERVAL: number;

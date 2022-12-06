@@ -1,7 +1,7 @@
+import { RpcModule } from './../rpc/rpc.module'
 import { LatestStakeInfoEntity } from './latest-stake-info.entity'
 import { CacheModule, Module } from '@nestjs/common'
 import { TypeOrmModule } from '@nestjs/typeorm'
-import { StakeEntity } from './stake.entity'
 import { StakeService } from './stake.service'
 import { StakeResolver } from './stake.resolver'
 import { StakeStatisticsEntity } from './stake-statistics.entity'
@@ -16,8 +16,9 @@ import { CommonModule } from 'src/common/common.module'
   imports: [
     WalletModule,
     MarketModule,
+    RpcModule,
     TypeOrmModule.forFeature(
-      [StakeEntity, StakeStatisticsEntity, StakeRewardEntity, LatestStakeInfoEntity],
+      [StakeStatisticsEntity, StakeRewardEntity, LatestStakeInfoEntity],
       'stake'
     ),
     TypeOrmModule.forFeature([WalletEntity], 'wallet'),

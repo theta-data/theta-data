@@ -11,7 +11,7 @@ async function bootstrap() {
       const app = await NestFactory.createApplicationContext(AppModule)
       const service = app.select(ExplorerModule).get(ExplorerAnalyseService, { strict: true })
       await Promise.race([
-        service.analyseData(),
+        service.analyse(),
         new Promise((resolve, reject) => {
           setTimeout(() => {
             resolve('timeout')

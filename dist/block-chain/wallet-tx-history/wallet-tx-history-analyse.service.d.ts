@@ -1,6 +1,6 @@
 import { TransactionEntity } from './../explorer/transaction.entity';
 import { UtilsService } from 'src/common/utils.service';
-import { Connection } from 'typeorm';
+import { DataSource } from 'typeorm';
 export declare class WalletTxHistoryAnalyseService {
     private utilsService;
     private walletConnectionInjected;
@@ -11,7 +11,7 @@ export declare class WalletTxHistoryAnalyseService {
     private explorerConnectionRunner;
     private walletTxHistoryConnectionRunner;
     private heightConfigFile;
-    constructor(utilsService: UtilsService, walletConnectionInjected: Connection, explorerConnectionInjected: Connection, walletTxHistoryConnectionInjected: Connection);
+    constructor(utilsService: UtilsService, walletConnectionInjected: DataSource, explorerConnectionInjected: DataSource, walletTxHistoryConnectionInjected: DataSource);
     analyseData(): Promise<void>;
     addWallet(record: TransactionEntity, walletsToupdate: {
         [index: string]: Array<string>;

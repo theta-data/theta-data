@@ -10,10 +10,11 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.writeFailExcuteLog = exports.writeSucessExcuteLog = exports.UtilsService = void 0;
+const rpc_service_1 = require("./../block-chain/rpc/rpc.service");
 const common_1 = require("@nestjs/common");
 const ethers_1 = require("ethers");
 const theta_ts_sdk_1 = require("theta-ts-sdk");
-const config = require('config');
+const const_1 = require("../const");
 const fs = require('fs');
 const stream = require('stream');
 const url = require('url');
@@ -21,9 +22,11 @@ const { promisify } = require('util');
 const got = require('got');
 const path = require('path');
 const moment = require('moment');
+const axios = require('axios');
 let UtilsService = class UtilsService {
-    constructor() {
-        this.logger = new common_1.Logger();
+    constructor(rpcService) {
+        this.rpcService = rpcService;
+        this.logger = new common_1.Logger('utils service');
         this.normalize = function (hash) {
             const regex = /^0x/i;
             return regex.test(hash) ? hash : '0x' + hash;
@@ -158,6 +161,28 @@ let UtilsService = class UtilsService {
             return Number(data) + 1;
         }
     }
+    async getHeightRangeToAnalyse(module, heightConfigFile) {
+        let height = 0;
+        const lastfinalizedHeight = Number((await this.rpcService.getStatus()).latest_finalized_block_height);
+        height = lastfinalizedHeight - 1000;
+        if (const_1.config.get(module + '.START_HEIGHT')) {
+            height = const_1.config.get(module + '.START_HEIGHT');
+        }
+        const recordHeight = this.getRecordHeight(heightConfigFile);
+        height = recordHeight > height ? recordHeight : height;
+        if (height >= lastfinalizedHeight) {
+            this.logger.debug('commit success');
+            this.logger.debug('no height to analyse');
+            return [0, 0];
+        }
+        let endHeight = lastfinalizedHeight;
+        const analyseNumber = const_1.config.get(module + '.ANALYSE_NUMBER');
+        if (lastfinalizedHeight - height > analyseNumber) {
+            endHeight = height + analyseNumber;
+        }
+        this.logger.debug('start height: ' + height + '; end height: ' + endHeight);
+        return [height, endHeight];
+    }
     updateRecordHeight(path, height) {
         const fs = require('fs');
         fs.writeFileSync(path, height.toString());
@@ -175,8 +200,13 @@ let UtilsService = class UtilsService {
         this.logger.debug('url path: ' + urlPath);
         if (!urlPath)
             return null;
-        const pipeline = promisify(stream.pipeline);
         var parsed = url.parse(urlPath);
+        if (!parsed.pathname.replace(/\//g, ''))
+            return null;
+        if (!const_1.config.get('DL_NFT_IMG')) {
+            return urlPath;
+        }
+        const pipeline = promisify(stream.pipeline);
         if (!parsed.hostname) {
             return urlPath.replace(storePath, '');
         }
@@ -203,16 +233,42 @@ let UtilsService = class UtilsService {
             return imgStorePath.replace(storePath, '');
         }
     }
-    async getPath(urlPath, storePath) {
+    async getJsonRes(urlPath, timeout = 10000) {
+        var parsed = url.parse(urlPath);
+        if (parsed.host == 'api.thetadrop.com' && parsed.protocol == 'http:') {
+            urlPath = urlPath.replace('http', 'https');
+        }
+        const options = {
+            url: urlPath,
+            method: 'GET',
+            timeout: 10000,
+            responseType: 'json',
+            responseEncoding: 'utf8',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept-Encoding': 'gzip, deflate, br'
+            }
+        };
+        this.logger.debug(options);
+        const httpRes = await axios(options);
+        if (httpRes.status >= 400) {
+            throw new Error('Bad response from server');
+        }
+        return httpRes.data;
+    }
+    getPath(urlPath, storePath) {
         this.logger.debug('url path: ' + urlPath);
         if (!urlPath)
             return null;
         var parsed = url.parse(urlPath);
+        if (!parsed.pathname.replace(/\//g, ''))
+            return null;
+        if (!const_1.config.get('DL_NFT_IMG')) {
+            return urlPath;
+        }
         if (!parsed.hostname) {
             return urlPath.replace(storePath, '');
         }
-        if (!parsed.pathname)
-            return null;
         const imgPath = storePath + '/' + parsed.hostname.replace(/\./g, '-');
         return imgPath + parsed.pathname;
     }
@@ -227,7 +283,7 @@ let UtilsService = class UtilsService {
 };
 UtilsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [])
+    __metadata("design:paramtypes", [rpc_service_1.RpcService])
 ], UtilsService);
 exports.UtilsService = UtilsService;
 function writeSucessExcuteLog(logPath) {

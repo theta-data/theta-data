@@ -1,5 +1,6 @@
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm'
-import { STAKE_NODE_TYPE_ENUM } from './stake.entity'
+import { STAKE_NODE_TYPE_ENUM } from './stake.model'
+// import { STAKE_NODE_TYPE_ENUM } from './stake.entity'
 
 @Entity()
 export class LatestStakeInfoEntity {

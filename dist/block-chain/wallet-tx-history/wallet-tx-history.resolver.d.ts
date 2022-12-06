@@ -1,3 +1,4 @@
+import { HistoryTransactionsModel } from './wallet-tx-history.model';
 import { WalletTxHistoryService } from './wallet-tx-history.service';
 export declare class WalletTxHistoryResolver {
     private walletTxHistoryService;
@@ -10,4 +11,5 @@ export declare class WalletTxHistoryResolver {
         skip: number;
         endCursor: number;
     }>;
+    WalletActivityHistory(info: any, walletAddress: string, startTime: number, endTime: number): Promise<HistoryTransactionsModel>;
 }

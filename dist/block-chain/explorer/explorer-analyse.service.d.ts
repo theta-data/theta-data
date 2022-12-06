@@ -1,5 +1,5 @@
 import { UtilsService } from 'src/common/utils.service';
-import { Connection } from 'typeorm';
+import { DataSource } from 'typeorm';
 import { THETA_BLOCK_INTERFACE } from 'theta-ts-sdk/dist/types/interface';
 export declare class ExplorerAnalyseService {
     private utilsService;
@@ -9,8 +9,8 @@ export declare class ExplorerAnalyseService {
     private heightConfigFile;
     private current;
     private transactionNum;
-    constructor(utilsService: UtilsService, explorerConnectionInjected: Connection);
-    analyseData(): Promise<void>;
+    constructor(utilsService: UtilsService, explorerConnectionInjected: DataSource);
+    analyse(): Promise<void>;
     handleData(block: THETA_BLOCK_INTERFACE): Promise<import("typeorm").InsertResult>;
     getInitHeight(configPath: string): Promise<[Number, Number]>;
 }

@@ -14,6 +14,7 @@ export declare class NftBalanceEntity {
     img_uri: string;
     detail: string;
     token_id: number;
+    refetch_times: number;
     create_date: Date;
     update_date: Date;
 }

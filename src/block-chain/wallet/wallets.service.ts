@@ -1,3 +1,5 @@
+import { GetVcpByHeightModel } from './../rpc/rpc-vcp.model'
+import { GetEenpByHeightModel } from './../rpc/rpc-eenp.model'
 import { LatestStakeInfoEntity } from './../stake/latest-stake-info.entity'
 import { CACHE_MANAGER, Inject, Injectable, Logger } from '@nestjs/common'
 import { thetaTsSdk } from 'theta-ts-sdk'
@@ -10,12 +12,14 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { MoreThan, Repository } from 'typeorm'
 import { WalletEntity } from './wallet.entity'
 import { ActiveWalletsEntity } from './active-wallets.entity'
-import { STAKE_NODE_TYPE_ENUM } from '../stake/stake.entity'
+// import { STAKE_NODE_TYPE_ENUM } from '../stake/stake.entity'
 import {
   THETA_EENP_INTERFACE,
   THETA_GCP_INTERFACE,
   THETA_VCP_INTERFACE
 } from 'theta-ts-sdk/dist/types/interface'
+import { STAKE_NODE_TYPE_ENUM } from '../stake/stake.model'
+import { GetGcpByHeightModel } from '../rpc/rpc-gcp.model'
 
 @Injectable()
 export class WalletService {
@@ -107,7 +111,7 @@ export class WalletService {
     const gcpRes = await this.latestStakeInfoRepository.findOne({
       where: { node_type: STAKE_NODE_TYPE_ENUM.guardian }
     })
-    const gcpList: THETA_GCP_INTERFACE = JSON.parse(gcpRes.holder)
+    const gcpList: GetGcpByHeightModel = JSON.parse(gcpRes.holder)
 
     // const thetaMarketInfo = await this.marketInfo.getThetaMarketInfo()
     // const thetaFuelMarketInfo = await this.marketInfo.getThetaFuelMarketInfo()
@@ -116,7 +120,7 @@ export class WalletService {
 
     const usdRate = await this.getUsdRate()
 
-    gcpList.result.BlockHashGcpPairs[0].Gcp.SortedGuardians.forEach((guardian) => {
+    gcpList.BlockHashGcpPairs[0].Gcp.SortedGuardians.forEach((guardian) => {
       guardian.Stakes.forEach((stake) => {
         if (stake.source === address) {
           gcpStake.push({
@@ -144,9 +148,9 @@ export class WalletService {
     const eenpRes = await this.latestStakeInfoRepository.findOne({
       where: { node_type: STAKE_NODE_TYPE_ENUM.edge_cache }
     })
-    const eenpList: THETA_EENP_INTERFACE = JSON.parse(eenpRes.holder)
+    const eenpList: GetEenpByHeightModel = JSON.parse(eenpRes.holder)
 
-    eenpList.result.BlockHashEenpPairs[0].EENs.forEach((een) => {
+    eenpList.BlockHashEenpPairs[0].EENs.forEach((een) => {
       een.Stakes.forEach((stake) => {
         if (stake.source === address) {
           eenpStake.push({
@@ -174,9 +178,9 @@ export class WalletService {
     const vaRes = await this.latestStakeInfoRepository.findOne({
       where: { node_type: STAKE_NODE_TYPE_ENUM.validator }
     })
-    const validatorList: THETA_VCP_INTERFACE = JSON.parse(vaRes.holder)
+    const validatorList: GetVcpByHeightModel = JSON.parse(vaRes.holder)
 
-    validatorList.result.BlockHashVcpPairs[0].Vcp.SortedCandidates.forEach((vcp) => {
+    validatorList.BlockHashVcpPairs[0].Vcp.SortedCandidates.forEach((vcp) => {
       vcp.Stakes.forEach((stake) => {
         if (stake.source === address) {
           vcpStake.push({

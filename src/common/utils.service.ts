@@ -1,9 +1,11 @@
+import { RpcService } from './../block-chain/rpc/rpc.service'
 import { Injectable, Logger } from '@nestjs/common'
 // import BigNumber from 'bignumber.js'
 import { ethers } from 'ethers'
 // import { Logger } from 'ethers/lib/utils'
 import { thetaTsSdk } from 'theta-ts-sdk'
-const config = require('config')
+import { config } from 'src/const'
+// const config = require('config')
 const fs = require('fs')
 const stream = require('stream')
 const url = require('url')
@@ -11,6 +13,7 @@ const { promisify } = require('util')
 const got = require('got')
 const path = require('path')
 const moment = require('moment')
+const axios = require('axios')
 export interface LOG_DECODE_INTERFACE {
   address: string
   data: string
@@ -52,8 +55,8 @@ export interface LOG_DECODE_INTERFACE {
 }
 @Injectable()
 export class UtilsService {
-  logger = new Logger()
-  constructor() {
+  logger = new Logger('utils service')
+  constructor(private rpcService: RpcService) {
     // thetaTsSdk.blockchain.setUrl(config.get('THETA_NODE_HOST'))
   }
 
@@ -221,6 +224,34 @@ export class UtilsService {
     }
   }
 
+  async getHeightRangeToAnalyse(module: string, heightConfigFile): Promise<[number, number]> {
+    let height: number = 0
+    const lastfinalizedHeight = Number(
+      (await this.rpcService.getStatus()).latest_finalized_block_height
+    )
+    height = lastfinalizedHeight - 1000
+
+    if (config.get(module + '.START_HEIGHT')) {
+      height = config.get(module + '.START_HEIGHT')
+    }
+
+    const recordHeight = this.getRecordHeight(heightConfigFile)
+    height = recordHeight > height ? recordHeight : height
+    if (height >= lastfinalizedHeight) {
+      // await this.runner.commitTransaction()
+      this.logger.debug('commit success')
+      this.logger.debug('no height to analyse')
+      return [0, 0]
+    }
+    let endHeight = lastfinalizedHeight
+    const analyseNumber = config.get(module + '.ANALYSE_NUMBER')
+    if (lastfinalizedHeight - height > analyseNumber) {
+      endHeight = height + analyseNumber
+    }
+    this.logger.debug('start height: ' + height + '; end height: ' + endHeight)
+    return [height, endHeight]
+  }
+
   updateRecordHeight(path: string, height: number) {
     const fs = require('fs')
     fs.writeFileSync(path, height.toString())
@@ -239,26 +270,18 @@ export class UtilsService {
   async downloadImage(urlPath: string, storePath: string): Promise<string | null> {
     this.logger.debug('url path: ' + urlPath)
     if (!urlPath) return null
-    const pipeline = promisify(stream.pipeline)
-    // const got: any = await import('got')
-    // got.default()
-
     var parsed = url.parse(urlPath)
+    if (!parsed.pathname.replace(/\//g, '')) return null
+    if (!config.get('DL_NFT_IMG')) {
+      return urlPath
+    }
+    const pipeline = promisify(stream.pipeline)
     // if(!pa)
     if (!parsed.hostname) {
       return urlPath.replace(storePath, '')
     }
     if (!parsed.pathname) return null
-    // const ext = ['gif', 'png', 'jpg', 'jpeg']
-    // if (
-    //   !parsed.pathname.includes('gif') &&
-    //   !parsed.pathname.includes('png') &&
-    //   !parsed.pathname.includes('jpg') &&
-    //   !parsed.pathname.includes('jpeg') &&
-    //   !parsed.pathname.includes('svg')
-    // ) {
-    //   return null
-    // }
+
     const imgPath = storePath + '/' + parsed.hostname.replace(/\./g, '-')
     const imgStorePath = imgPath + parsed.pathname
     const pathArr = imgStorePath.split('/')
@@ -282,29 +305,48 @@ export class UtilsService {
     }
   }
 
-  async getPath(urlPath: string, storePath: string) {
+  async getJsonRes(urlPath: string, timeout: number = 10000): Promise<any> {
+    var parsed = url.parse(urlPath)
+    if (parsed.host == 'api.thetadrop.com' && parsed.protocol == 'http:') {
+      urlPath = urlPath.replace('http', 'https')
+    }
+    const options = {
+      url: urlPath,
+      method: 'GET',
+      timeout: 10000,
+      responseType: 'json',
+      responseEncoding: 'utf8',
+      // acceptEncoding: 'gzip,deflate,br'
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept-Encoding': 'gzip, deflate, br'
+        // ''
+      }
+    }
+    this.logger.debug(options)
+    const httpRes = await axios(options)
+    if (httpRes.status >= 400) {
+      throw new Error('Bad response from server')
+    }
+    return httpRes.data
+  }
+
+  getPath(urlPath: string, storePath: string) {
     this.logger.debug('url path: ' + urlPath)
+
     if (!urlPath) return null
-    // const pipeline = promisify(stream.pipeline)
-    // const got: any = await import('got')
-    // got.default()
 
     var parsed = url.parse(urlPath)
+    if (!parsed.pathname.replace(/\//g, '')) return null
+
+    if (!config.get('DL_NFT_IMG')) {
+      return urlPath
+    }
+
     // if(!pa)
     if (!parsed.hostname) {
       return urlPath.replace(storePath, '')
     }
-    // const ext = ['gif', 'png', 'jpg', 'jpeg']
-    // if (
-    //   !parsed.pathname.includes('gif') &&
-    //   !parsed.pathname.includes('png') &&
-    //   !parsed.pathname.includes('jpg') &&
-    //   !parsed.pathname.includes('jpeg') &&
-    //   !parsed.pathname.includes('svg')
-    // ) {
-    //   return null
-    // }
-    if (!parsed.pathname) return null
     const imgPath = storePath + '/' + parsed.hostname.replace(/\./g, '-')
     return imgPath + parsed.pathname
   }

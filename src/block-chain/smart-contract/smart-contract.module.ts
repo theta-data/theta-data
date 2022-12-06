@@ -1,3 +1,4 @@
+import { SmartContractCallLogEntity } from './smart-contract-call-log.entity'
 import { Module } from '@nestjs/common'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { SmartContractEntity } from './smart-contract.entity'
@@ -12,7 +13,7 @@ import { SmartContractAnalyseService } from './smart-contract-analyse.service'
 @Module({
   imports: [
     TypeOrmModule.forFeature(
-      [SmartContractEntity, SmartContractCallRecordEntity],
+      [SmartContractEntity, SmartContractCallRecordEntity, SmartContractCallLogEntity],
       'smart_contract'
     ),
     NftModule,

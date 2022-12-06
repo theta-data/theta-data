@@ -13,10 +13,13 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WalletTxHistoryResolver = void 0;
+const graphql_fields_list_1 = require("graphql-fields-list");
 const theta_enum_1 = require("./../tx/theta.enum");
 const wallet_tx_history_model_1 = require("./wallet-tx-history.model");
 const wallet_tx_history_service_1 = require("./wallet-tx-history.service");
 const graphql_1 = require("@nestjs/graphql");
+const graphql_2 = require("graphql");
+const moment = require('moment');
 let WalletTxHistoryResolver = class WalletTxHistoryResolver {
     constructor(walletTxHistoryService) {
         this.walletTxHistoryService = walletTxHistoryService;
@@ -32,9 +35,21 @@ let WalletTxHistoryResolver = class WalletTxHistoryResolver {
             endCursor: skip + res.length
         };
     }
+    async WalletActivityHistory(info, walletAddress, startTime, endTime) {
+        const history = new wallet_tx_history_model_1.HistoryTransactionsModel();
+        if (!startTime)
+            startTime = moment().subtract(7, 'days').unix();
+        if (!endTime)
+            endTime = moment().unix();
+        for (const field of (0, graphql_fields_list_1.fieldsList)(info)) {
+            history[field] = await this.walletTxHistoryService.getActivityHistory(field, walletAddress.toLocaleLowerCase(), startTime, endTime);
+        }
+        history.start_time = startTime;
+        history.end_time = endTime;
+        return history;
+    }
 };
 __decorate([
-    (0, graphql_1.Query)(() => wallet_tx_history_model_1.PaginatedHistoryTransactions),
     __param(0, (0, graphql_1.Args)('wallet_address')),
     __param(1, (0, graphql_1.Args)('take', { type: () => graphql_1.Int, defaultValue: 10 })),
     __param(2, (0, graphql_1.Args)('skip', { type: () => graphql_1.Int, defaultValue: 0 })),
@@ -47,6 +62,16 @@ __decorate([
     __metadata("design:paramtypes", [String, Number, Number, Number]),
     __metadata("design:returntype", Promise)
 ], WalletTxHistoryResolver.prototype, "TxHistory", null);
+__decorate([
+    (0, graphql_1.Query)(() => wallet_tx_history_model_1.HistoryTransactionsModel),
+    __param(0, (0, graphql_1.Info)()),
+    __param(1, (0, graphql_1.Args)('wallet_address')),
+    __param(2, (0, graphql_1.Args)('start_time', { type: () => graphql_2.GraphQLInt, nullable: true })),
+    __param(3, (0, graphql_1.Args)('end_time', { type: () => graphql_2.GraphQLInt, nullable: true })),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, Number, Number]),
+    __metadata("design:returntype", Promise)
+], WalletTxHistoryResolver.prototype, "WalletActivityHistory", null);
 WalletTxHistoryResolver = __decorate([
     (0, graphql_1.Resolver)(() => wallet_tx_history_model_1.PaginatedHistoryTransactions),
     __metadata("design:paramtypes", [wallet_tx_history_service_1.WalletTxHistoryService])

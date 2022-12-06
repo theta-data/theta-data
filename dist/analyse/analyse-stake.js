@@ -12,7 +12,7 @@ async function bootstrap() {
             const app = await core_1.NestFactory.createApplicationContext(app_module_1.AppModule);
             const service = app.select(stake_module_1.StakeModule).get(stake_analyse_service_1.StakeAnalyseService, { strict: true });
             await Promise.race([
-                service.analyseData(),
+                service.analyse(),
                 new Promise((resolve, reject) => {
                     setTimeout(() => {
                         resolve('timeout');

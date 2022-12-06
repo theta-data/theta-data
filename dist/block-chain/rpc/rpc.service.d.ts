@@ -145,4 +145,5 @@ export declare class RpcService {
             }[];
         }[];
     }>;
+    getBlockSByRange(height: number, endHeight: number): Promise<import("theta-ts-sdk/dist/types/interface").THETA_BLOCK_INTERFACE[]>;
 }

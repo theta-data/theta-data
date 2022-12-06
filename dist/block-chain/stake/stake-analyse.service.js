@@ -13,22 +13,23 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.StakeAnalyseService = void 0;
+const rpc_service_1 = require("../rpc/rpc.service");
 const latest_stake_info_entity_1 = require("./latest-stake-info.entity");
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("typeorm");
 const enum_1 = require("theta-ts-sdk/dist/types/enum");
-const theta_ts_sdk_1 = require("theta-ts-sdk");
 const bignumber_js_1 = require("bignumber.js");
 const stake_statistics_entity_1 = require("../../block-chain/stake/stake-statistics.entity");
 const stake_reward_entity_1 = require("../../block-chain/stake/stake-reward.entity");
 const utils_service_1 = require("../../common/utils.service");
-const stake_entity_1 = require("./stake.entity");
 const const_1 = require("../../const");
 const typeorm_2 = require("@nestjs/typeorm");
+const stake_model_1 = require("./stake.model");
 const moment = require('moment');
 let StakeAnalyseService = class StakeAnalyseService {
-    constructor(utilsService, stakeConnectionInjected) {
+    constructor(utilsService, rpcService, stakeConnectionInjected) {
         this.utilsService = utilsService;
+        this.rpcService = rpcService;
         this.stakeConnectionInjected = stakeConnectionInjected;
         this.logger = new common_1.Logger('stake analyse service');
         this.analyseKey = 'under_analyse';
@@ -36,12 +37,12 @@ let StakeAnalyseService = class StakeAnalyseService {
         this.heightConfigFile = const_1.config.get('ORM_CONFIG')['database'] + 'stake/record.height';
         this.logger.debug(const_1.config.get('THETA_NODE_HOST'));
     }
-    async analyseData() {
+    async analyse() {
         try {
             this.stakeConnectionRunner = this.stakeConnectionInjected.createQueryRunner();
             await this.stakeConnectionRunner.startTransaction();
             let height = 0;
-            const lastfinalizedHeight = Number((await theta_ts_sdk_1.thetaTsSdk.blockchain.getStatus()).result.latest_finalized_block_height);
+            const lastfinalizedHeight = Number((await this.rpcService.getStatus()).latest_finalized_block_height);
             height = lastfinalizedHeight - 1000;
             if (const_1.config.get('STAKE.START_HEIGHT')) {
                 height = const_1.config.get('STAKE.START_HEIGHT');
@@ -59,9 +60,9 @@ let StakeAnalyseService = class StakeAnalyseService {
                 endHeight = height + analyseNumber;
             }
             this.logger.debug('start height: ' + height + '; end height: ' + endHeight);
-            const blockList = await theta_ts_sdk_1.thetaTsSdk.blockchain.getBlockSByRange(height.toString(), endHeight.toString());
-            this.logger.debug('block list length:' + blockList.result.length);
-            this.counter = blockList.result.length;
+            const blockList = await this.rpcService.getBlockSByRange(height, endHeight);
+            this.logger.debug('block list length:' + blockList.length);
+            this.counter = blockList.length;
             this.logger.debug('init counter', this.counter);
             const lastAnalyseHeight = await this.stakeConnectionRunner.manager.findOne(stake_reward_entity_1.StakeRewardEntity, {
                 order: {
@@ -69,8 +70,8 @@ let StakeAnalyseService = class StakeAnalyseService {
                 },
                 where: { id: (0, typeorm_1.MoreThan)(0) }
             });
-            for (let i = 0; i < blockList.result.length; i++) {
-                const block = blockList.result[i];
+            for (let i = 0; i < blockList.length; i++) {
+                const block = blockList[i];
                 if (lastAnalyseHeight && lastAnalyseHeight.reward_height >= Number(block.height)) {
                     this.counter--;
                     continue;
@@ -81,7 +82,7 @@ let StakeAnalyseService = class StakeAnalyseService {
             this.logger.debug('start update calltimes by period');
             await this.stakeConnectionRunner.commitTransaction();
             this.logger.debug('commit success');
-            this.utilsService.updateRecordHeight(this.heightConfigFile, Number(blockList.result[blockList.result.length - 1].height));
+            this.utilsService.updateRecordHeight(this.heightConfigFile, Number(blockList[blockList.length - 1].height));
             (0, utils_service_1.writeSucessExcuteLog)(const_1.config.get('STAKE.MONITOR_PATH'));
         }
         catch (e) {
@@ -184,32 +185,32 @@ let StakeAnalyseService = class StakeAnalyseService {
     async updateValidator(block) {
         let totalNodeNum = 0, effectiveNodeNum = 0, totalThetaWei = new bignumber_js_1.default(0), effectiveThetaWei = new bignumber_js_1.default(0);
         this.logger.debug('start get va list');
-        const validatorList = await theta_ts_sdk_1.thetaTsSdk.blockchain.getVcpByHeight(block.height);
+        const validatorList = await this.rpcService.getVcpByHeight(Number(block.height));
         this.logger.debug('end get va list');
-        if (!validatorList.result || !validatorList.result.BlockHashVcpPairs) {
+        if (!validatorList || !validatorList.BlockHashVcpPairs) {
             this.logger.error('no validator BlockHashVcpPairs');
             return false;
         }
         const latestVa = await this.stakeConnectionRunner.manager.findOne(latest_stake_info_entity_1.LatestStakeInfoEntity, {
-            where: { node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.validator }
+            where: { node_type: stake_model_1.STAKE_NODE_TYPE_ENUM.validator }
         });
         if (!latestVa) {
             await this.stakeConnectionRunner.manager.insert(latest_stake_info_entity_1.LatestStakeInfoEntity, {
                 height: Number(block.height),
-                node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.validator,
+                node_type: stake_model_1.STAKE_NODE_TYPE_ENUM.validator,
                 holder: JSON.stringify(validatorList)
             });
         }
         else {
             await this.stakeConnectionRunner.manager.update(latest_stake_info_entity_1.LatestStakeInfoEntity, {
-                node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.validator
+                node_type: stake_model_1.STAKE_NODE_TYPE_ENUM.validator
             }, {
                 height: Number(block.height),
-                node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.validator,
+                node_type: stake_model_1.STAKE_NODE_TYPE_ENUM.validator,
                 holder: JSON.stringify(validatorList)
             });
         }
-        validatorList.result.BlockHashVcpPairs[0].Vcp.SortedCandidates.forEach((node) => {
+        validatorList.BlockHashVcpPairs[0].Vcp.SortedCandidates.forEach((node) => {
             totalNodeNum++;
             node.Stakes.forEach((stake) => {
                 totalThetaWei = totalThetaWei.plus(new bignumber_js_1.default(stake.amount));
@@ -226,30 +227,30 @@ let StakeAnalyseService = class StakeAnalyseService {
     async updateGuardian(block) {
         let totalNodeNum = 0, effectiveNodeNum = 0, totalThetaWei = new bignumber_js_1.default(0), effectiveThetaWei = new bignumber_js_1.default(0);
         this.logger.debug('start get gn list');
-        const gcpList = await theta_ts_sdk_1.thetaTsSdk.blockchain.getGcpByHeight(block.height);
+        const gcpList = await this.rpcService.getGcpByHeight(Number(block.height));
         this.logger.debug('end get gn list');
-        if (!gcpList.result || !gcpList.result.BlockHashGcpPairs) {
+        if (!gcpList || !gcpList.BlockHashGcpPairs) {
             this.logger.error('no guardian BlockHashVcpPairs');
             return false;
         }
         const latestGn = await this.stakeConnectionRunner.manager.findOne(latest_stake_info_entity_1.LatestStakeInfoEntity, {
-            where: { node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.guardian }
+            where: { node_type: stake_model_1.STAKE_NODE_TYPE_ENUM.guardian }
         });
         if (!latestGn) {
             await this.stakeConnectionRunner.manager.insert(latest_stake_info_entity_1.LatestStakeInfoEntity, {
                 height: Number(block.height),
-                node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.guardian,
+                node_type: stake_model_1.STAKE_NODE_TYPE_ENUM.guardian,
                 holder: JSON.stringify(gcpList)
             });
         }
         else {
-            await this.stakeConnectionRunner.manager.update(latest_stake_info_entity_1.LatestStakeInfoEntity, { node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.guardian }, {
+            await this.stakeConnectionRunner.manager.update(latest_stake_info_entity_1.LatestStakeInfoEntity, { node_type: stake_model_1.STAKE_NODE_TYPE_ENUM.guardian }, {
                 height: Number(block.height),
-                node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.guardian,
+                node_type: stake_model_1.STAKE_NODE_TYPE_ENUM.guardian,
                 holder: JSON.stringify(gcpList)
             });
         }
-        for (const guardian of gcpList.result.BlockHashGcpPairs[0].Gcp.SortedGuardians) {
+        for (const guardian of gcpList.BlockHashGcpPairs[0].Gcp.SortedGuardians) {
             totalNodeNum++;
             guardian.Stakes.forEach((stake) => {
                 totalThetaWei = totalThetaWei.plus(new bignumber_js_1.default(stake.amount));
@@ -257,7 +258,7 @@ let StakeAnalyseService = class StakeAnalyseService {
         }
         for (let i = 0; i < block.guardian_votes.Multiplies.length; i++) {
             if (block.guardian_votes.Multiplies[i] !== 0) {
-                gcpList.result.BlockHashGcpPairs[0].Gcp.SortedGuardians[i].Stakes.forEach((stake) => {
+                gcpList.BlockHashGcpPairs[0].Gcp.SortedGuardians[i].Stakes.forEach((stake) => {
                     if (stake.withdrawn == false) {
                         effectiveThetaWei = effectiveThetaWei.plus(new bignumber_js_1.default(stake.amount));
                     }
@@ -271,30 +272,30 @@ let StakeAnalyseService = class StakeAnalyseService {
     async updateEenp(block) {
         let totalNodeNum = 0, effectiveNodeNum = 0, totalTfuelWei = new bignumber_js_1.default(0), effectiveTfuelWei = new bignumber_js_1.default(0);
         this.logger.debug('start get een list');
-        const eenpList = await theta_ts_sdk_1.thetaTsSdk.blockchain.getEenpByHeight(block.height);
+        const eenpList = await this.rpcService.getEenpByHeight(Number(block.height));
         this.logger.debug('end get een list');
-        if (!eenpList.result || !eenpList.result.BlockHashEenpPairs) {
+        if (!eenpList || !eenpList.BlockHashEenpPairs) {
             this.logger.error('no guardian BlockHashVcpPairs');
             return false;
         }
         const een = await this.stakeConnectionRunner.manager.findOne(latest_stake_info_entity_1.LatestStakeInfoEntity, {
-            where: { node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.edge_cache }
+            where: { node_type: stake_model_1.STAKE_NODE_TYPE_ENUM.edge_cache }
         });
         if (!een) {
             await this.stakeConnectionRunner.manager.insert(latest_stake_info_entity_1.LatestStakeInfoEntity, {
                 height: Number(block.height),
-                node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.edge_cache,
+                node_type: stake_model_1.STAKE_NODE_TYPE_ENUM.edge_cache,
                 holder: JSON.stringify(eenpList)
             });
         }
         else {
-            await this.stakeConnectionRunner.manager.update(latest_stake_info_entity_1.LatestStakeInfoEntity, { node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.edge_cache }, {
+            await this.stakeConnectionRunner.manager.update(latest_stake_info_entity_1.LatestStakeInfoEntity, { node_type: stake_model_1.STAKE_NODE_TYPE_ENUM.edge_cache }, {
                 height: Number(block.height),
-                node_type: stake_entity_1.STAKE_NODE_TYPE_ENUM.edge_cache,
+                node_type: stake_model_1.STAKE_NODE_TYPE_ENUM.edge_cache,
                 holder: JSON.stringify(eenpList)
             });
         }
-        eenpList.result.BlockHashEenpPairs[0].EENs.forEach((eenp) => {
+        eenpList.BlockHashEenpPairs[0].EENs.forEach((eenp) => {
             totalNodeNum++;
             let isEffectiveNode = false;
             block.elite_edge_node_votes.Multiplies.forEach((value, index) => {
@@ -315,9 +316,10 @@ let StakeAnalyseService = class StakeAnalyseService {
 };
 StakeAnalyseService = __decorate([
     (0, common_1.Injectable)(),
-    __param(1, (0, typeorm_2.InjectConnection)('stake')),
+    __param(2, (0, typeorm_2.InjectDataSource)('stake')),
     __metadata("design:paramtypes", [utils_service_1.UtilsService,
-        typeorm_1.Connection])
+        rpc_service_1.RpcService,
+        typeorm_1.DataSource])
 ], StakeAnalyseService);
 exports.StakeAnalyseService = StakeAnalyseService;
 //# sourceMappingURL=stake-analyse.service.js.map

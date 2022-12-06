@@ -1,12 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { Connection, getConnection, MoreThan, QueryRunner } from 'typeorm'
+import { DataSource, MoreThan, QueryRunner } from 'typeorm'
 import { thetaTsSdk } from 'theta-ts-sdk'
 import { THETA_BLOCK_INTERFACE } from 'theta-ts-sdk/src/types/interface'
 import { LoggerService } from 'src/common/logger.service'
 import { WalletEntity } from 'src/block-chain/wallet/wallet.entity'
 import { UtilsService, writeFailExcuteLog, writeSucessExcuteLog } from 'src/common/utils.service'
 import { config } from 'src/const'
-import { InjectConnection } from '@nestjs/typeorm'
+import { InjectDataSource } from '@nestjs/typeorm'
 import { THETA_TRANSACTION_TYPE_ENUM } from 'theta-ts-sdk/dist/types/enum'
 import { SmartContractEntity } from '../smart-contract/smart-contract.entity'
 
@@ -24,14 +24,14 @@ export class WalletsAnalyseService {
   constructor(
     private loggerService: LoggerService,
     private utilsService: UtilsService,
-    @InjectConnection('wallet') private walletConnectionInjected: Connection,
-    @InjectConnection('smart_contract') private smartContractConnectionInjected: Connection
+    @InjectDataSource('wallet') private walletConnectionInjected: DataSource,
+    @InjectDataSource('smart_contract') private smartContractConnectionInjected: DataSource
   ) {
     // thetaTsSdk.blockchain.setUrl(config.get('THETA_NODE_HOST'))
     this.logger.debug(config.get('THETA_NODE_HOST'))
   }
 
-  public async analyseData() {
+  public async analyse() {
     try {
       this.walletConnectionRunner = this.walletConnectionInjected.createQueryRunner()
       this.smartContractConnectionRunner = this.smartContractConnectionInjected.createQueryRunner()

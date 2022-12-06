@@ -32,7 +32,6 @@ let nftIgnore = [];
 if (fs.existsSync('resources/nft-ignore.json')) {
     nftIgnore = JSON.parse(fs.readFileSync('resources/nft-ignore.json'));
 }
-const cross_fetch_1 = require("cross-fetch");
 const const_1 = require("../../const");
 const typeorm_2 = require("@nestjs/typeorm");
 let NftStatisticsAnalyseService = class NftStatisticsAnalyseService {
@@ -45,8 +44,10 @@ let NftStatisticsAnalyseService = class NftStatisticsAnalyseService {
         this.logger = new common_1.Logger('nft statistics analyse service');
         this.analyseKey = 'under_analyse';
         this.heightConfigFile = const_1.config.get('ORM_CONFIG')['database'] + 'nft-statistics/record.height';
+        this.refetchContractUriId = const_1.config.get('ORM_CONFIG')['database'] + 'nft-statistics/refetch-uri.id';
+        this.imgPathRestoreId = const_1.config.get('ORM_CONFIG')['database'] + 'nft-statistics/img-path-restore.id';
     }
-    async analyseData() {
+    async analyse() {
         try {
             this.logger.debug('start analyse nft data');
             this.smartContractConnectionRunner = this.smartContractConnectionInjected.createQueryRunner();
@@ -96,18 +97,16 @@ let NftStatisticsAnalyseService = class NftStatisticsAnalyseService {
                 promiseArr.push(this.nftStatistics(nft));
             }
             await Promise.all(promiseArr);
-            await this.updateNftsImgUri();
+            await this.autoRefetchContractUri();
+            if (const_1.config.get('RESTORE_NFT_IMG_PATH')) {
+                await this.restoreImgUri();
+            }
             await this.nftStatisticsConnectionRunner.commitTransaction();
-            try {
-                if (nftTransferRecordList.length > 0) {
-                    this.logger.debug('end height:' + Number(nftTransferRecordList[nftTransferRecordList.length - 1].id));
-                    this.utilsService.updateRecordHeight(this.heightConfigFile, nftTransferRecordList[nftTransferRecordList.length - 1].id);
-                }
+            if (nftTransferRecordList.length > 0) {
+                this.logger.debug('end height:' + Number(nftTransferRecordList[nftTransferRecordList.length - 1].id));
+                this.utilsService.updateRecordHeight(this.heightConfigFile, nftTransferRecordList[nftTransferRecordList.length - 1].id);
             }
-            catch (error) {
-                console.error(error);
-                this.logger.error(error);
-            }
+            (0, utils_service_1.writeSucessExcuteLog)(const_1.config.get('NFT_STATISTICS.MONITOR_PATH'));
         }
         catch (e) {
             console.error(e.message);
@@ -120,7 +119,6 @@ let NftStatisticsAnalyseService = class NftStatisticsAnalyseService {
             await this.nftStatisticsConnectionRunner.release();
             this.logger.debug('end analyse nft data');
             this.logger.debug('release success');
-            (0, utils_service_1.writeSucessExcuteLog)(const_1.config.get('NFT_STATISTICS.MONITOR_PATH'));
         }
     }
     async nftStatistics(smartContractAddress) {
@@ -281,18 +279,11 @@ let NftStatisticsAnalyseService = class NftStatisticsAnalyseService {
                 try {
                     nft.contract_uri_update_timestamp = moment().unix();
                     if (nft.contract_uri) {
-                        const httpRes = await (0, cross_fetch_1.default)(nft.contract_uri, {
-                            method: 'GET',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            }
-                        });
-                        if (httpRes.status >= 400) {
-                            throw new Error('Bad response from server');
-                        }
-                        const res = await httpRes.json();
+                        const res = await this.utilsService.getJsonRes(nft.contract_uri);
                         nft.name = res.name;
-                        nft.img_uri = await this.utilsService.downloadImage(res.image, const_1.config.get('NFT_STATISTICS.STATIC_PATH'));
+                        const newImgUri = this.utilsService.getPath(res.image, const_1.config.get('NFT_STATISTICS.STATIC_PATH'));
+                        if (newImgUri)
+                            nft.img_uri = newImgUri;
                         nft.contract_uri_detail = JSON.stringify(res);
                         if (res.description) {
                             nft.description = res.description;
@@ -378,7 +369,7 @@ let NftStatisticsAnalyseService = class NftStatisticsAnalyseService {
                 where: { smart_contract_address: logo[0].toLowerCase() }
             });
             if (nft) {
-                const imgUri = await this.utilsService.getPath(logo[1], const_1.config.get('NFT_STATISTICS.STATIC_PATH'));
+                const imgUri = this.utilsService.getPath(logo[1], const_1.config.get('NFT_STATISTICS.STATIC_PATH'));
                 if (imgUri == nft.img_uri)
                     continue;
                 nft.img_uri = await this.utilsService.downloadImage(logo[1], const_1.config.get('NFT_STATISTICS.STATIC_PATH'));
@@ -387,34 +378,102 @@ let NftStatisticsAnalyseService = class NftStatisticsAnalyseService {
         }
     }
     async syncNftInfo(smartContract, nftStatistics) {
-        if (!smartContract.contract_uri) {
-            const firstTokencontractUri = await this.nftConnectionRunner.manager.findOne(nft_balance_entity_1.NftBalanceEntity, {
-                where: {
-                    smart_contract_address: smartContract.contract_address
-                },
-                order: {
-                    token_id: 'ASC'
-                }
-            });
-            if (firstTokencontractUri) {
-                nftStatistics.contract_uri = firstTokencontractUri.contract_uri;
-                nftStatistics.contract_uri_detail = firstTokencontractUri.detail;
-                if (firstTokencontractUri.detail) {
-                    const contractDetail = JSON.parse(firstTokencontractUri.detail);
-                    nftStatistics.img_uri = await this.utilsService.downloadImage(contractDetail.image, const_1.config.get('NFT_STATISTICS.STATIC_PATH'));
-                    nftStatistics.description = contractDetail.description;
-                }
+        const firtstNft = await this.nftConnectionRunner.manager.findOne(nft_balance_entity_1.NftBalanceEntity, {
+            where: {
+                smart_contract_address: smartContract.contract_address
+            },
+            order: {
+                id: 'ASC'
             }
+        });
+        if (!smartContract.contract_uri && firtstNft) {
+            nftStatistics.contract_uri = firtstNft.contract_uri;
+            nftStatistics.contract_uri_detail = firtstNft.detail;
+            nftStatistics.img_uri = firtstNft.img_uri;
         }
-        else {
+        if (smartContract.contract_uri && smartContract.contract_uri_detail) {
             nftStatistics.contract_uri = smartContract.contract_uri;
             nftStatistics.contract_uri_detail = smartContract.contract_uri_detail;
-            if (smartContract.contract_uri_detail) {
-                const contractDetail = JSON.parse(smartContract.contract_uri_detail);
+            const contractDetail = JSON.parse(smartContract.contract_uri_detail);
+            nftStatistics.description = contractDetail.description;
+            if (this.utilsService.getPath(contractDetail.image, const_1.config.get('NFT_STATISTICS.STATIC_PATH'))) {
                 nftStatistics.img_uri = await this.utilsService.downloadImage(contractDetail.image, const_1.config.get('NFT_STATISTICS.STATIC_PATH'));
-                nftStatistics.description = contractDetail.description;
             }
         }
+        if (smartContract.contract_uri && !smartContract.contract_uri_detail) {
+            try {
+                const res = await this.utilsService.getJsonRes(smartContract.contract_uri);
+                nftStatistics.name = res.name;
+                const newImgUri = this.utilsService.getPath(res.image, const_1.config.get('NFT_STATISTICS.STATIC_PATH'));
+                if (newImgUri)
+                    nftStatistics.img_uri = newImgUri;
+                nftStatistics.contract_uri_detail = JSON.stringify(res);
+            }
+            catch (e) {
+                this.logger.error(e);
+            }
+        }
+        if (!nftStatistics.img_uri && firtstNft) {
+            nftStatistics.img_uri = firtstNft.img_uri;
+        }
+    }
+    async autoRefetchContractUri() {
+        const startId = this.utilsService.getRecordHeight(this.refetchContractUriId);
+        const nfts = await this.nftStatisticsConnectionRunner.manager.find(nft_statistics_entity_1.NftStatisticsEntity, {
+            where: {
+                id: (0, typeorm_1.MoreThanOrEqual)(startId)
+            },
+            order: {
+                id: 'ASC'
+            },
+            take: 100
+        });
+        if (nfts.length == 0) {
+            return this.utilsService.updateRecordHeight(this.refetchContractUriId, 0);
+        }
+        for (const nft of nfts) {
+            if (nft.refetch_times >= 3)
+                continue;
+            const smartContract = await this.smartContractConnectionRunner.manager.findOne(smart_contract_entity_1.SmartContractEntity, {
+                where: {
+                    contract_address: nft.smart_contract_address
+                }
+            });
+            if (smartContract) {
+                await this.syncNftInfo(smartContract, nft);
+                nft.refetch_times = nft.refetch_times + 1;
+                await this.nftStatisticsConnectionRunner.manager.save(nft);
+            }
+        }
+        this.utilsService.updateRecordHeight(this.refetchContractUriId, nfts[nfts.length - 1].id);
+    }
+    async restoreImgUri() {
+        const startId = this.utilsService.getRecordHeight(this.imgPathRestoreId);
+        const nfts = await this.nftStatisticsConnectionRunner.manager.find(nft_statistics_entity_1.NftStatisticsEntity, {
+            where: {
+                id: (0, typeorm_1.MoreThanOrEqual)(startId)
+            },
+            order: {
+                id: 'ASC'
+            },
+            take: 100
+        });
+        if (nfts.length == 0) {
+            return;
+        }
+        for (const nft of nfts) {
+            const smartContract = await this.smartContractConnectionRunner.manager.findOne(smart_contract_entity_1.SmartContractEntity, {
+                where: {
+                    contract_address: nft.smart_contract_address
+                }
+            });
+            if (smartContract) {
+                await this.syncNftInfo(smartContract, nft);
+                nft.refetch_times = nft.refetch_times + 1;
+                await this.nftStatisticsConnectionRunner.manager.save(nft);
+            }
+        }
+        this.utilsService.updateRecordHeight(this.imgPathRestoreId, nfts[nfts.length - 1].id);
     }
     async downloadAllImg() {
         const nfts = await this.nftStatisticsConnectionRunner.manager.find(nft_statistics_entity_1.NftStatisticsEntity);
@@ -428,14 +487,14 @@ let NftStatisticsAnalyseService = class NftStatisticsAnalyseService {
 };
 NftStatisticsAnalyseService = __decorate([
     (0, common_1.Injectable)(),
-    __param(2, (0, typeorm_2.InjectConnection)('smart_contract')),
-    __param(3, (0, typeorm_2.InjectConnection)('nft')),
-    __param(4, (0, typeorm_2.InjectConnection)('nft-statistics')),
+    __param(2, (0, typeorm_2.InjectDataSource)('smart_contract')),
+    __param(3, (0, typeorm_2.InjectDataSource)('nft')),
+    __param(4, (0, typeorm_2.InjectDataSource)('nft-statistics')),
     __metadata("design:paramtypes", [utils_service_1.UtilsService,
         market_service_1.MarketService,
-        typeorm_1.Connection,
-        typeorm_1.Connection,
-        typeorm_1.Connection])
+        typeorm_1.DataSource,
+        typeorm_1.DataSource,
+        typeorm_1.DataSource])
 ], NftStatisticsAnalyseService);
 exports.NftStatisticsAnalyseService = NftStatisticsAnalyseService;
 //# sourceMappingURL=nft-statistics-analyse.service.js.map

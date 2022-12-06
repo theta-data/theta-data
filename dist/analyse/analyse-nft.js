@@ -13,15 +13,7 @@ async function analyseNftBootstrap() {
         while (1) {
             const app = await core_1.NestFactory.createApplicationContext(app_module_1.AppModule);
             const service = app.select(nft_module_1.NftModule).get(nft_analyse_service_1.NftAnalyseService, { strict: true });
-            await Promise.race([
-                service.analyseData(i),
-                new Promise((resolve, reject) => {
-                    setTimeout(() => {
-                        resolve('timeout');
-                        console.log('analyse race timeout');
-                    }, 1000 * 60 * 20);
-                })
-            ]);
+            await service.analyse(i);
             await new Promise((resolve) => setTimeout(resolve, const_1.config.get('NFT.ANALYSE_INTERVAL')));
             app.close();
             i++;
