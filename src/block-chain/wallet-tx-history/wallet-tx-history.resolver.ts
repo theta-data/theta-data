@@ -21,6 +21,15 @@ export class WalletTxHistoryResolver {
     })
     txType: number
   ) {
+    if (parseInt(walletAddress) == 0)
+      return {
+        hasNextPage: false,
+        nodes: [],
+        totalCount: 0,
+        take: take,
+        skip: skip,
+        endCursor: skip + 0
+      }
     const [hasNextPage, totalNumber, res] = await this.walletTxHistoryService.getTransactions(
       walletAddress.toLocaleLowerCase(),
       take,
@@ -44,6 +53,7 @@ export class WalletTxHistoryResolver {
     @Args('start_time', { type: () => GraphQLInt, nullable: true }) startTime: number,
     @Args('end_time', { type: () => GraphQLInt, nullable: true }) endTime: number
   ) {
+    if (parseInt(walletAddress) == 0) return {}
     const history = new HistoryTransactionsModel()
 
     if (!startTime) startTime = moment().subtract(7, 'days').unix()

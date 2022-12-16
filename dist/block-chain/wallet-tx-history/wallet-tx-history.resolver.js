@@ -25,6 +25,15 @@ let WalletTxHistoryResolver = class WalletTxHistoryResolver {
         this.walletTxHistoryService = walletTxHistoryService;
     }
     async TxHistory(walletAddress, take, skip, txType) {
+        if (parseInt(walletAddress) == 0)
+            return {
+                hasNextPage: false,
+                nodes: [],
+                totalCount: 0,
+                take: take,
+                skip: skip,
+                endCursor: skip + 0
+            };
         const [hasNextPage, totalNumber, res] = await this.walletTxHistoryService.getTransactions(walletAddress.toLocaleLowerCase(), take, skip, txType);
         return {
             hasNextPage: hasNextPage,
@@ -36,6 +45,8 @@ let WalletTxHistoryResolver = class WalletTxHistoryResolver {
         };
     }
     async WalletActivityHistory(info, walletAddress, startTime, endTime) {
+        if (parseInt(walletAddress) == 0)
+            return {};
         const history = new wallet_tx_history_model_1.HistoryTransactionsModel();
         if (!startTime)
             startTime = moment().subtract(7, 'days').unix();
