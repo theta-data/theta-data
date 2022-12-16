@@ -45,13 +45,13 @@ let WalletTxHistoryResolver = class WalletTxHistoryResolver {
         };
     }
     async WalletActivityHistory(info, walletAddress, startTime, endTime) {
-        if (parseInt(walletAddress) == 0)
-            return {};
         const history = new wallet_tx_history_model_1.HistoryTransactionsModel();
         if (!startTime)
             startTime = moment().subtract(7, 'days').unix();
         if (!endTime)
             endTime = moment().unix();
+        if (parseInt(walletAddress) == 0)
+            return { start_time: startTime, end_time: endTime };
         for (const field of (0, graphql_fields_list_1.fieldsList)(info)) {
             history[field] = await this.walletTxHistoryService.getActivityHistory(field, walletAddress.toLocaleLowerCase(), startTime, endTime);
         }

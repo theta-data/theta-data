@@ -441,14 +441,6 @@ type TransactionEntity {
   theta_fuel: Float!
 }
 
-type PaginatedHistoryTransactions {
-  nodes: [TransactionEntity!]
-  totalCount: Int!
-  hasNextPage: Boolean!
-  skip: Int!
-  endCursor: String!
-}
-
 type HistoryTransactionsModel {
   stake_rewards: [StakeRewardEntity!]
   nft_transfers: [NftTransferRecordEntity!]
@@ -895,7 +887,6 @@ type Query {
   NftStatistics(order_by: NftStatisticsOrderByType!, take: Int = 10, skip: Int = 0, search: String, after: String): PaginatedNftStatistics!
   NftDetail(contract_address: String!): NftDetailType!
   Explorer: ExplorerModelType!
-  TxHistory(wallet_address: String!, take: Int = 10, skip: Int = 0, tx_type: THETA_TRANSACTION_TYPE_ENUM): PaginatedHistoryTransactions!
   WalletActivityHistory(wallet_address: String!, start_time: Int, end_time: Int): HistoryTransactionsModel!
 }
 

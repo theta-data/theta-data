@@ -53,11 +53,11 @@ export class WalletTxHistoryResolver {
     @Args('start_time', { type: () => GraphQLInt, nullable: true }) startTime: number,
     @Args('end_time', { type: () => GraphQLInt, nullable: true }) endTime: number
   ) {
-    if (parseInt(walletAddress) == 0) return {}
     const history = new HistoryTransactionsModel()
 
     if (!startTime) startTime = moment().subtract(7, 'days').unix()
     if (!endTime) endTime = moment().unix()
+    if (parseInt(walletAddress) == 0) return { start_time: startTime, end_time: endTime }
     for (const field of fieldsList(info)) {
       history[field] = await this.walletTxHistoryService.getActivityHistory(
         //@ts-ignore
