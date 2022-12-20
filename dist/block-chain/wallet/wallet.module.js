@@ -7,6 +7,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WalletModule = void 0;
+const rpc_module_1 = require("./../rpc/rpc.module");
 const smart_contract_entity_1 = require("../smart-contract/smart-contract.entity");
 const market_module_1 = require("../../market/market.module");
 const common_1 = require("@nestjs/common");
@@ -28,7 +29,8 @@ WalletModule = __decorate([
             typeorm_1.TypeOrmModule.forFeature([smart_contract_entity_1.SmartContractEntity], 'smart_contract'),
             typeorm_1.TypeOrmModule.forFeature([latest_stake_info_entity_1.LatestStakeInfoEntity], 'stake'),
             common_module_1.CommonModule,
-            market_module_1.MarketModule
+            market_module_1.MarketModule,
+            rpc_module_1.RpcModule
         ],
         providers: [wallet_resolver_1.WalletResolver, wallets_service_1.WalletService, wallets_analyse_service_1.WalletsAnalyseService],
         exports: [wallets_service_1.WalletService]

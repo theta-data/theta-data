@@ -1,11 +1,7 @@
 import { RpcService } from './../block-chain/rpc/rpc.service'
 import { Injectable, Logger } from '@nestjs/common'
-// import BigNumber from 'bignumber.js'
 import { ethers } from 'ethers'
-// import { Logger } from 'ethers/lib/utils'
-import { thetaTsSdk } from 'theta-ts-sdk'
 import { config } from 'src/const'
-// const config = require('config')
 const fs = require('fs')
 const stream = require('stream')
 const url = require('url')
@@ -56,9 +52,7 @@ export interface LOG_DECODE_INTERFACE {
 @Injectable()
 export class UtilsService {
   logger = new Logger('utils service')
-  constructor(private rpcService: RpcService) {
-    // thetaTsSdk.blockchain.setUrl(config.get('THETA_NODE_HOST'))
-  }
+  constructor(private rpcService: RpcService) {}
 
   decodeLogs(logs, abi): Array<LOG_DECODE_INTERFACE> {
     const iface = new ethers.utils.Interface(abi || [])
@@ -164,7 +158,7 @@ export class UtilsService {
     var encodedParameters = abiCoder.encode(inputTypes, inputValues).slice(2)
     const data = functionSignature + encodedParameters
     this.logger.debug('from:' + from + '; to:' + to + '; data:' + data)
-    const res = await thetaTsSdk.blockchain.callSmartContract(from, to, data)
+    const res = await this.rpcService.callSmartContract(from, to, data)
     this.logger.debug('read smart contract: ' + JSON.stringify(res))
     const outputValues = /^0x/i.test(res.result.vm_return)
       ? res.result.vm_return

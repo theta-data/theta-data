@@ -17,7 +17,6 @@ import { SmartContractCallRecordEntity } from '../smart-contract-call-record.ent
 import { SmartContractEntity, SmartContractProtocolEnum } from '../smart-contract.entity'
 import { NftBalanceEntity } from './nft-balance.entity'
 import { NftTransferRecordEntity } from './nft-transfer-record.entity'
-import fetch from 'cross-fetch'
 import { UtilsService } from 'src/common/utils.service'
 import BigNumber from 'bignumber.js'
 import { config } from 'src/const'

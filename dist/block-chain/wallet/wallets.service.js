@@ -15,27 +15,27 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.WalletService = void 0;
 const latest_stake_info_entity_1 = require("./../stake/latest-stake-info.entity");
 const common_1 = require("@nestjs/common");
-const theta_ts_sdk_1 = require("theta-ts-sdk");
 const market_service_1 = require("../../market/market.service");
 const bignumber_js_1 = require("bignumber.js");
-const cross_fetch_1 = require("cross-fetch");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const wallet_entity_1 = require("./wallet.entity");
 const active_wallets_entity_1 = require("./active-wallets.entity");
 const stake_model_1 = require("../stake/stake.model");
+const rpc_service_1 = require("../rpc/rpc.service");
 let WalletService = class WalletService {
-    constructor(cacheManager, walletRepository, latestStakeInfoRepository, activeWalletsRepository, marketInfo) {
+    constructor(cacheManager, walletRepository, latestStakeInfoRepository, activeWalletsRepository, marketInfo, rpcService) {
         this.cacheManager = cacheManager;
         this.walletRepository = walletRepository;
         this.latestStakeInfoRepository = latestStakeInfoRepository;
         this.activeWalletsRepository = activeWalletsRepository;
         this.marketInfo = marketInfo;
+        this.rpcService = rpcService;
         this.logger = new common_1.Logger();
     }
     async getBalanceByAddress(address) {
-        const accountBalance = await theta_ts_sdk_1.thetaTsSdk.blockchain.getAccount(address);
-        if (!accountBalance || !accountBalance.result || !accountBalance.result.coins) {
+        const accountBalance = await this.rpcService.getAccount(address);
+        if (!accountBalance || !accountBalance || !accountBalance.coins) {
             return {
                 theta: {
                     amount: 0,
@@ -56,10 +56,10 @@ let WalletService = class WalletService {
             };
         }
         const thetaBalance = {
-            amount: Number(new bignumber_js_1.default(accountBalance.result.coins.thetawei).dividedBy('1e18').toFixed()),
+            amount: Number(new bignumber_js_1.default(accountBalance.coins.thetawei).dividedBy('1e18').toFixed()),
             fiat_currency_value: {
                 usd: (await this.marketInfo.getPrice('theta')) *
-                    Number(new bignumber_js_1.default(accountBalance.result.coins.thetawei).dividedBy('1e18').toFixed()),
+                    Number(new bignumber_js_1.default(accountBalance.coins.thetawei).dividedBy('1e18').toFixed()),
                 cny: 0,
                 eur: 0
             }
@@ -68,10 +68,10 @@ let WalletService = class WalletService {
         thetaBalance.fiat_currency_value.cny = thetaBalance.fiat_currency_value.usd * usdRate.CNY;
         thetaBalance.fiat_currency_value.eur = thetaBalance.fiat_currency_value.usd * usdRate.EUR;
         const thetaFuelBalance = {
-            amount: Number(new bignumber_js_1.default(accountBalance.result.coins.tfuelwei).dividedBy('1e18').toFixed()),
+            amount: Number(new bignumber_js_1.default(accountBalance.coins.tfuelwei).dividedBy('1e18').toFixed()),
             fiat_currency_value: {
                 usd: (await this.marketInfo.getPrice('tfuel')) *
-                    Number(new bignumber_js_1.default(accountBalance.result.coins.tfuelwei).dividedBy('1e18').toFixed()),
+                    Number(new bignumber_js_1.default(accountBalance.coins.tfuelwei).dividedBy('1e18').toFixed()),
                 cny: 0,
                 eur: 0
             }
@@ -218,7 +218,7 @@ let WalletService = class WalletService {
         const key = 'usd-rate-key';
         if (await this.cacheManager.get(key))
             return await this.cacheManager.get(key);
-        const res = await (0, cross_fetch_1.fetch)('https://api.exchangerate-api.com/v4/latest/USD', {
+        const res = await fetch('https://api.exchangerate-api.com/v4/latest/USD', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -271,7 +271,8 @@ WalletService = __decorate([
     __metadata("design:paramtypes", [Object, typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,
-        market_service_1.MarketService])
+        market_service_1.MarketService,
+        rpc_service_1.RpcService])
 ], WalletService);
 exports.WalletService = WalletService;
 //# sourceMappingURL=wallets.service.js.map

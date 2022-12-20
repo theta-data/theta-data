@@ -7,7 +7,6 @@ import { RankByEnum } from './smart-contract.model'
 import { NftService } from './nft/nft.service'
 import { SolcService } from 'src/common/solc.service'
 import { UtilsService } from 'src/common/utils.service'
-import fetch from 'cross-fetch'
 var requireFromString = require('require-from-string')
 const moment = require('moment')
 const fs = require('fs')

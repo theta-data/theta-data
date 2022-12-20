@@ -2,7 +2,6 @@ import { SmartContractCallLogEntity } from './smart-contract-call-log.entity'
 import { Injectable, Logger } from '@nestjs/common'
 import { DataSource, LessThan, MoreThan, QueryRunner } from 'typeorm'
 import { THETA_TRANSACTION_TYPE_ENUM } from 'theta-ts-sdk/dist/types/enum'
-import { thetaTsSdk } from 'theta-ts-sdk'
 import { THETA_BLOCK_INTERFACE } from 'theta-ts-sdk/src/types/interface'
 import { LoggerService } from 'src/common/logger.service'
 import { SmartContractCallRecordEntity } from 'src/block-chain/smart-contract/smart-contract-call-record.entity'
@@ -12,10 +11,10 @@ import {
 } from 'src/block-chain/smart-contract/smart-contract.entity'
 import { UtilsService, writeFailExcuteLog, writeSucessExcuteLog } from 'src/common/utils.service'
 import { SmartContractService } from 'src/block-chain/smart-contract/smart-contract.service'
-import fetch from 'cross-fetch'
 import { config } from 'src/const'
 import { InjectDataSource } from '@nestjs/typeorm'
 import { SolcService } from 'src/common/solc.service'
+import { RpcService } from '../rpc/rpc.service'
 const moment = require('moment')
 const fs = require('fs')
 @Injectable()
@@ -31,10 +30,10 @@ export class SmartContractAnalyseService {
     private loggerService: LoggerService,
     private utilsService: UtilsService,
     private smartContractService: SmartContractService,
+    private rpcService: RpcService,
     private solcService: SolcService,
     @InjectDataSource('smart_contract') private smartContractConnectionInjected: DataSource
   ) {
-    // thetaTsSdk.blockchain.setUrl(config.get('SMART_CONTRACT.THETA_NODE_HOST'))
     this.logger.debug(config.get('SMART_CONTRACT.THETA_NODE_HOST'))
   }
 
@@ -45,7 +44,7 @@ export class SmartContractAnalyseService {
       await this.smartContractConnectionRunner.startTransaction()
       let height: number = 0
       const lastfinalizedHeight = Number(
-        (await thetaTsSdk.blockchain.getStatus()).result.latest_finalized_block_height
+        (await this.rpcService.getStatus()).latest_finalized_block_height
       )
       height = lastfinalizedHeight - 1000
 
@@ -92,16 +91,13 @@ export class SmartContractAnalyseService {
       }
       this.logger.debug('start height: ' + height + '; end height: ' + endHeight)
       this.startTimestamp = moment().unix()
-      const blockList = await thetaTsSdk.blockchain.getBlockSByRange(
-        height.toString(),
-        endHeight.toString()
-      )
-      this.logger.debug('block list length:' + blockList.result.length)
-      this.counter = blockList.result.length
+      const blockList = await this.rpcService.getBlockSByRange(height, endHeight)
+      this.logger.debug('block list length:' + blockList.length)
+      this.counter = blockList.length
       this.logger.debug('init counter', this.counter)
       this.smartContractList = []
-      for (let i = 0; i < blockList.result.length; i++) {
-        const block = blockList.result[i]
+      for (let i = 0; i < blockList.length; i++) {
+        const block = blockList[i]
         this.logger.debug(block.height + ' start hanldle')
         await this.handleOrderCreatedEvent(block, lastfinalizedHeight)
       }
@@ -111,10 +107,10 @@ export class SmartContractAnalyseService {
         await this.updateCallTimesByPeriod(contract)
       }
       await this.smartContractConnectionRunner.commitTransaction()
-      if (blockList.result.length > 1) {
+      if (blockList.length > 1) {
         this.utilsService.updateRecordHeight(
           this.heightConfigFile,
-          Number(blockList.result[blockList.result.length - 1].height)
+          Number(blockList[blockList.length - 1].height)
         )
       }
       writeSucessExcuteLog(config.get('SMART_CONTRACT.MONITOR_PATH'))

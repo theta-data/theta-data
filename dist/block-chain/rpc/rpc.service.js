@@ -52,6 +52,9 @@ let RpcService = class RpcService {
         return (await theta_ts_sdk_1.thetaTsSdk.blockchain.getBlockSByRange(height.toString(), endHeight.toString()))
             .result;
     }
+    async callSmartContract(from, to, data) {
+        return await theta_ts_sdk_1.thetaTsSdk.blockchain.callSmartContract(from, to, data);
+    }
 };
 RpcService = __decorate([
     (0, common_1.Injectable)(),

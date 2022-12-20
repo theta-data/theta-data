@@ -6,14 +6,16 @@ import { BalanceModel, StakeBalanceType } from './wallet-balance.model';
 import { Repository } from 'typeorm';
 import { WalletEntity } from './wallet.entity';
 import { ActiveWalletsEntity } from './active-wallets.entity';
+import { RpcService } from '../rpc/rpc.service';
 export declare class WalletService {
     private cacheManager;
     private walletRepository;
     private latestStakeInfoRepository;
     private activeWalletsRepository;
     private marketInfo;
+    private rpcService;
     logger: Logger;
-    constructor(cacheManager: Cache, walletRepository: Repository<WalletEntity>, latestStakeInfoRepository: Repository<LatestStakeInfoEntity>, activeWalletsRepository: Repository<ActiveWalletsEntity>, marketInfo: MarketService);
+    constructor(cacheManager: Cache, walletRepository: Repository<WalletEntity>, latestStakeInfoRepository: Repository<LatestStakeInfoEntity>, activeWalletsRepository: Repository<ActiveWalletsEntity>, marketInfo: MarketService, rpcService: RpcService);
     getBalanceByAddress(address: string): Promise<{
         theta: {
             amount: number;

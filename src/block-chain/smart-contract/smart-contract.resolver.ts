@@ -8,7 +8,6 @@ import {
 } from './smart-contract.model'
 import { GraphQLInt, GraphQLString } from 'graphql'
 import { NftService } from './nft/nft.service'
-import fetch from 'cross-fetch'
 import { UtilsService } from 'src/common/utils.service'
 import { SmartContractEntity, SmartContractProtocolEnum } from './smart-contract.entity'
 import { Logger } from '@nestjs/common'

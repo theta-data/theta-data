@@ -1,3 +1,4 @@
+import { RpcModule } from './../rpc/rpc.module'
 import { SmartContractEntity } from 'src/block-chain/smart-contract/smart-contract.entity'
 import { MarketModule } from 'src/market/market.module'
 import { CacheModule, Module } from '@nestjs/common'
@@ -18,7 +19,8 @@ import { LatestStakeInfoEntity } from '../stake/latest-stake-info.entity'
     TypeOrmModule.forFeature([SmartContractEntity], 'smart_contract'),
     TypeOrmModule.forFeature([LatestStakeInfoEntity], 'stake'),
     CommonModule,
-    MarketModule
+    MarketModule,
+    RpcModule
   ],
   providers: [WalletResolver, WalletService, WalletsAnalyseService],
   exports: [WalletService]

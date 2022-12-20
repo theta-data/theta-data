@@ -13,7 +13,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.StakeService = void 0;
-const theta_ts_sdk_1 = require("theta-ts-sdk");
+const rpc_service_1 = require("./../rpc/rpc.service");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const stake_statistics_entity_1 = require("./stake-statistics.entity");
@@ -21,15 +21,16 @@ const common_1 = require("@nestjs/common");
 const stake_reward_entity_1 = require("./stake-reward.entity");
 const moment = require('moment');
 let StakeService = class StakeService {
-    constructor(stakeStatisticsRepository, stakeRewardRepository, cacheManager) {
+    constructor(stakeStatisticsRepository, stakeRewardRepository, cacheManager, rpcService) {
         this.stakeStatisticsRepository = stakeStatisticsRepository;
         this.stakeRewardRepository = stakeRewardRepository;
         this.cacheManager = cacheManager;
+        this.rpcService = rpcService;
         this.logger = new common_1.Logger();
     }
     async getLatestFinalizedBlock() {
-        let nodeInfo = await theta_ts_sdk_1.thetaTsSdk.blockchain.getStatus();
-        return nodeInfo.result.latest_finalized_block_height;
+        let nodeInfo = await this.rpcService.getStatus();
+        return nodeInfo.latest_finalized_block_height;
     }
     async getLatestStakeStatics() {
         const key = 'latest-stake-info-key';
@@ -111,7 +112,7 @@ StakeService = __decorate([
     __param(1, (0, typeorm_1.InjectRepository)(stake_reward_entity_1.StakeRewardEntity, 'stake')),
     __param(2, (0, common_1.Inject)(common_1.CACHE_MANAGER)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
-        typeorm_2.Repository, Object])
+        typeorm_2.Repository, Object, rpc_service_1.RpcService])
 ], StakeService);
 exports.StakeService = StakeService;
 //# sourceMappingURL=stake.service.js.map

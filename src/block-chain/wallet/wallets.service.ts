@@ -2,24 +2,17 @@ import { GetVcpByHeightModel } from './../rpc/rpc-vcp.model'
 import { GetEenpByHeightModel } from './../rpc/rpc-eenp.model'
 import { LatestStakeInfoEntity } from './../stake/latest-stake-info.entity'
 import { CACHE_MANAGER, Inject, Injectable, Logger } from '@nestjs/common'
-import { thetaTsSdk } from 'theta-ts-sdk'
 import { Cache } from 'cache-manager'
 import { MarketService } from '../../market/market.service'
 import BigNumber from 'bignumber.js'
 import { BalanceModel, StakeBalanceType, TotalBalanceType } from './wallet-balance.model'
-import { fetch } from 'cross-fetch'
 import { InjectRepository } from '@nestjs/typeorm'
 import { MoreThan, Repository } from 'typeorm'
 import { WalletEntity } from './wallet.entity'
 import { ActiveWalletsEntity } from './active-wallets.entity'
-// import { STAKE_NODE_TYPE_ENUM } from '../stake/stake.entity'
-import {
-  THETA_EENP_INTERFACE,
-  THETA_GCP_INTERFACE,
-  THETA_VCP_INTERFACE
-} from 'theta-ts-sdk/dist/types/interface'
 import { STAKE_NODE_TYPE_ENUM } from '../stake/stake.model'
 import { GetGcpByHeightModel } from '../rpc/rpc-gcp.model'
+import { RpcService } from '../rpc/rpc.service'
 
 @Injectable()
 export class WalletService {
@@ -37,14 +30,14 @@ export class WalletService {
     @InjectRepository(ActiveWalletsEntity, 'wallet')
     private activeWalletsRepository: Repository<ActiveWalletsEntity>,
 
-    private marketInfo: MarketService
-  ) {
-    // thetaTsSdk.blockchain.setUrl(config.get('THETA_NODE_HOST'))
-  }
+    private marketInfo: MarketService,
+
+    private rpcService: RpcService
+  ) {}
 
   public async getBalanceByAddress(address: string) {
-    const accountBalance = await thetaTsSdk.blockchain.getAccount(address)
-    if (!accountBalance || !accountBalance.result || !accountBalance.result.coins) {
+    const accountBalance = await this.rpcService.getAccount(address)
+    if (!accountBalance || !accountBalance || !accountBalance.coins) {
       return {
         theta: {
           amount: 0,
@@ -65,13 +58,11 @@ export class WalletService {
       }
     }
     const thetaBalance = {
-      amount: Number(
-        new BigNumber(accountBalance.result.coins.thetawei).dividedBy('1e18').toFixed()
-      ),
+      amount: Number(new BigNumber(accountBalance.coins.thetawei).dividedBy('1e18').toFixed()),
       fiat_currency_value: {
         usd:
           (await this.marketInfo.getPrice('theta')) *
-          Number(new BigNumber(accountBalance.result.coins.thetawei).dividedBy('1e18').toFixed()),
+          Number(new BigNumber(accountBalance.coins.thetawei).dividedBy('1e18').toFixed()),
         cny: 0,
         eur: 0
       }
@@ -80,13 +71,11 @@ export class WalletService {
     thetaBalance.fiat_currency_value.cny = thetaBalance.fiat_currency_value.usd * usdRate.CNY
     thetaBalance.fiat_currency_value.eur = thetaBalance.fiat_currency_value.usd * usdRate.EUR
     const thetaFuelBalance = {
-      amount: Number(
-        new BigNumber(accountBalance.result.coins.tfuelwei).dividedBy('1e18').toFixed()
-      ),
+      amount: Number(new BigNumber(accountBalance.coins.tfuelwei).dividedBy('1e18').toFixed()),
       fiat_currency_value: {
         usd:
           (await this.marketInfo.getPrice('tfuel')) *
-          Number(new BigNumber(accountBalance.result.coins.tfuelwei).dividedBy('1e18').toFixed()),
+          Number(new BigNumber(accountBalance.coins.tfuelwei).dividedBy('1e18').toFixed()),
         cny: 0,
         eur: 0
       }
@@ -102,12 +91,10 @@ export class WalletService {
   }
 
   async getStakeInfoByAddress(address: string) {
-    // const latestBlockHeight = (await thetaTsSdk.blockchain.getStatus()).result
-    //   .latest_finalized_block_height
     const gcpStake: Array<StakeBalanceType> = []
     const eenpStake: Array<StakeBalanceType> = []
     const vcpStake: Array<StakeBalanceType> = []
-    // const gcpList = await thetaTsSdk.blockchain.getGcpByHeight(latestBlockHeight)
+
     const gcpRes = await this.latestStakeInfoRepository.findOne({
       where: { node_type: STAKE_NODE_TYPE_ENUM.guardian }
     })
@@ -144,7 +131,6 @@ export class WalletService {
       })
     })
 
-    // const eenpList = await thetaTsSdk.blockchain.getEenpByHeight(latestBlockHeight)
     const eenpRes = await this.latestStakeInfoRepository.findOne({
       where: { node_type: STAKE_NODE_TYPE_ENUM.edge_cache }
     })
@@ -174,7 +160,6 @@ export class WalletService {
       })
     })
 
-    // const validatorList = await thetaTsSdk.blockchain.getVcpByHeight(latestBlockHeight)
     const vaRes = await this.latestStakeInfoRepository.findOne({
       where: { node_type: STAKE_NODE_TYPE_ENUM.validator }
     })

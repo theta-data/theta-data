@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { DataSource, QueryRunner } from 'typeorm'
 import { THETA_TRANSACTION_TYPE_ENUM } from 'theta-ts-sdk/dist/types/enum'
-// import { thetaTsSdk } from 'theta-ts-sdk'
 import { THETA_BLOCK_INTERFACE } from 'theta-ts-sdk/src/types/interface'
 import BigNumber from 'bignumber.js'
 import { SmartContractEntity } from 'src/block-chain/smart-contract/smart-contract.entity'
@@ -24,10 +23,7 @@ export class TxAnalyseService {
     @InjectDataSource('tx')
     private readonly connection: DataSource,
     private rpcService: RpcService
-  ) {
-    // thetaTsSdk.blockchain.setUrl(config.get('THETA_NODE_HOST'))
-    // this.logger.debug(config.get('THETA_NODE_HOST'))
-  }
+  ) {}
 
   public async analyse() {
     try {
