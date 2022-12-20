@@ -17,6 +17,8 @@ import { SolcService } from 'src/common/solc.service'
 import { RpcService } from '../rpc/rpc.service'
 const moment = require('moment')
 const fs = require('fs')
+const axios = require('axios')
+
 @Injectable()
 export class SmartContractAnalyseService {
   private readonly logger = new Logger('smart contract analyse service')
@@ -207,7 +209,7 @@ export class SmartContractAnalyseService {
 
   async verifyWithThetaExplorer(address: string) {
     this.logger.debug('start verify: ' + address)
-    const httpRes = await fetch(
+    const httpRes = await axios(
       'https://explorer.thetatoken.org:8443/api/smartcontract/' + address,
       {
         method: 'GET',
@@ -221,7 +223,7 @@ export class SmartContractAnalyseService {
       return false
       // throw new Error('Get smart contract Info: Bad response from server')
     }
-    const res: any = await httpRes.json()
+    const res: any = await httpRes.data
     if (res.body.verification_date == '') return false
     // console.log('theta explorer res optimizer ', res.body.optimizer)
     const optimizer = res.body.optimizer === 'disabled' ? false : true
@@ -434,7 +436,8 @@ export class SmartContractAnalyseService {
                 contract.contract_uri = res[0]
                 if (res[0]) {
                   // const contractUri: string = res[0]
-                  const httpRes = await fetch(res[0], {
+                  const httpRes = await axios({
+                    url: res[0],
                     method: 'GET',
                     headers: {
                       'Content-Type': 'application/json'
@@ -446,7 +449,7 @@ export class SmartContractAnalyseService {
                     contract.name = contractName
                     // throw new Error('Bad response from server')
                   } else {
-                    const jsonRes: any = await httpRes.json()
+                    const jsonRes: any = httpRes.data
 
                     contract.contract_uri_detail = JSON.stringify(jsonRes)
                     contract.name = jsonRes.name

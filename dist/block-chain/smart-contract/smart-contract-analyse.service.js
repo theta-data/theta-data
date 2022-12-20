@@ -28,6 +28,7 @@ const solc_service_1 = require("../../common/solc.service");
 const rpc_service_1 = require("../rpc/rpc.service");
 const moment = require('moment');
 const fs = require('fs');
+const axios = require('axios');
 let SmartContractAnalyseService = class SmartContractAnalyseService {
     constructor(loggerService, utilsService, smartContractService, rpcService, solcService, smartContractConnectionInjected) {
         this.loggerService = loggerService;
@@ -168,7 +169,7 @@ let SmartContractAnalyseService = class SmartContractAnalyseService {
     }
     async verifyWithThetaExplorer(address) {
         this.logger.debug('start verify: ' + address);
-        const httpRes = await fetch('https://explorer.thetatoken.org:8443/api/smartcontract/' + address, {
+        const httpRes = await axios('https://explorer.thetatoken.org:8443/api/smartcontract/' + address, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -178,7 +179,7 @@ let SmartContractAnalyseService = class SmartContractAnalyseService {
             this.logger.error('Get smart contract ' + address + ': Bad response from server');
             return false;
         }
-        const res = await httpRes.json();
+        const res = await httpRes.data;
         if (res.body.verification_date == '')
             return false;
         const optimizer = res.body.optimizer === 'disabled' ? false : true;
@@ -308,7 +309,8 @@ let SmartContractAnalyseService = class SmartContractAnalyseService {
                                 this.logger.debug('contract uri:' + res[0]);
                                 contract.contract_uri = res[0];
                                 if (res[0]) {
-                                    const httpRes = await fetch(res[0], {
+                                    const httpRes = await axios({
+                                        url: res[0],
                                         method: 'GET',
                                         headers: {
                                             'Content-Type': 'application/json'
@@ -320,7 +322,7 @@ let SmartContractAnalyseService = class SmartContractAnalyseService {
                                         contract.name = contractName;
                                     }
                                     else {
-                                        const jsonRes = await httpRes.json();
+                                        const jsonRes = httpRes.data;
                                         contract.contract_uri_detail = JSON.stringify(jsonRes);
                                         contract.name = jsonRes.name;
                                     }

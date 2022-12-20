@@ -26,6 +26,7 @@ var requireFromString = require('require-from-string');
 const moment = require('moment');
 const fs = require('fs');
 const solc = require('solc');
+const axios = require('axios');
 let SmartContractService = class SmartContractService {
     constructor(smartContractRepository, smartContractRecordRepository, nftService, solcService, utilsService) {
         this.smartContractRepository = smartContractRepository;
@@ -358,7 +359,8 @@ let SmartContractService = class SmartContractService {
                                 this.logger.debug('contract uri:' + res[0]);
                                 contract.contract_uri = res[0];
                                 if (res[0]) {
-                                    const httpRes = await fetch(res[0], {
+                                    const httpRes = await axios({
+                                        url: res[0],
                                         method: 'GET',
                                         headers: {
                                             'Content-Type': 'application/json'
@@ -370,7 +372,7 @@ let SmartContractService = class SmartContractService {
                                         contract.name = contractName;
                                     }
                                     else {
-                                        const jsonRes = await httpRes.json();
+                                        const jsonRes = httpRes.data;
                                         contract.contract_uri_detail = JSON.stringify(jsonRes);
                                         contract.name = jsonRes.name;
                                     }

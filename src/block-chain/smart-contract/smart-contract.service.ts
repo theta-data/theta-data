@@ -11,6 +11,7 @@ var requireFromString = require('require-from-string')
 const moment = require('moment')
 const fs = require('fs')
 const solc = require('solc')
+const axios = require('axios')
 @Injectable()
 export class SmartContractService {
   logger = new Logger('smart contract service')
@@ -446,7 +447,8 @@ export class SmartContractService {
                 contract.contract_uri = res[0]
                 if (res[0]) {
                   // const contractUri: string = res[0]
-                  const httpRes = await fetch(res[0], {
+                  const httpRes = await axios({
+                    url: res[0],
                     method: 'GET',
                     headers: {
                       'Content-Type': 'application/json'
@@ -458,7 +460,7 @@ export class SmartContractService {
                     contract.name = contractName
                     // throw new Error('Bad response from server')
                   } else {
-                    const jsonRes: any = await httpRes.json()
+                    const jsonRes: any = httpRes.data
 
                     contract.contract_uri_detail = JSON.stringify(jsonRes)
                     contract.name = jsonRes.name

@@ -13,7 +13,7 @@ import { ActiveWalletsEntity } from './active-wallets.entity'
 import { STAKE_NODE_TYPE_ENUM } from '../stake/stake.model'
 import { GetGcpByHeightModel } from '../rpc/rpc-gcp.model'
 import { RpcService } from '../rpc/rpc.service'
-
+const axios = require('axios')
 @Injectable()
 export class WalletService {
   logger = new Logger()
@@ -94,100 +94,104 @@ export class WalletService {
     const gcpStake: Array<StakeBalanceType> = []
     const eenpStake: Array<StakeBalanceType> = []
     const vcpStake: Array<StakeBalanceType> = []
-
+    const thetaPrice = await this.marketInfo.getPrice('theta')
+    const tfuelPrice = await this.marketInfo.getPrice('tfuel')
+    const usdRate = await this.getUsdRate()
     const gcpRes = await this.latestStakeInfoRepository.findOne({
       where: { node_type: STAKE_NODE_TYPE_ENUM.guardian }
     })
-    const gcpList: GetGcpByHeightModel = JSON.parse(gcpRes.holder)
+    if (gcpRes) {
+      const gcpList: GetGcpByHeightModel = JSON.parse(gcpRes.holder)
 
-    // const thetaMarketInfo = await this.marketInfo.getThetaMarketInfo()
-    // const thetaFuelMarketInfo = await this.marketInfo.getThetaFuelMarketInfo()
-    const thetaPrice = await this.marketInfo.getPrice('theta')
-    const tfuelPrice = await this.marketInfo.getPrice('tfuel')
+      // const thetaMarketInfo = await this.marketInfo.getThetaMarketInfo()
+      // const thetaFuelMarketInfo = await this.marketInfo.getThetaFuelMarketInfo()
 
-    const usdRate = await this.getUsdRate()
-
-    gcpList.BlockHashGcpPairs[0].Gcp.SortedGuardians.forEach((guardian) => {
-      guardian.Stakes.forEach((stake) => {
-        if (stake.source === address) {
-          gcpStake.push({
-            node_address: guardian.Holder,
-            amount: Number(new BigNumber(stake.amount).dividedBy('1e18').toFixed()),
-            withdrawn: stake.withdrawn,
-            return_height: stake.return_height,
-            fiat_currency_value: {
-              usd: Number(new BigNumber(stake.amount).dividedBy('1e18').toFixed()) * thetaPrice,
-              cny:
-                Number(new BigNumber(stake.amount).dividedBy('1e18').toFixed()) *
-                tfuelPrice *
-                usdRate.CNY,
-              eur:
-                Number(new BigNumber(stake.amount).dividedBy('1e18').toFixed()) *
-                thetaPrice *
-                usdRate.EUR
-            }
-          })
-        }
+      gcpList.BlockHashGcpPairs[0].Gcp.SortedGuardians.forEach((guardian) => {
+        guardian.Stakes.forEach((stake) => {
+          if (stake.source === address) {
+            gcpStake.push({
+              node_address: guardian.Holder,
+              amount: Number(new BigNumber(stake.amount).dividedBy('1e18').toFixed()),
+              withdrawn: stake.withdrawn,
+              return_height: stake.return_height,
+              fiat_currency_value: {
+                usd: Number(new BigNumber(stake.amount).dividedBy('1e18').toFixed()) * thetaPrice,
+                cny:
+                  Number(new BigNumber(stake.amount).dividedBy('1e18').toFixed()) *
+                  tfuelPrice *
+                  usdRate.CNY,
+                eur:
+                  Number(new BigNumber(stake.amount).dividedBy('1e18').toFixed()) *
+                  thetaPrice *
+                  usdRate.EUR
+              }
+            })
+          }
+        })
       })
-    })
+    }
 
     const eenpRes = await this.latestStakeInfoRepository.findOne({
       where: { node_type: STAKE_NODE_TYPE_ENUM.edge_cache }
     })
-    const eenpList: GetEenpByHeightModel = JSON.parse(eenpRes.holder)
+    if (eenpRes) {
+      const eenpList: GetEenpByHeightModel = JSON.parse(eenpRes.holder)
 
-    eenpList.BlockHashEenpPairs[0].EENs.forEach((een) => {
-      een.Stakes.forEach((stake) => {
-        if (stake.source === address) {
-          eenpStake.push({
-            node_address: een.Holder,
-            amount: Number(new BigNumber(stake.amount).dividedBy('1e18').toFixed()),
-            withdrawn: stake.withdrawn,
-            return_height: stake.return_height,
-            fiat_currency_value: {
-              usd: Number(new BigNumber(stake.amount).dividedBy('1e18').toFixed()) * tfuelPrice,
-              cny:
-                Number(new BigNumber(stake.amount).dividedBy('1e18').toFixed()) *
-                tfuelPrice *
-                usdRate.CNY,
-              eur:
-                Number(new BigNumber(stake.amount).dividedBy('1e18').toFixed()) *
-                tfuelPrice *
-                usdRate.EUR
-            }
-          })
-        }
+      eenpList.BlockHashEenpPairs[0].EENs.forEach((een) => {
+        een.Stakes.forEach((stake) => {
+          if (stake.source === address) {
+            eenpStake.push({
+              node_address: een.Holder,
+              amount: Number(new BigNumber(stake.amount).dividedBy('1e18').toFixed()),
+              withdrawn: stake.withdrawn,
+              return_height: stake.return_height,
+              fiat_currency_value: {
+                usd: Number(new BigNumber(stake.amount).dividedBy('1e18').toFixed()) * tfuelPrice,
+                cny:
+                  Number(new BigNumber(stake.amount).dividedBy('1e18').toFixed()) *
+                  tfuelPrice *
+                  usdRate.CNY,
+                eur:
+                  Number(new BigNumber(stake.amount).dividedBy('1e18').toFixed()) *
+                  tfuelPrice *
+                  usdRate.EUR
+              }
+            })
+          }
+        })
       })
-    })
+    }
 
     const vaRes = await this.latestStakeInfoRepository.findOne({
       where: { node_type: STAKE_NODE_TYPE_ENUM.validator }
     })
-    const validatorList: GetVcpByHeightModel = JSON.parse(vaRes.holder)
+    if (vaRes) {
+      const validatorList: GetVcpByHeightModel = JSON.parse(vaRes.holder)
 
-    validatorList.BlockHashVcpPairs[0].Vcp.SortedCandidates.forEach((vcp) => {
-      vcp.Stakes.forEach((stake) => {
-        if (stake.source === address) {
-          vcpStake.push({
-            node_address: vcp.Holder,
-            amount: Number(new BigNumber(stake.amount).dividedBy('1e18').toFixed()),
-            withdrawn: stake.withdrawn,
-            return_height: stake.return_height,
-            fiat_currency_value: {
-              usd: Number(new BigNumber(stake.amount).dividedBy('1e18').toFixed()) * thetaPrice,
-              cny:
-                Number(new BigNumber(stake.amount).dividedBy('1e18').toFixed()) *
-                thetaPrice *
-                usdRate.CNY,
-              eur:
-                Number(new BigNumber(stake.amount).dividedBy('1e18').toFixed()) *
-                thetaPrice *
-                usdRate.EUR
-            }
-          })
-        }
+      validatorList.BlockHashVcpPairs[0].Vcp.SortedCandidates.forEach((vcp) => {
+        vcp.Stakes.forEach((stake) => {
+          if (stake.source === address) {
+            vcpStake.push({
+              node_address: vcp.Holder,
+              amount: Number(new BigNumber(stake.amount).dividedBy('1e18').toFixed()),
+              withdrawn: stake.withdrawn,
+              return_height: stake.return_height,
+              fiat_currency_value: {
+                usd: Number(new BigNumber(stake.amount).dividedBy('1e18').toFixed()) * thetaPrice,
+                cny:
+                  Number(new BigNumber(stake.amount).dividedBy('1e18').toFixed()) *
+                  thetaPrice *
+                  usdRate.CNY,
+                eur:
+                  Number(new BigNumber(stake.amount).dividedBy('1e18').toFixed()) *
+                  thetaPrice *
+                  usdRate.EUR
+              }
+            })
+          }
+        })
       })
-    })
+    }
 
     return {
       stake_to_guardian: gcpStake,
@@ -241,17 +245,19 @@ export class WalletService {
   public async getUsdRate(): Promise<{ CNY: number; EUR: number }> {
     const key = 'usd-rate-key'
     if (await this.cacheManager.get(key)) return await this.cacheManager.get(key)
-    const res = await fetch('https://api.exchangerate-api.com/v4/latest/USD', {
+    const res = await axios({
+      url: 'https://api.exchangerate-api.com/v4/latest/USD',
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
-      }
+      },
+      timeout: 3000
     })
     if (res.status >= 400) {
       throw new Error('Bad response from server')
     }
     // console.log(await res.json())
-    let jsonInfo = await res.json()
+    let jsonInfo = await res.data
     // console.log(res.json())
     await this.cacheManager.set(key, jsonInfo['rates'], { ttl: 60 * 60 * 24 * 7 })
     return jsonInfo['rates']

@@ -23,6 +23,7 @@ const wallet_entity_1 = require("./wallet.entity");
 const active_wallets_entity_1 = require("./active-wallets.entity");
 const stake_model_1 = require("../stake/stake.model");
 const rpc_service_1 = require("../rpc/rpc.service");
+const axios = require('axios');
 let WalletService = class WalletService {
     constructor(cacheManager, walletRepository, latestStakeInfoRepository, activeWalletsRepository, marketInfo, rpcService) {
         this.cacheManager = cacheManager;
@@ -89,84 +90,90 @@ let WalletService = class WalletService {
         const gcpStake = [];
         const eenpStake = [];
         const vcpStake = [];
-        const gcpRes = await this.latestStakeInfoRepository.findOne({
-            where: { node_type: stake_model_1.STAKE_NODE_TYPE_ENUM.guardian }
-        });
-        const gcpList = JSON.parse(gcpRes.holder);
         const thetaPrice = await this.marketInfo.getPrice('theta');
         const tfuelPrice = await this.marketInfo.getPrice('tfuel');
         const usdRate = await this.getUsdRate();
-        gcpList.BlockHashGcpPairs[0].Gcp.SortedGuardians.forEach((guardian) => {
-            guardian.Stakes.forEach((stake) => {
-                if (stake.source === address) {
-                    gcpStake.push({
-                        node_address: guardian.Holder,
-                        amount: Number(new bignumber_js_1.default(stake.amount).dividedBy('1e18').toFixed()),
-                        withdrawn: stake.withdrawn,
-                        return_height: stake.return_height,
-                        fiat_currency_value: {
-                            usd: Number(new bignumber_js_1.default(stake.amount).dividedBy('1e18').toFixed()) * thetaPrice,
-                            cny: Number(new bignumber_js_1.default(stake.amount).dividedBy('1e18').toFixed()) *
-                                tfuelPrice *
-                                usdRate.CNY,
-                            eur: Number(new bignumber_js_1.default(stake.amount).dividedBy('1e18').toFixed()) *
-                                thetaPrice *
-                                usdRate.EUR
-                        }
-                    });
-                }
-            });
+        const gcpRes = await this.latestStakeInfoRepository.findOne({
+            where: { node_type: stake_model_1.STAKE_NODE_TYPE_ENUM.guardian }
         });
+        if (gcpRes) {
+            const gcpList = JSON.parse(gcpRes.holder);
+            gcpList.BlockHashGcpPairs[0].Gcp.SortedGuardians.forEach((guardian) => {
+                guardian.Stakes.forEach((stake) => {
+                    if (stake.source === address) {
+                        gcpStake.push({
+                            node_address: guardian.Holder,
+                            amount: Number(new bignumber_js_1.default(stake.amount).dividedBy('1e18').toFixed()),
+                            withdrawn: stake.withdrawn,
+                            return_height: stake.return_height,
+                            fiat_currency_value: {
+                                usd: Number(new bignumber_js_1.default(stake.amount).dividedBy('1e18').toFixed()) * thetaPrice,
+                                cny: Number(new bignumber_js_1.default(stake.amount).dividedBy('1e18').toFixed()) *
+                                    tfuelPrice *
+                                    usdRate.CNY,
+                                eur: Number(new bignumber_js_1.default(stake.amount).dividedBy('1e18').toFixed()) *
+                                    thetaPrice *
+                                    usdRate.EUR
+                            }
+                        });
+                    }
+                });
+            });
+        }
         const eenpRes = await this.latestStakeInfoRepository.findOne({
             where: { node_type: stake_model_1.STAKE_NODE_TYPE_ENUM.edge_cache }
         });
-        const eenpList = JSON.parse(eenpRes.holder);
-        eenpList.BlockHashEenpPairs[0].EENs.forEach((een) => {
-            een.Stakes.forEach((stake) => {
-                if (stake.source === address) {
-                    eenpStake.push({
-                        node_address: een.Holder,
-                        amount: Number(new bignumber_js_1.default(stake.amount).dividedBy('1e18').toFixed()),
-                        withdrawn: stake.withdrawn,
-                        return_height: stake.return_height,
-                        fiat_currency_value: {
-                            usd: Number(new bignumber_js_1.default(stake.amount).dividedBy('1e18').toFixed()) * tfuelPrice,
-                            cny: Number(new bignumber_js_1.default(stake.amount).dividedBy('1e18').toFixed()) *
-                                tfuelPrice *
-                                usdRate.CNY,
-                            eur: Number(new bignumber_js_1.default(stake.amount).dividedBy('1e18').toFixed()) *
-                                tfuelPrice *
-                                usdRate.EUR
-                        }
-                    });
-                }
+        if (eenpRes) {
+            const eenpList = JSON.parse(eenpRes.holder);
+            eenpList.BlockHashEenpPairs[0].EENs.forEach((een) => {
+                een.Stakes.forEach((stake) => {
+                    if (stake.source === address) {
+                        eenpStake.push({
+                            node_address: een.Holder,
+                            amount: Number(new bignumber_js_1.default(stake.amount).dividedBy('1e18').toFixed()),
+                            withdrawn: stake.withdrawn,
+                            return_height: stake.return_height,
+                            fiat_currency_value: {
+                                usd: Number(new bignumber_js_1.default(stake.amount).dividedBy('1e18').toFixed()) * tfuelPrice,
+                                cny: Number(new bignumber_js_1.default(stake.amount).dividedBy('1e18').toFixed()) *
+                                    tfuelPrice *
+                                    usdRate.CNY,
+                                eur: Number(new bignumber_js_1.default(stake.amount).dividedBy('1e18').toFixed()) *
+                                    tfuelPrice *
+                                    usdRate.EUR
+                            }
+                        });
+                    }
+                });
             });
-        });
+        }
         const vaRes = await this.latestStakeInfoRepository.findOne({
             where: { node_type: stake_model_1.STAKE_NODE_TYPE_ENUM.validator }
         });
-        const validatorList = JSON.parse(vaRes.holder);
-        validatorList.BlockHashVcpPairs[0].Vcp.SortedCandidates.forEach((vcp) => {
-            vcp.Stakes.forEach((stake) => {
-                if (stake.source === address) {
-                    vcpStake.push({
-                        node_address: vcp.Holder,
-                        amount: Number(new bignumber_js_1.default(stake.amount).dividedBy('1e18').toFixed()),
-                        withdrawn: stake.withdrawn,
-                        return_height: stake.return_height,
-                        fiat_currency_value: {
-                            usd: Number(new bignumber_js_1.default(stake.amount).dividedBy('1e18').toFixed()) * thetaPrice,
-                            cny: Number(new bignumber_js_1.default(stake.amount).dividedBy('1e18').toFixed()) *
-                                thetaPrice *
-                                usdRate.CNY,
-                            eur: Number(new bignumber_js_1.default(stake.amount).dividedBy('1e18').toFixed()) *
-                                thetaPrice *
-                                usdRate.EUR
-                        }
-                    });
-                }
+        if (vaRes) {
+            const validatorList = JSON.parse(vaRes.holder);
+            validatorList.BlockHashVcpPairs[0].Vcp.SortedCandidates.forEach((vcp) => {
+                vcp.Stakes.forEach((stake) => {
+                    if (stake.source === address) {
+                        vcpStake.push({
+                            node_address: vcp.Holder,
+                            amount: Number(new bignumber_js_1.default(stake.amount).dividedBy('1e18').toFixed()),
+                            withdrawn: stake.withdrawn,
+                            return_height: stake.return_height,
+                            fiat_currency_value: {
+                                usd: Number(new bignumber_js_1.default(stake.amount).dividedBy('1e18').toFixed()) * thetaPrice,
+                                cny: Number(new bignumber_js_1.default(stake.amount).dividedBy('1e18').toFixed()) *
+                                    thetaPrice *
+                                    usdRate.CNY,
+                                eur: Number(new bignumber_js_1.default(stake.amount).dividedBy('1e18').toFixed()) *
+                                    thetaPrice *
+                                    usdRate.EUR
+                            }
+                        });
+                    }
+                });
             });
-        });
+        }
         return {
             stake_to_guardian: gcpStake,
             stake_to_elite_node: eenpStake,
@@ -218,16 +225,18 @@ let WalletService = class WalletService {
         const key = 'usd-rate-key';
         if (await this.cacheManager.get(key))
             return await this.cacheManager.get(key);
-        const res = await fetch('https://api.exchangerate-api.com/v4/latest/USD', {
+        const res = await axios({
+            url: 'https://api.exchangerate-api.com/v4/latest/USD',
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
-            }
+            },
+            timeout: 3000
         });
         if (res.status >= 400) {
             throw new Error('Bad response from server');
         }
-        let jsonInfo = await res.json();
+        let jsonInfo = await res.data;
         await this.cacheManager.set(key, jsonInfo['rates'], { ttl: 60 * 60 * 24 * 7 });
         return jsonInfo['rates'];
     }
