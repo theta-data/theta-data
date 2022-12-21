@@ -247,12 +247,12 @@ export class WalletService {
   public async getUsdRate(): Promise<{ CNY: number; EUR: number }> {
     const key = 'usd-rate-key'
     if (await this.cacheManager.get(key)) return await this.cacheManager.get(key)
-    const res = await this.utilsService.getJsonRes(
+    const jsonInfo = await this.utilsService.getJsonRes(
       'https://api.exchangerate-api.com/v4/latest/USD',
       3000
     )
     // console.log(await res.json())
-    let jsonInfo = res.data
+    // let jsonInfo = res.data
     // console.log(res.json())
     await this.cacheManager.set(key, jsonInfo['rates'], { ttl: 60 * 60 * 24 * 7 })
     return jsonInfo['rates']

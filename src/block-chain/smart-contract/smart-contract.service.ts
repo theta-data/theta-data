@@ -446,8 +446,8 @@ export class SmartContractService {
                 if (res[0]) {
                   // const contractUri: string = res[0]
                   try {
-                    const httpRes = await this.utilsService.getJsonRes(res[0])
-                    const jsonRes: any = httpRes.data
+                    const jsonRes = await this.utilsService.getJsonRes(res[0])
+                    // const jsonRes: any = httpRes.data
 
                     contract.contract_uri_detail = JSON.stringify(jsonRes)
                     contract.name = jsonRes.name

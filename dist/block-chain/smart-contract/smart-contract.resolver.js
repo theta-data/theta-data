@@ -41,8 +41,7 @@ let SmartContractResolver = class SmartContractResolver {
         return await this.smartContractService.verifySmartContract(address, sourceCode, byteCode, version, versionFullName, optimizer, optimizerRuns);
     }
     async verifyWithThetaExplorer(address) {
-        const httpRes = await this.utilsService.getJsonRes('https://explorer.thetatoken.org:8443/api/smartcontract/' + address);
-        const res = httpRes.data;
+        const res = await this.utilsService.getJsonRes('https://explorer.thetatoken.org:8443/api/smartcontract/' + address);
         const optimizer = res.body.optimizer === 'disabled' ? false : true;
         const optimizerRuns = res.body.optimizerRuns ? res.body.optimizerRuns : 200;
         address = this.utilsService.normalize(address.toLowerCase());

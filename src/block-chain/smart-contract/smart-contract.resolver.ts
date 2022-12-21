@@ -99,7 +99,7 @@ export class SmartContractResolver {
     })
     address: string
   ) {
-    const httpRes = await this.utilsService.getJsonRes(
+    const res = await this.utilsService.getJsonRes(
       'https://explorer.thetatoken.org:8443/api/smartcontract/' + address
     )
     // if (httpRes.status >= 400) {
@@ -107,7 +107,7 @@ export class SmartContractResolver {
     //   this.logger.error('vist /explorer.thetatoken.org error')
     //   throw new Error('Bad response from server')
     // }
-    const res: any = httpRes.data
+    // const res: any = httpRes.data
     // console.log('theta explorer res optimizer ', res.body.optimizer)
     const optimizer = res.body.optimizer === 'disabled' ? false : true
     // console.log('optimizer', optimizer)

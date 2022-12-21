@@ -211,10 +211,10 @@ export class SmartContractAnalyseService {
     this.logger.debug('start verify: ' + address)
 
     try {
-      const httpRes = await this.utilsService.getJsonRes(
+      const res = await this.utilsService.getJsonRes(
         'https://explorer.thetatoken.org:8443/api/smartcontract/' + address
       )
-      const res: any = httpRes.data
+      // const res: any = httpRes.data
       if (res.body.verification_date == '') return false
       // console.log('theta explorer res optimizer ', res.body.optimizer)
       const optimizer = res.body.optimizer === 'disabled' ? false : true
@@ -410,8 +410,8 @@ export class SmartContractAnalyseService {
                 if (res[0]) {
                   // const contractUri: string = res[0]
                   try {
-                    const httpRes = await this.utilsService.getJsonRes(res[0])
-                    const jsonRes: any = httpRes.data
+                    const jsonRes = await this.utilsService.getJsonRes(res[0])
+                    // const jsonRes: any = httpRes.data
 
                     contract.contract_uri_detail = JSON.stringify(jsonRes)
                     contract.name = jsonRes.name

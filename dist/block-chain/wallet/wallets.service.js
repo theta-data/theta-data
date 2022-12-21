@@ -226,8 +226,7 @@ let WalletService = class WalletService {
         const key = 'usd-rate-key';
         if (await this.cacheManager.get(key))
             return await this.cacheManager.get(key);
-        const res = await this.utilsService.getJsonRes('https://api.exchangerate-api.com/v4/latest/USD', 3000);
-        let jsonInfo = res.data;
+        const jsonInfo = await this.utilsService.getJsonRes('https://api.exchangerate-api.com/v4/latest/USD', 3000);
         await this.cacheManager.set(key, jsonInfo['rates'], { ttl: 60 * 60 * 24 * 7 });
         return jsonInfo['rates'];
     }
