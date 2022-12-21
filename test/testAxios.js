@@ -9,15 +9,20 @@ const axios = require('axios')
 
 async function main() {
   const option = {
-    url: 'https://api.thetadrop.com/type/type_f3s3nre856scgsbcbsphnfu2guy.json?nft_id=nft_urfuk33h7ygrjb7tp7s5qecyz89z',
+    url: 'https://explorer.thetatoken.org:8443/api/smartcontract/0xc9eca1e66cd16e6177536d31b565923f0afbaa9c',
     timeout: 3000,
     method: 'get'
     // responseType: 'json'
     // responseEncoding: 'utf8',
   }
 
-  const res = await axios(option)
-  console.log(res)
-  console.log(res.data)
+  try {
+    const res = await axios(option)
+    console.log(res)
+    console.log(res.data)
+  } catch (e) {
+    console.log('error')
+    console.log(e)
+  }
 }
 main()

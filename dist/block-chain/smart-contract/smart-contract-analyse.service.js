@@ -169,27 +169,24 @@ let SmartContractAnalyseService = class SmartContractAnalyseService {
     }
     async verifyWithThetaExplorer(address) {
         this.logger.debug('start verify: ' + address);
-        const httpRes = await axios('https://explorer.thetatoken.org:8443/api/smartcontract/' + address, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        if (httpRes.status >= 400) {
-            this.logger.error('Get smart contract ' + address + ': Bad response from server');
+        try {
+            const httpRes = await this.utilsService.getJsonRes('https://explorer.thetatoken.org:8443/api/smartcontract/' + address);
+            const res = httpRes.data;
+            if (res.body.verification_date == '')
+                return false;
+            const optimizer = res.body.optimizer === 'disabled' ? false : true;
+            const optimizerRuns = res.body.optimizerRuns ? res.body.optimizerRuns : 200;
+            const sourceCode = res.body.source_code;
+            const version = res.body.compiler_version.match(/[\d,\.]+/g)[0];
+            const versionFullName = 'soljson-' + res.body.compiler_version + '.js';
+            const byteCode = res.body.bytecode;
+            address = this.utilsService.normalize(address.toLowerCase());
+            return await this.getVerifyInfo(address, sourceCode, byteCode, version, versionFullName, optimizer, optimizerRuns);
+        }
+        catch (e) {
+            this.logger.error('verifyWithThetaExplorer error', e);
             return false;
         }
-        const res = await httpRes.data;
-        if (res.body.verification_date == '')
-            return false;
-        const optimizer = res.body.optimizer === 'disabled' ? false : true;
-        const optimizerRuns = res.body.optimizerRuns ? res.body.optimizerRuns : 200;
-        const sourceCode = res.body.source_code;
-        const version = res.body.compiler_version.match(/[\d,\.]+/g)[0];
-        const versionFullName = 'soljson-' + res.body.compiler_version + '.js';
-        const byteCode = res.body.bytecode;
-        address = this.utilsService.normalize(address.toLowerCase());
-        return await this.getVerifyInfo(address, sourceCode, byteCode, version, versionFullName, optimizer, optimizerRuns);
     }
     async updateCallTimesByPeriod(contractAddress) {
         this.logger.debug('start update call times by period');
@@ -309,22 +306,16 @@ let SmartContractAnalyseService = class SmartContractAnalyseService {
                                 this.logger.debug('contract uri:' + res[0]);
                                 contract.contract_uri = res[0];
                                 if (res[0]) {
-                                    const httpRes = await axios({
-                                        url: res[0],
-                                        method: 'GET',
-                                        headers: {
-                                            'Content-Type': 'application/json'
-                                        }
-                                    });
-                                    if (httpRes.status >= 400) {
-                                        this.logger.error('Fetch contract uri: Bad response from server');
-                                        contract.contract_uri_detail = '';
-                                        contract.name = contractName;
-                                    }
-                                    else {
+                                    try {
+                                        const httpRes = await this.utilsService.getJsonRes(res[0]);
                                         const jsonRes = httpRes.data;
                                         contract.contract_uri_detail = JSON.stringify(jsonRes);
                                         contract.name = jsonRes.name;
+                                    }
+                                    catch (e) {
+                                        this.logger.error('Fetch contract uri: Bad response from server');
+                                        contract.contract_uri_detail = '';
+                                        contract.name = contractName;
                                     }
                                 }
                             }

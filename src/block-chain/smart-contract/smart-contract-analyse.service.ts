@@ -209,64 +209,37 @@ export class SmartContractAnalyseService {
 
   async verifyWithThetaExplorer(address: string) {
     this.logger.debug('start verify: ' + address)
-    const httpRes = await axios(
-      'https://explorer.thetatoken.org:8443/api/smartcontract/' + address,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }
-    )
-    if (httpRes.status >= 400) {
-      this.logger.error('Get smart contract ' + address + ': Bad response from server')
-      return false
-      // throw new Error('Get smart contract Info: Bad response from server')
-    }
-    const res: any = await httpRes.data
-    if (res.body.verification_date == '') return false
-    // console.log('theta explorer res optimizer ', res.body.optimizer)
-    const optimizer = res.body.optimizer === 'disabled' ? false : true
-    // console.log('optimizer', optimizer)
-    const optimizerRuns = res.body.optimizerRuns ? res.body.optimizerRuns : 200
-    const sourceCode = res.body.source_code
-    const version = res.body.compiler_version.match(/[\d,\.]+/g)[0]
-    const versionFullName = 'soljson-' + res.body.compiler_version + '.js'
-    const byteCode = res.body.bytecode
 
-    address = this.utilsService.normalize(address.toLowerCase())
-    // try {
-    return await this.getVerifyInfo(
-      address,
-      sourceCode,
-      byteCode,
-      version,
-      versionFullName,
-      optimizer,
-      optimizerRuns
-    )
-    // } catch (e) {
-    //   if (e.message.indexOf('Maximum call stack size exceeded') !== -1) {
-    //     //directly return verfiy info from theta explorer
-    //     this.logger.debug('can not verify with , return theta explorer info')
-    //     return {
-    //       abi: JSON.stringify(res.body.abi),
-    //       source_code: res.body.source_code,
-    //       byte_code: res.body.bytecode,
-    //       verification_date: Math.floor(Number(res.body.verification_date) / 1000),
-    //       compiler_version: res.body.compiler_version,
-    //       optimizer: res.body.optimizer,
-    //       optimizerRuns: optimizerRuns,
-    //       name: res.body.name,
-    //       function_hash: JSON.stringify(res.body.function_hash),
-    //       constructor_arguments: res.body.constructor_arguments,
-    //       verified: true
-    //     }
-    //   } else {
-    //     this.logger.error('unkown error')
-    //     throw new Error(e.message)
-    //   }
-    // }
+    try {
+      const httpRes = await this.utilsService.getJsonRes(
+        'https://explorer.thetatoken.org:8443/api/smartcontract/' + address
+      )
+      const res: any = httpRes.data
+      if (res.body.verification_date == '') return false
+      // console.log('theta explorer res optimizer ', res.body.optimizer)
+      const optimizer = res.body.optimizer === 'disabled' ? false : true
+      // console.log('optimizer', optimizer)
+      const optimizerRuns = res.body.optimizerRuns ? res.body.optimizerRuns : 200
+      const sourceCode = res.body.source_code
+      const version = res.body.compiler_version.match(/[\d,\.]+/g)[0]
+      const versionFullName = 'soljson-' + res.body.compiler_version + '.js'
+      const byteCode = res.body.bytecode
+
+      address = this.utilsService.normalize(address.toLowerCase())
+      // try {
+      return await this.getVerifyInfo(
+        address,
+        sourceCode,
+        byteCode,
+        version,
+        versionFullName,
+        optimizer,
+        optimizerRuns
+      )
+    } catch (e) {
+      this.logger.error('verifyWithThetaExplorer error', e)
+      return false
+    }
   }
 
   async updateCallTimesByPeriod(contractAddress: string) {
@@ -436,23 +409,16 @@ export class SmartContractAnalyseService {
                 contract.contract_uri = res[0]
                 if (res[0]) {
                   // const contractUri: string = res[0]
-                  const httpRes = await axios({
-                    url: res[0],
-                    method: 'GET',
-                    headers: {
-                      'Content-Type': 'application/json'
-                    }
-                  })
-                  if (httpRes.status >= 400) {
-                    this.logger.error('Fetch contract uri: Bad response from server')
-                    contract.contract_uri_detail = ''
-                    contract.name = contractName
-                    // throw new Error('Bad response from server')
-                  } else {
+                  try {
+                    const httpRes = await this.utilsService.getJsonRes(res[0])
                     const jsonRes: any = httpRes.data
 
                     contract.contract_uri_detail = JSON.stringify(jsonRes)
                     contract.name = jsonRes.name
+                  } catch (e) {
+                    this.logger.error('Fetch contract uri: Bad response from server')
+                    contract.contract_uri_detail = ''
+                    contract.name = contractName
                   }
                 }
               }

@@ -13,7 +13,7 @@ import { ActiveWalletsEntity } from './active-wallets.entity'
 import { STAKE_NODE_TYPE_ENUM } from '../stake/stake.model'
 import { GetGcpByHeightModel } from '../rpc/rpc-gcp.model'
 import { RpcService } from '../rpc/rpc.service'
-const axios = require('axios')
+import { UtilsService } from 'src/common/utils.service'
 @Injectable()
 export class WalletService {
   logger = new Logger()
@@ -32,7 +32,9 @@ export class WalletService {
 
     private marketInfo: MarketService,
 
-    private rpcService: RpcService
+    private rpcService: RpcService,
+
+    private utilsService: UtilsService
   ) {}
 
   public async getBalanceByAddress(address: string) {
@@ -245,19 +247,12 @@ export class WalletService {
   public async getUsdRate(): Promise<{ CNY: number; EUR: number }> {
     const key = 'usd-rate-key'
     if (await this.cacheManager.get(key)) return await this.cacheManager.get(key)
-    const res = await axios({
-      url: 'https://api.exchangerate-api.com/v4/latest/USD',
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      timeout: 3000
-    })
-    if (res.status >= 400) {
-      throw new Error('Bad response from server')
-    }
+    const res = await this.utilsService.getJsonRes(
+      'https://api.exchangerate-api.com/v4/latest/USD',
+      3000
+    )
     // console.log(await res.json())
-    let jsonInfo = await res.data
+    let jsonInfo = res.data
     // console.log(res.json())
     await this.cacheManager.set(key, jsonInfo['rates'], { ttl: 60 * 60 * 24 * 7 })
     return jsonInfo['rates']

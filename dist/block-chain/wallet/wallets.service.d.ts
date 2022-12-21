@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 import { WalletEntity } from './wallet.entity';
 import { ActiveWalletsEntity } from './active-wallets.entity';
 import { RpcService } from '../rpc/rpc.service';
+import { UtilsService } from 'src/common/utils.service';
 export declare class WalletService {
     private cacheManager;
     private walletRepository;
@@ -14,8 +15,9 @@ export declare class WalletService {
     private activeWalletsRepository;
     private marketInfo;
     private rpcService;
+    private utilsService;
     logger: Logger;
-    constructor(cacheManager: Cache, walletRepository: Repository<WalletEntity>, latestStakeInfoRepository: Repository<LatestStakeInfoEntity>, activeWalletsRepository: Repository<ActiveWalletsEntity>, marketInfo: MarketService, rpcService: RpcService);
+    constructor(cacheManager: Cache, walletRepository: Repository<WalletEntity>, latestStakeInfoRepository: Repository<LatestStakeInfoEntity>, activeWalletsRepository: Repository<ActiveWalletsEntity>, marketInfo: MarketService, rpcService: RpcService, utilsService: UtilsService);
     getBalanceByAddress(address: string): Promise<{
         theta: {
             amount: number;

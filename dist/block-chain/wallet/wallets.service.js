@@ -23,15 +23,16 @@ const wallet_entity_1 = require("./wallet.entity");
 const active_wallets_entity_1 = require("./active-wallets.entity");
 const stake_model_1 = require("../stake/stake.model");
 const rpc_service_1 = require("../rpc/rpc.service");
-const axios = require('axios');
+const utils_service_1 = require("../../common/utils.service");
 let WalletService = class WalletService {
-    constructor(cacheManager, walletRepository, latestStakeInfoRepository, activeWalletsRepository, marketInfo, rpcService) {
+    constructor(cacheManager, walletRepository, latestStakeInfoRepository, activeWalletsRepository, marketInfo, rpcService, utilsService) {
         this.cacheManager = cacheManager;
         this.walletRepository = walletRepository;
         this.latestStakeInfoRepository = latestStakeInfoRepository;
         this.activeWalletsRepository = activeWalletsRepository;
         this.marketInfo = marketInfo;
         this.rpcService = rpcService;
+        this.utilsService = utilsService;
         this.logger = new common_1.Logger();
     }
     async getBalanceByAddress(address) {
@@ -225,18 +226,8 @@ let WalletService = class WalletService {
         const key = 'usd-rate-key';
         if (await this.cacheManager.get(key))
             return await this.cacheManager.get(key);
-        const res = await axios({
-            url: 'https://api.exchangerate-api.com/v4/latest/USD',
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            timeout: 3000
-        });
-        if (res.status >= 400) {
-            throw new Error('Bad response from server');
-        }
-        let jsonInfo = await res.data;
+        const res = await this.utilsService.getJsonRes('https://api.exchangerate-api.com/v4/latest/USD', 3000);
+        let jsonInfo = res.data;
         await this.cacheManager.set(key, jsonInfo['rates'], { ttl: 60 * 60 * 24 * 7 });
         return jsonInfo['rates'];
     }
@@ -281,7 +272,8 @@ WalletService = __decorate([
         typeorm_2.Repository,
         typeorm_2.Repository,
         market_service_1.MarketService,
-        rpc_service_1.RpcService])
+        rpc_service_1.RpcService,
+        utils_service_1.UtilsService])
 ], WalletService);
 exports.WalletService = WalletService;
 //# sourceMappingURL=wallets.service.js.map
