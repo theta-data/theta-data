@@ -1,6 +1,6 @@
+import { RpcService } from './../rpc/rpc.service'
 import { Injectable, Logger } from '@nestjs/common'
 import { DataSource, MoreThan, QueryRunner } from 'typeorm'
-import { thetaTsSdk } from 'theta-ts-sdk'
 import { THETA_BLOCK_INTERFACE } from 'theta-ts-sdk/src/types/interface'
 import { LoggerService } from 'src/common/logger.service'
 import { WalletEntity } from 'src/block-chain/wallet/wallet.entity'
@@ -25,9 +25,9 @@ export class WalletsAnalyseService {
     private loggerService: LoggerService,
     private utilsService: UtilsService,
     @InjectDataSource('wallet') private walletConnectionInjected: DataSource,
-    @InjectDataSource('smart_contract') private smartContractConnectionInjected: DataSource
+    @InjectDataSource('smart_contract') private smartContractConnectionInjected: DataSource,
+    private rpcService: RpcService
   ) {
-    // thetaTsSdk.blockchain.setUrl(config.get('THETA_NODE_HOST'))
     this.logger.debug(config.get('THETA_NODE_HOST'))
   }
 
@@ -41,7 +41,7 @@ export class WalletsAnalyseService {
 
       let height: number = 0
       const lastfinalizedHeight = Number(
-        (await thetaTsSdk.blockchain.getStatus()).result.latest_finalized_block_height
+        (await this.rpcService.getStatus()).latest_finalized_block_height
       )
       height = lastfinalizedHeight - 1000
 
@@ -65,17 +65,14 @@ export class WalletsAnalyseService {
       this.logger.debug('start height: ' + height + '; end height: ' + endHeight)
 
       //   this.startTimestamp = moment().unix()
-      const blockList = await thetaTsSdk.blockchain.getBlockSByRange(
-        height.toString(),
-        endHeight.toString()
-      )
-      const actualEndHeight = Number(blockList.result[blockList.result.length - 1].height)
-      this.logger.debug('block list length:' + blockList.result.length)
+      const blockList = await this.rpcService.getBlockSByRange(height, endHeight)
+      const actualEndHeight = Number(blockList[blockList.length - 1].height)
+      this.logger.debug('block list length:' + blockList.length)
       this.logger.debug('actual end height:' + actualEndHeight)
-      this.counter = blockList.result.length
+      this.counter = blockList.length
       this.logger.debug('init counter', this.counter)
       const blockArr = {}
-      for (const block of blockList.result) {
+      for (const block of blockList) {
         const hhTimestamp = moment(
           moment(Number(block.timestamp) * 1000).format('YYYY-MM-DD HH:00:00')
         ).unix()
@@ -101,7 +98,7 @@ export class WalletsAnalyseService {
       // this.logger.debug('start update calltimes by period')
       await this.walletConnectionRunner.commitTransaction()
       this.logger.debug('commit success')
-      if (blockList.result.length > 0) {
+      if (blockList.length > 0) {
         this.utilsService.updateRecordHeight(this.heightConfigFile, actualEndHeight)
       }
       writeSucessExcuteLog(config.get('WALLET.MONITOR_PATH'))

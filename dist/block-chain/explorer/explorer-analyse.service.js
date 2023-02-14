@@ -13,6 +13,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ExplorerAnalyseService = void 0;
+const rpc_service_1 = require("./../rpc/rpc.service");
 const const_1 = require("./const");
 const count_entity_1 = require("./count.entity");
 const transaction_entity_1 = require("./transaction.entity");
@@ -20,16 +21,16 @@ const block_list_entity_1 = require("./block-list.entity");
 const utils_service_1 = require("../../common/utils.service");
 const typeorm_1 = require("typeorm");
 const common_1 = require("@nestjs/common");
-const theta_ts_sdk_1 = require("theta-ts-sdk");
 const bignumber_js_1 = require("bignumber.js");
 const enum_1 = require("theta-ts-sdk/dist/types/enum");
 const const_2 = require("../../const");
 const typeorm_2 = require("@nestjs/typeorm");
 const path = require('path');
 let ExplorerAnalyseService = class ExplorerAnalyseService {
-    constructor(utilsService, explorerConnectionInjected) {
+    constructor(utilsService, explorerConnectionInjected, rpcService) {
         this.utilsService = utilsService;
         this.explorerConnectionInjected = explorerConnectionInjected;
+        this.rpcService = rpcService;
         this.logger = new common_1.Logger('explorer analyse service');
         this.heightConfigFile = const_2.config.get('ORM_CONFIG')['database'] + 'explorer/record.height';
         this.current = {};
@@ -47,9 +48,9 @@ let ExplorerAnalyseService = class ExplorerAnalyseService {
                 return;
             }
             this.logger.debug('start analyse data, start height:' + startHeight + ', end height:' + endHeight);
-            const blockList = await theta_ts_sdk_1.thetaTsSdk.blockchain.getBlockSByRange(startHeight.toString(), endHeight.toString());
-            this.logger.debug('get block list length:' + blockList.result.length);
-            for (const block of blockList.result) {
+            const blockList = await this.rpcService.getBlockSByRange(startHeight, endHeight);
+            this.logger.debug('get block list length:' + blockList.length);
+            for (const block of blockList) {
                 await this.handleData(block);
             }
             const tansactionCountEntity = await this.explorerConnectionRunner.manager.findOne(count_entity_1.CountEntity, {
@@ -71,17 +72,17 @@ let ExplorerAnalyseService = class ExplorerAnalyseService {
                 where: { key: const_1.BLOCK_COUNT_KEY }
             });
             if (blockCountEntity) {
-                blockCountEntity.count += blockList.result.length;
+                blockCountEntity.count += blockList.length;
                 await this.explorerConnectionRunner.manager.save(blockCountEntity);
             }
             else {
                 await this.explorerConnectionRunner.manager.insert(count_entity_1.CountEntity, {
                     key: const_1.BLOCK_COUNT_KEY,
-                    count: blockList.result.length
+                    count: blockList.length
                 });
             }
-            if (blockList.result.length > 0) {
-                this.utilsService.updateRecordHeight(this.heightConfigFile, Number(blockList.result[blockList.result.length - 1].height));
+            if (blockList.length > 0) {
+                this.utilsService.updateRecordHeight(this.heightConfigFile, Number(blockList[blockList.length - 1].height));
             }
             await this.explorerConnectionRunner.commitTransaction();
             (0, utils_service_1.writeSucessExcuteLog)(const_2.config.get('EXPLORER.MONITOR_PATH'));
@@ -191,7 +192,7 @@ let ExplorerAnalyseService = class ExplorerAnalyseService {
     async getInitHeight(configPath) {
         let height = 0;
         this.logger.debug(this.heightConfigFile);
-        const lastfinalizedHeight = Number((await theta_ts_sdk_1.thetaTsSdk.blockchain.getStatus()).result.latest_finalized_block_height);
+        const lastfinalizedHeight = Number((await this.rpcService.getStatus()).latest_finalized_block_height);
         this.logger.debug(JSON.stringify(const_2.config.get(configPath.toUpperCase() + '.START_HEIGHT')));
         if (const_2.config.get(configPath.toUpperCase() + '.START_HEIGHT')) {
             height = const_2.config.get(configPath.toUpperCase() + '.START_HEIGHT');
@@ -215,7 +216,8 @@ ExplorerAnalyseService = __decorate([
     (0, common_1.Injectable)(),
     __param(1, (0, typeorm_2.InjectDataSource)('explorer')),
     __metadata("design:paramtypes", [utils_service_1.UtilsService,
-        typeorm_1.DataSource])
+        typeorm_1.DataSource,
+        rpc_service_1.RpcService])
 ], ExplorerAnalyseService);
 exports.ExplorerAnalyseService = ExplorerAnalyseService;
 //# sourceMappingURL=explorer-analyse.service.js.map

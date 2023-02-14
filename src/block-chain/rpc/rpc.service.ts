@@ -53,4 +53,8 @@ export class RpcService {
     return (await thetaTsSdk.blockchain.getBlockSByRange(height.toString(), endHeight.toString()))
       .result
   }
+
+  public async callSmartContract(from: string, to: string, data: string) {
+    return await thetaTsSdk.blockchain.callSmartContract(from, to, data)
+  }
 }

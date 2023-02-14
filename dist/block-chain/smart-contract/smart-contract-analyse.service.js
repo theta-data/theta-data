@@ -17,23 +17,24 @@ const smart_contract_call_log_entity_1 = require("./smart-contract-call-log.enti
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("typeorm");
 const enum_1 = require("theta-ts-sdk/dist/types/enum");
-const theta_ts_sdk_1 = require("theta-ts-sdk");
 const logger_service_1 = require("../../common/logger.service");
 const smart_contract_call_record_entity_1 = require("./smart-contract-call-record.entity");
 const smart_contract_entity_1 = require("./smart-contract.entity");
 const utils_service_1 = require("../../common/utils.service");
 const smart_contract_service_1 = require("./smart-contract.service");
-const cross_fetch_1 = require("cross-fetch");
 const const_1 = require("../../const");
 const typeorm_2 = require("@nestjs/typeorm");
 const solc_service_1 = require("../../common/solc.service");
+const rpc_service_1 = require("../rpc/rpc.service");
 const moment = require('moment');
 const fs = require('fs');
+const axios = require('axios');
 let SmartContractAnalyseService = class SmartContractAnalyseService {
-    constructor(loggerService, utilsService, smartContractService, solcService, smartContractConnectionInjected) {
+    constructor(loggerService, utilsService, smartContractService, rpcService, solcService, smartContractConnectionInjected) {
         this.loggerService = loggerService;
         this.utilsService = utilsService;
         this.smartContractService = smartContractService;
+        this.rpcService = rpcService;
         this.solcService = solcService;
         this.smartContractConnectionInjected = smartContractConnectionInjected;
         this.logger = new common_1.Logger('smart contract analyse service');
@@ -49,7 +50,7 @@ let SmartContractAnalyseService = class SmartContractAnalyseService {
             this.smartContractConnectionRunner = this.smartContractConnectionInjected.createQueryRunner();
             await this.smartContractConnectionRunner.startTransaction();
             let height = 0;
-            const lastfinalizedHeight = Number((await theta_ts_sdk_1.thetaTsSdk.blockchain.getStatus()).result.latest_finalized_block_height);
+            const lastfinalizedHeight = Number((await this.rpcService.getStatus()).latest_finalized_block_height);
             height = lastfinalizedHeight - 1000;
             if (const_1.config.get('SMART_CONTRACT.START_HEIGHT')) {
                 height = const_1.config.get('SMART_CONTRACT.START_HEIGHT');
@@ -78,13 +79,13 @@ let SmartContractAnalyseService = class SmartContractAnalyseService {
             }
             this.logger.debug('start height: ' + height + '; end height: ' + endHeight);
             this.startTimestamp = moment().unix();
-            const blockList = await theta_ts_sdk_1.thetaTsSdk.blockchain.getBlockSByRange(height.toString(), endHeight.toString());
-            this.logger.debug('block list length:' + blockList.result.length);
-            this.counter = blockList.result.length;
+            const blockList = await this.rpcService.getBlockSByRange(height, endHeight);
+            this.logger.debug('block list length:' + blockList.length);
+            this.counter = blockList.length;
             this.logger.debug('init counter', this.counter);
             this.smartContractList = [];
-            for (let i = 0; i < blockList.result.length; i++) {
-                const block = blockList.result[i];
+            for (let i = 0; i < blockList.length; i++) {
+                const block = blockList[i];
                 this.logger.debug(block.height + ' start hanldle');
                 await this.handleOrderCreatedEvent(block, lastfinalizedHeight);
             }
@@ -93,8 +94,8 @@ let SmartContractAnalyseService = class SmartContractAnalyseService {
                 await this.updateCallTimesByPeriod(contract);
             }
             await this.smartContractConnectionRunner.commitTransaction();
-            if (blockList.result.length > 1) {
-                this.utilsService.updateRecordHeight(this.heightConfigFile, Number(blockList.result[blockList.result.length - 1].height));
+            if (blockList.length > 1) {
+                this.utilsService.updateRecordHeight(this.heightConfigFile, Number(blockList[blockList.length - 1].height));
             }
             (0, utils_service_1.writeSucessExcuteLog)(const_1.config.get('SMART_CONTRACT.MONITOR_PATH'));
         }
@@ -168,27 +169,23 @@ let SmartContractAnalyseService = class SmartContractAnalyseService {
     }
     async verifyWithThetaExplorer(address) {
         this.logger.debug('start verify: ' + address);
-        const httpRes = await (0, cross_fetch_1.default)('https://explorer.thetatoken.org:8443/api/smartcontract/' + address, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        if (httpRes.status >= 400) {
-            this.logger.error('Get smart contract ' + address + ': Bad response from server');
+        try {
+            const res = await this.utilsService.getJsonRes('https://explorer.thetatoken.org:8443/api/smartcontract/' + address);
+            if (res.body.verification_date == '')
+                return false;
+            const optimizer = res.body.optimizer === 'disabled' ? false : true;
+            const optimizerRuns = res.body.optimizerRuns ? res.body.optimizerRuns : 200;
+            const sourceCode = res.body.source_code;
+            const version = res.body.compiler_version.match(/[\d,\.]+/g)[0];
+            const versionFullName = 'soljson-' + res.body.compiler_version + '.js';
+            const byteCode = res.body.bytecode;
+            address = this.utilsService.normalize(address.toLowerCase());
+            return await this.getVerifyInfo(address, sourceCode, byteCode, version, versionFullName, optimizer, optimizerRuns);
+        }
+        catch (e) {
+            this.logger.error('verifyWithThetaExplorer error', e);
             return false;
         }
-        const res = await httpRes.json();
-        if (res.body.verification_date == '')
-            return false;
-        const optimizer = res.body.optimizer === 'disabled' ? false : true;
-        const optimizerRuns = res.body.optimizerRuns ? res.body.optimizerRuns : 200;
-        const sourceCode = res.body.source_code;
-        const version = res.body.compiler_version.match(/[\d,\.]+/g)[0];
-        const versionFullName = 'soljson-' + res.body.compiler_version + '.js';
-        const byteCode = res.body.bytecode;
-        address = this.utilsService.normalize(address.toLowerCase());
-        return await this.getVerifyInfo(address, sourceCode, byteCode, version, versionFullName, optimizer, optimizerRuns);
     }
     async updateCallTimesByPeriod(contractAddress) {
         this.logger.debug('start update call times by period');
@@ -308,21 +305,15 @@ let SmartContractAnalyseService = class SmartContractAnalyseService {
                                 this.logger.debug('contract uri:' + res[0]);
                                 contract.contract_uri = res[0];
                                 if (res[0]) {
-                                    const httpRes = await (0, cross_fetch_1.default)(res[0], {
-                                        method: 'GET',
-                                        headers: {
-                                            'Content-Type': 'application/json'
-                                        }
-                                    });
-                                    if (httpRes.status >= 400) {
+                                    try {
+                                        const jsonRes = await this.utilsService.getJsonRes(res[0]);
+                                        contract.contract_uri_detail = JSON.stringify(jsonRes);
+                                        contract.name = jsonRes.name;
+                                    }
+                                    catch (e) {
                                         this.logger.error('Fetch contract uri: Bad response from server');
                                         contract.contract_uri_detail = '';
                                         contract.name = contractName;
-                                    }
-                                    else {
-                                        const jsonRes = await httpRes.json();
-                                        contract.contract_uri_detail = JSON.stringify(jsonRes);
-                                        contract.name = jsonRes.name;
                                     }
                                 }
                             }
@@ -363,10 +354,11 @@ let SmartContractAnalyseService = class SmartContractAnalyseService {
 };
 SmartContractAnalyseService = __decorate([
     (0, common_1.Injectable)(),
-    __param(4, (0, typeorm_2.InjectDataSource)('smart_contract')),
+    __param(5, (0, typeorm_2.InjectDataSource)('smart_contract')),
     __metadata("design:paramtypes", [logger_service_1.LoggerService,
         utils_service_1.UtilsService,
         smart_contract_service_1.SmartContractService,
+        rpc_service_1.RpcService,
         solc_service_1.SolcService,
         typeorm_1.DataSource])
 ], SmartContractAnalyseService);

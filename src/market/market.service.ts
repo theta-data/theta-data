@@ -1,9 +1,7 @@
 import { RpcService } from './../block-chain/rpc/rpc.service'
 import { KLINE_INTERVAL, TokenMarketInformationType, TOKEN_PAIR_TYPE } from './market.model'
 import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common'
-import { thetaTsSdk } from 'theta-ts-sdk'
 import { Cache } from 'cache-manager'
-import { CMC_PRICE_INFORMATION } from 'theta-ts-sdk/dist/types/interface'
 import { BinanceService } from 'src/exchange/binance.service'
 
 @Injectable()
@@ -12,9 +10,7 @@ export class MarketService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private exchangeService: BinanceService,
     private RpcService: RpcService
-  ) {
-    // thetaTsSdk.cmc.setKey('57a40db8-5488-4ed4-ab75-152fec2ed608')
-  }
+  ) {}
   public async getThetaMarketInfo(): Promise<TokenMarketInformationType> {
     const key = 'theta-market-info'
     if (await this.cacheManager.get(key)) return await this.cacheManager.get(key)

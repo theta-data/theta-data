@@ -28,13 +28,13 @@ export declare class NftStatisticsService {
         contract_uri_detail: string;
         img_uri: string;
     }>;
-    formatNftStatistics(contractUri: string, nftStatistics: Array<NftTransferRecordEntity>): Promise<{
+    formatNftStatistics(contractUri: string, nftStatistics: Array<NftTransferRecordEntity>, timezoneOffset: number): Promise<{
         by_24_hours: Array<NftDetailByDate>;
         by_7_days: Array<NftDetailByDate>;
         by_30_days: Array<NftDetailByDate>;
     }>;
-    nftStatistics24H(contractAddress: string, contractUri: string): Promise<NftDetailByDate[]>;
-    nftStatistics7Days(contractAddress: string, contractUri: string): Promise<NftDetailByDate[]>;
-    nftStatistics30Days(contractAddress: string, contractUri: string): Promise<NftDetailByDate[]>;
+    nftStatistics24H(contractAddress: string, contractUri: string, timezoneOffset: number): Promise<NftDetailByDate[]>;
+    nftStatistics7Days(contractAddress: string, contractUri: string, timezoneOffset: number): Promise<NftDetailByDate[]>;
+    nftStatistics30Days(contractAddress: string, contractUri: string, timezoneOffset: number): Promise<NftDetailByDate[]>;
     isNftExist(name: string): Promise<NftStatisticsEntity>;
 }

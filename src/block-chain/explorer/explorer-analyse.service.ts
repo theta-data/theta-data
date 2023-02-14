@@ -1,3 +1,4 @@
+import { RpcService } from './../rpc/rpc.service'
 import { BLOCK_COUNT_KEY, TRANSACTION_COUNT_KEY } from './const'
 import { CountEntity } from './count.entity'
 import { TransactionEntity } from './transaction.entity'
@@ -5,7 +6,6 @@ import { BlokcListEntity } from './block-list.entity'
 import { UtilsService, writeFailExcuteLog, writeSucessExcuteLog } from 'src/common/utils.service'
 import { DataSource, QueryRunner } from 'typeorm'
 import { Injectable, Logger } from '@nestjs/common'
-import { thetaTsSdk } from 'theta-ts-sdk'
 import { THETA_BLOCK_INTERFACE } from 'theta-ts-sdk/dist/types/interface'
 import BigNumber from 'bignumber.js'
 import { THETA_TRANSACTION_TYPE_ENUM } from 'theta-ts-sdk/dist/types/enum'
@@ -30,7 +30,8 @@ export class ExplorerAnalyseService {
   constructor(
     private utilsService: UtilsService,
     @InjectDataSource('explorer')
-    private readonly explorerConnectionInjected: DataSource
+    private readonly explorerConnectionInjected: DataSource,
+    private rpcService: RpcService
   ) {
     // this.utilsService = utilsService
   }
@@ -50,12 +51,9 @@ export class ExplorerAnalyseService {
         'start analyse data, start height:' + startHeight + ', end height:' + endHeight
       )
 
-      const blockList = await thetaTsSdk.blockchain.getBlockSByRange(
-        startHeight.toString(),
-        endHeight.toString()
-      )
-      this.logger.debug('get block list length:' + blockList.result.length)
-      for (const block of blockList.result) {
+      const blockList = await this.rpcService.getBlockSByRange(startHeight, endHeight)
+      this.logger.debug('get block list length:' + blockList.length)
+      for (const block of blockList) {
         await this.handleData(block)
       }
       const tansactionCountEntity = await this.explorerConnectionRunner.manager.findOne(
@@ -79,19 +77,19 @@ export class ExplorerAnalyseService {
         where: { key: BLOCK_COUNT_KEY }
       })
       if (blockCountEntity) {
-        blockCountEntity.count += blockList.result.length
+        blockCountEntity.count += blockList.length
         await this.explorerConnectionRunner.manager.save(blockCountEntity)
       } else {
         await this.explorerConnectionRunner.manager.insert(CountEntity, {
           key: BLOCK_COUNT_KEY,
-          count: blockList.result.length
+          count: blockList.length
         })
       }
 
-      if (blockList.result.length > 0) {
+      if (blockList.length > 0) {
         this.utilsService.updateRecordHeight(
           this.heightConfigFile,
-          Number(blockList.result[blockList.result.length - 1].height)
+          Number(blockList[blockList.length - 1].height)
         )
       }
       await this.explorerConnectionRunner.commitTransaction()
@@ -208,11 +206,11 @@ export class ExplorerAnalyseService {
     })
   }
 
-  async getInitHeight(configPath: string): Promise<[Number, Number]> {
+  async getInitHeight(configPath: string): Promise<[number, number]> {
     let height: number = 0
     this.logger.debug(this.heightConfigFile)
     const lastfinalizedHeight = Number(
-      (await thetaTsSdk.blockchain.getStatus()).result.latest_finalized_block_height
+      (await this.rpcService.getStatus()).latest_finalized_block_height
     )
     this.logger.debug(JSON.stringify(config.get(configPath.toUpperCase() + '.START_HEIGHT')))
     // height = lastfinalizedHeight - 1000

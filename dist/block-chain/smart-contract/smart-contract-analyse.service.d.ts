@@ -4,10 +4,12 @@ import { LoggerService } from 'src/common/logger.service';
 import { UtilsService } from 'src/common/utils.service';
 import { SmartContractService } from 'src/block-chain/smart-contract/smart-contract.service';
 import { SolcService } from 'src/common/solc.service';
+import { RpcService } from '../rpc/rpc.service';
 export declare class SmartContractAnalyseService {
     private loggerService;
     private utilsService;
     private smartContractService;
+    private rpcService;
     private solcService;
     private smartContractConnectionInjected;
     private readonly logger;
@@ -17,7 +19,7 @@ export declare class SmartContractAnalyseService {
     private smartContractConnectionRunner;
     private heightConfigFile;
     private smartContractList;
-    constructor(loggerService: LoggerService, utilsService: UtilsService, smartContractService: SmartContractService, solcService: SolcService, smartContractConnectionInjected: DataSource);
+    constructor(loggerService: LoggerService, utilsService: UtilsService, smartContractService: SmartContractService, rpcService: RpcService, solcService: SolcService, smartContractConnectionInjected: DataSource);
     analyse(): Promise<void>;
     handleOrderCreatedEvent(block: THETA_BLOCK_INTERFACE, latestFinalizedBlockHeight: number): Promise<void>;
     verifyWithThetaExplorer(address: string): Promise<any>;

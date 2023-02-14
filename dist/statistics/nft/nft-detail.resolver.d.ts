@@ -10,7 +10,7 @@ export declare class NftDetailResolver {
         contract_uri_detail: string;
         img_uri: string;
     }>;
-    by_24_hours(nftDetail: NftDetailType, timezoneOffset: string): Promise<unknown>;
-    by_7_days(nftDetail: NftDetailType, timezoneOffset: string): Promise<unknown>;
-    by_30_days(nftDetail: NftDetailType, timezoneOffset: string): Promise<unknown>;
+    by_24_hours(nftDetail: NftDetailType, timezoneOffset: number): Promise<unknown>;
+    by_7_days(nftDetail: NftDetailType, timezoneOffset: number): Promise<unknown>;
+    by_30_days(nftDetail: NftDetailType, timezoneOffset: number): Promise<unknown>;
 }

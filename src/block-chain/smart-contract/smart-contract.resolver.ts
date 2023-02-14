@@ -8,11 +8,9 @@ import {
 } from './smart-contract.model'
 import { GraphQLInt, GraphQLString } from 'graphql'
 import { NftService } from './nft/nft.service'
-import fetch from 'cross-fetch'
 import { UtilsService } from 'src/common/utils.service'
 import { SmartContractEntity, SmartContractProtocolEnum } from './smart-contract.entity'
 import { Logger } from '@nestjs/common'
-import { reduce } from 'rxjs'
 
 @Resolver(() => SmartContractStatisticsType)
 export class SmartContractResolver {
@@ -101,23 +99,15 @@ export class SmartContractResolver {
     })
     address: string
   ) {
-    const httpRes = await fetch(
-      'https://explorer.thetatoken.org:8443/api/smartcontract/' + address,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-          // 'User-Agent':
-          //   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.74 Safari/537.36'
-        }
-      }
+    const res = await this.utilsService.getJsonRes(
+      'https://explorer.thetatoken.org:8443/api/smartcontract/' + address
     )
-    if (httpRes.status >= 400) {
-      // this.
-      this.logger.error('vist /explorer.thetatoken.org error')
-      throw new Error('Bad response from server')
-    }
-    const res: any = await httpRes.json()
+    // if (httpRes.status >= 400) {
+    //   // this.
+    //   this.logger.error('vist /explorer.thetatoken.org error')
+    //   throw new Error('Bad response from server')
+    // }
+    // const res: any = httpRes.data
     // console.log('theta explorer res optimizer ', res.body.optimizer)
     const optimizer = res.body.optimizer === 'disabled' ? false : true
     // console.log('optimizer', optimizer)

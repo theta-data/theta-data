@@ -13,9 +13,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WalletsAnalyseService = void 0;
+const rpc_service_1 = require("./../rpc/rpc.service");
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("typeorm");
-const theta_ts_sdk_1 = require("theta-ts-sdk");
 const logger_service_1 = require("../../common/logger.service");
 const wallet_entity_1 = require("./wallet.entity");
 const utils_service_1 = require("../../common/utils.service");
@@ -25,11 +25,12 @@ const enum_1 = require("theta-ts-sdk/dist/types/enum");
 const smart_contract_entity_1 = require("../smart-contract/smart-contract.entity");
 const moment = require('moment');
 let WalletsAnalyseService = class WalletsAnalyseService {
-    constructor(loggerService, utilsService, walletConnectionInjected, smartContractConnectionInjected) {
+    constructor(loggerService, utilsService, walletConnectionInjected, smartContractConnectionInjected, rpcService) {
         this.loggerService = loggerService;
         this.utilsService = utilsService;
         this.walletConnectionInjected = walletConnectionInjected;
         this.smartContractConnectionInjected = smartContractConnectionInjected;
+        this.rpcService = rpcService;
         this.logger = new common_1.Logger('wallet analyse service');
         this.analyseKey = 'under_analyse';
         this.counter = 0;
@@ -43,7 +44,7 @@ let WalletsAnalyseService = class WalletsAnalyseService {
             this.smartContractConnectionRunner = this.smartContractConnectionInjected.createQueryRunner();
             await this.walletConnectionRunner.startTransaction();
             let height = 0;
-            const lastfinalizedHeight = Number((await theta_ts_sdk_1.thetaTsSdk.blockchain.getStatus()).result.latest_finalized_block_height);
+            const lastfinalizedHeight = Number((await this.rpcService.getStatus()).latest_finalized_block_height);
             height = lastfinalizedHeight - 1000;
             if (const_1.config.get('WALLET.START_HEIGHT')) {
                 height = const_1.config.get('WALLET.START_HEIGHT');
@@ -62,14 +63,14 @@ let WalletsAnalyseService = class WalletsAnalyseService {
                 endHeight = height + analyseNumber;
             }
             this.logger.debug('start height: ' + height + '; end height: ' + endHeight);
-            const blockList = await theta_ts_sdk_1.thetaTsSdk.blockchain.getBlockSByRange(height.toString(), endHeight.toString());
-            const actualEndHeight = Number(blockList.result[blockList.result.length - 1].height);
-            this.logger.debug('block list length:' + blockList.result.length);
+            const blockList = await this.rpcService.getBlockSByRange(height, endHeight);
+            const actualEndHeight = Number(blockList[blockList.length - 1].height);
+            this.logger.debug('block list length:' + blockList.length);
             this.logger.debug('actual end height:' + actualEndHeight);
-            this.counter = blockList.result.length;
+            this.counter = blockList.length;
             this.logger.debug('init counter', this.counter);
             const blockArr = {};
-            for (const block of blockList.result) {
+            for (const block of blockList) {
                 const hhTimestamp = moment(moment(Number(block.timestamp) * 1000).format('YYYY-MM-DD HH:00:00')).unix();
                 if (!blockArr[hhTimestamp]) {
                     blockArr[hhTimestamp] = [block];
@@ -85,7 +86,7 @@ let WalletsAnalyseService = class WalletsAnalyseService {
             }
             await this.walletConnectionRunner.commitTransaction();
             this.logger.debug('commit success');
-            if (blockList.result.length > 0) {
+            if (blockList.length > 0) {
                 this.utilsService.updateRecordHeight(this.heightConfigFile, actualEndHeight);
             }
             (0, utils_service_1.writeSucessExcuteLog)(const_1.config.get('WALLET.MONITOR_PATH'));
@@ -314,7 +315,8 @@ WalletsAnalyseService = __decorate([
     __metadata("design:paramtypes", [logger_service_1.LoggerService,
         utils_service_1.UtilsService,
         typeorm_1.DataSource,
-        typeorm_1.DataSource])
+        typeorm_1.DataSource,
+        rpc_service_1.RpcService])
 ], WalletsAnalyseService);
 exports.WalletsAnalyseService = WalletsAnalyseService;
 //# sourceMappingURL=wallets-analyse.service.js.map

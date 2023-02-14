@@ -160,7 +160,7 @@ let NftStatisticsService = class NftStatisticsService {
         }
         return nftDetail;
     }
-    async formatNftStatistics(contractUri, nftStatistics) {
+    async formatNftStatistics(contractUri, nftStatistics, timezoneOffset) {
         const tfuelPrice = await this.marketService.getThetaFuelMarketInfo();
         if (nftStatistics) {
             const statisticsObj24H = {};
@@ -205,7 +205,9 @@ let NftStatisticsService = class NftStatisticsService {
                     }
                 }
                 if (record.timestamp > moment().subtract(7, 'days').unix()) {
-                    const dayStr = moment(record.timestamp * 1000).format('YYYY-MM-DD');
+                    const dayStr = moment(record.timestamp * 1000)
+                        .subtract(-new Date().getTimezoneOffset() + Number(timezoneOffset), 'minutes')
+                        .format('YYYY-MM-DD');
                     if (statisticsObj7Days[dayStr]) {
                         usersArr7Days[dayStr].includes(record.from) || usersArr7Days[dayStr].push(record.from);
                         usersArr7Days[dayStr].includes(record.to) || usersArr7Days[dayStr].push(record.to);
@@ -236,7 +238,9 @@ let NftStatisticsService = class NftStatisticsService {
                     }
                 }
                 if (record.timestamp > moment().subtract(30, 'days').unix()) {
-                    const dayStr = moment(record.timestamp * 1000).format('YYYY-MM-DD');
+                    const dayStr = moment(record.timestamp * 1000)
+                        .subtract(-new Date().getTimezoneOffset() + Number(timezoneOffset), 'minutes')
+                        .format('YYYY-MM-DD');
                     if (statisticsObj30Days[dayStr]) {
                         usersArr30Days[dayStr].includes(record.from) || usersArr30Days[dayStr].push(record.from);
                         usersArr30Days[dayStr].includes(record.to) || usersArr30Days[dayStr].push(record.to);
@@ -321,7 +325,7 @@ let NftStatisticsService = class NftStatisticsService {
             by_7_days: []
         };
     }
-    async nftStatistics24H(contractAddress, contractUri) {
+    async nftStatistics24H(contractAddress, contractUri, timezoneOffset) {
         const nftStatistics = await this.nftTransferRecordRepository.find({
             where: {
                 smart_contract_address: contractAddress,
@@ -329,10 +333,10 @@ let NftStatisticsService = class NftStatisticsService {
             },
             order: { timestamp: 'ASC' }
         });
-        const res = await this.formatNftStatistics(contractUri, nftStatistics);
+        const res = await this.formatNftStatistics(contractUri, nftStatistics, timezoneOffset);
         return res.by_24_hours;
     }
-    async nftStatistics7Days(contractAddress, contractUri) {
+    async nftStatistics7Days(contractAddress, contractUri, timezoneOffset) {
         const nftStatistics = await this.nftTransferRecordRepository.find({
             where: {
                 smart_contract_address: contractAddress,
@@ -340,10 +344,10 @@ let NftStatisticsService = class NftStatisticsService {
             },
             order: { timestamp: 'ASC' }
         });
-        const res = await this.formatNftStatistics(contractUri, nftStatistics);
+        const res = await this.formatNftStatistics(contractUri, nftStatistics, timezoneOffset);
         return res.by_7_days;
     }
-    async nftStatistics30Days(contractAddress, contractUri) {
+    async nftStatistics30Days(contractAddress, contractUri, timezoneOffset) {
         const nftStatistics = await this.nftTransferRecordRepository.find({
             where: {
                 smart_contract_address: contractAddress,
@@ -351,7 +355,7 @@ let NftStatisticsService = class NftStatisticsService {
             },
             order: { timestamp: 'ASC' }
         });
-        const res = await this.formatNftStatistics(contractUri, nftStatistics);
+        const res = await this.formatNftStatistics(contractUri, nftStatistics, timezoneOffset);
         return res.by_30_days;
     }
     async isNftExist(name) {

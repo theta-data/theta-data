@@ -1,3 +1,4 @@
+import { RpcModule } from './../rpc/rpc.module'
 import { SmartContractCallLogEntity } from './smart-contract-call-log.entity'
 import { Module } from '@nestjs/common'
 import { TypeOrmModule } from '@nestjs/typeorm'
@@ -17,7 +18,8 @@ import { SmartContractAnalyseService } from './smart-contract-analyse.service'
       'smart_contract'
     ),
     NftModule,
-    CommonModule
+    CommonModule,
+    RpcModule
   ],
   providers: [SmartContractService, SmartContractResolver, SmartContractAnalyseService],
   exports: [SmartContractService]

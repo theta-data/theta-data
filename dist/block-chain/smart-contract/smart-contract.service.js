@@ -22,10 +22,8 @@ const smart_contract_model_1 = require("./smart-contract.model");
 const nft_service_1 = require("./nft/nft.service");
 const solc_service_1 = require("../../common/solc.service");
 const utils_service_1 = require("../../common/utils.service");
-const cross_fetch_1 = require("cross-fetch");
 var requireFromString = require('require-from-string');
 const moment = require('moment');
-const fs = require('fs');
 const solc = require('solc');
 let SmartContractService = class SmartContractService {
     constructor(smartContractRepository, smartContractRecordRepository, nftService, solcService, utilsService) {
@@ -359,21 +357,15 @@ let SmartContractService = class SmartContractService {
                                 this.logger.debug('contract uri:' + res[0]);
                                 contract.contract_uri = res[0];
                                 if (res[0]) {
-                                    const httpRes = await (0, cross_fetch_1.default)(res[0], {
-                                        method: 'GET',
-                                        headers: {
-                                            'Content-Type': 'application/json'
-                                        }
-                                    });
-                                    if (httpRes.status >= 400) {
+                                    try {
+                                        const jsonRes = await this.utilsService.getJsonRes(res[0]);
+                                        contract.contract_uri_detail = JSON.stringify(jsonRes);
+                                        contract.name = jsonRes.name;
+                                    }
+                                    catch (e) {
                                         this.logger.error('Fetch contract uri: Bad response from server');
                                         contract.contract_uri_detail = '';
                                         contract.name = contractName;
-                                    }
-                                    else {
-                                        const jsonRes = await httpRes.json();
-                                        contract.contract_uri_detail = JSON.stringify(jsonRes);
-                                        contract.name = jsonRes.name;
                                     }
                                 }
                             }

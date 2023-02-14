@@ -13,7 +13,6 @@ exports.writeFailExcuteLog = exports.writeSucessExcuteLog = exports.UtilsService
 const rpc_service_1 = require("./../block-chain/rpc/rpc.service");
 const common_1 = require("@nestjs/common");
 const ethers_1 = require("ethers");
-const theta_ts_sdk_1 = require("theta-ts-sdk");
 const const_1 = require("../const");
 const fs = require('fs');
 const stream = require('stream');
@@ -122,7 +121,7 @@ let UtilsService = class UtilsService {
         var encodedParameters = abiCoder.encode(inputTypes, inputValues).slice(2);
         const data = functionSignature + encodedParameters;
         this.logger.debug('from:' + from + '; to:' + to + '; data:' + data);
-        const res = await theta_ts_sdk_1.thetaTsSdk.blockchain.callSmartContract(from, to, data);
+        const res = await this.rpcService.callSmartContract(from, to, data);
         this.logger.debug('read smart contract: ' + JSON.stringify(res));
         const outputValues = /^0x/i.test(res.result.vm_return)
             ? res.result.vm_return

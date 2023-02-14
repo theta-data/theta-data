@@ -31,12 +31,12 @@ let NftDetailResolver = class NftDetailResolver {
         const currDate = moment()
             .subtract(-new Date().getTimezoneOffset() + Number(timezoneOffset), 'minutes')
             .format('DD');
-        const cacheKey = 'nft_detail_1_day_' + currDate + nftDetail.smart_contract_address + timezoneOffset;
+        const cacheKey = 'nft_detail_1_day_' + currDate + nftDetail.smart_contract_address + String(timezoneOffset);
         if (await this.cacheManager.get(cacheKey)) {
             return await this.cacheManager.get(cacheKey);
         }
         const { contract_uri, smart_contract_address } = nftDetail;
-        const res = await this.nftStatisticsService.nftStatistics24H(smart_contract_address, contract_uri);
+        const res = await this.nftStatisticsService.nftStatistics24H(smart_contract_address, contract_uri, timezoneOffset);
         this.cacheManager.set(cacheKey, res, { ttl: 60 * 60 * 48 });
         return res;
     }
@@ -44,12 +44,12 @@ let NftDetailResolver = class NftDetailResolver {
         const currDate = moment()
             .subtract(-new Date().getTimezoneOffset() + Number(timezoneOffset), 'minutes')
             .format('DD');
-        const cacheKey = 'nft_detail_7_days_' + currDate + nftDetail.smart_contract_address + timezoneOffset;
+        const cacheKey = 'nft_detail_7_days_' + currDate + nftDetail.smart_contract_address + String(timezoneOffset);
         if (await this.cacheManager.get(cacheKey)) {
             return await this.cacheManager.get(cacheKey);
         }
         const { contract_uri, smart_contract_address } = nftDetail;
-        const res = await this.nftStatisticsService.nftStatistics7Days(smart_contract_address, contract_uri);
+        const res = await this.nftStatisticsService.nftStatistics7Days(smart_contract_address, contract_uri, timezoneOffset);
         this.cacheManager.set(cacheKey, res, { ttl: 60 * 60 * 48 });
         return res;
     }
@@ -57,12 +57,12 @@ let NftDetailResolver = class NftDetailResolver {
         const currDate = moment()
             .subtract(-new Date().getTimezoneOffset() + Number(timezoneOffset), 'minutes')
             .format('DD');
-        const cacheKey = 'nft_detail_30_days_' + currDate + nftDetail.smart_contract_address + timezoneOffset;
+        const cacheKey = 'nft_detail_30_days_' + currDate + nftDetail.smart_contract_address + String(timezoneOffset);
         if (await this.cacheManager.get(cacheKey)) {
             return await this.cacheManager.get(cacheKey);
         }
         const { contract_uri, smart_contract_address } = nftDetail;
-        const res = await this.nftStatisticsService.nftStatistics30Days(smart_contract_address, contract_uri);
+        const res = await this.nftStatisticsService.nftStatistics30Days(smart_contract_address, contract_uri, timezoneOffset);
         this.cacheManager.set(cacheKey, res, { ttl: 60 * 60 * 48 });
         return res;
     }
@@ -80,12 +80,12 @@ __decorate([
     __param(1, (0, graphql_1.Args)('timezoneOffset', {
         type: () => graphql_1.Int,
         nullable: true,
-        defaultValue: '0',
+        defaultValue: 0,
         description: 'the timezone difference in minutes, between the UTC and the current local time.' +
             'Such as PDT time is utc-07, should pass -420'
     })),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [nft_statistics_model_1.NftDetailType, String]),
+    __metadata("design:paramtypes", [nft_statistics_model_1.NftDetailType, Number]),
     __metadata("design:returntype", Promise)
 ], NftDetailResolver.prototype, "by_24_hours", null);
 __decorate([
@@ -94,12 +94,12 @@ __decorate([
     __param(1, (0, graphql_1.Args)('timezoneOffset', {
         type: () => graphql_1.Int,
         nullable: true,
-        defaultValue: '0',
+        defaultValue: 0,
         description: 'the timezone difference in minutes, between the UTC and the current local time.' +
             'Such as PDT time is utc-07, should pass -420'
     })),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [nft_statistics_model_1.NftDetailType, String]),
+    __metadata("design:paramtypes", [nft_statistics_model_1.NftDetailType, Number]),
     __metadata("design:returntype", Promise)
 ], NftDetailResolver.prototype, "by_7_days", null);
 __decorate([
@@ -113,7 +113,7 @@ __decorate([
             'Such as PDT time is utc-07, should pass -420'
     })),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [nft_statistics_model_1.NftDetailType, String]),
+    __metadata("design:paramtypes", [nft_statistics_model_1.NftDetailType, Number]),
     __metadata("design:returntype", Promise)
 ], NftDetailResolver.prototype, "by_30_days", null);
 NftDetailResolver = __decorate([

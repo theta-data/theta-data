@@ -7,10 +7,8 @@ import { RankByEnum } from './smart-contract.model'
 import { NftService } from './nft/nft.service'
 import { SolcService } from 'src/common/solc.service'
 import { UtilsService } from 'src/common/utils.service'
-import fetch from 'cross-fetch'
 var requireFromString = require('require-from-string')
 const moment = require('moment')
-const fs = require('fs')
 const solc = require('solc')
 @Injectable()
 export class SmartContractService {
@@ -447,22 +445,17 @@ export class SmartContractService {
                 contract.contract_uri = res[0]
                 if (res[0]) {
                   // const contractUri: string = res[0]
-                  const httpRes = await fetch(res[0], {
-                    method: 'GET',
-                    headers: {
-                      'Content-Type': 'application/json'
-                    }
-                  })
-                  if (httpRes.status >= 400) {
+                  try {
+                    const jsonRes = await this.utilsService.getJsonRes(res[0])
+                    // const jsonRes: any = httpRes.data
+
+                    contract.contract_uri_detail = JSON.stringify(jsonRes)
+                    contract.name = jsonRes.name
+                  } catch (e) {
                     this.logger.error('Fetch contract uri: Bad response from server')
                     contract.contract_uri_detail = ''
                     contract.name = contractName
                     // throw new Error('Bad response from server')
-                  } else {
-                    const jsonRes: any = await httpRes.json()
-
-                    contract.contract_uri_detail = JSON.stringify(jsonRes)
-                    contract.name = jsonRes.name
                   }
                 }
               }

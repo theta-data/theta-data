@@ -18,7 +18,6 @@ const smart_contract_service_1 = require("./smart-contract.service");
 const smart_contract_model_1 = require("./smart-contract.model");
 const graphql_2 = require("graphql");
 const nft_service_1 = require("./nft/nft.service");
-const cross_fetch_1 = require("cross-fetch");
 const utils_service_1 = require("../../common/utils.service");
 const smart_contract_entity_1 = require("./smart-contract.entity");
 const common_1 = require("@nestjs/common");
@@ -42,17 +41,7 @@ let SmartContractResolver = class SmartContractResolver {
         return await this.smartContractService.verifySmartContract(address, sourceCode, byteCode, version, versionFullName, optimizer, optimizerRuns);
     }
     async verifyWithThetaExplorer(address) {
-        const httpRes = await (0, cross_fetch_1.default)('https://explorer.thetatoken.org:8443/api/smartcontract/' + address, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        if (httpRes.status >= 400) {
-            this.logger.error('vist /explorer.thetatoken.org error');
-            throw new Error('Bad response from server');
-        }
-        const res = await httpRes.json();
+        const res = await this.utilsService.getJsonRes('https://explorer.thetatoken.org:8443/api/smartcontract/' + address);
         const optimizer = res.body.optimizer === 'disabled' ? false : true;
         const optimizerRuns = res.body.optimizerRuns ? res.body.optimizerRuns : 200;
         address = this.utilsService.normalize(address.toLowerCase());
