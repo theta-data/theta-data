@@ -1,0 +1,22 @@
+{
+  "extends": ["../../.eslintrc.json"],
+  // "parser":" @typescript-eslint/parser",
+  // "parserOptions": {
+  //   "parser": "babel-eslint"
+  // },
+  "ignorePatterns": ["!**/*"],
+  "overrides": [
+    {
+      "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
+      "rules": {}
+    },
+    {
+      "files": ["*.ts", "*.tsx"],
+      "rules": {}
+    },
+    {
+      "files": ["*.js", "*.jsx"],
+      "rules": {}
+    }
+  ]
+}

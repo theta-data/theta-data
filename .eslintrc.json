@@ -1,10 +1,14 @@
 {
   "root": true,
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "parser": "babel-eslint"
+  },
   "ignorePatterns": ["**/*"],
-  "plugins": ["@nx"],
   "overrides": [
     {
       "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
+      "plugins": ["@nx"],
       "rules": {
         "@nx/enforce-module-boundaries": [
           "error",
@@ -22,9 +26,21 @@
       }
     },
     {
+      "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
+      "plugins": [],
+      "extends": "next/core-web-vitals",
+      "rules": {
+      }
+    },
+    {
       "files": ["*.ts", "*.tsx"],
-      "extends": ["plugin:@nx/typescript"],
-      "rules": {}
+      "plugins": ["@typescript-eslint"],
+      "extends": ["plugin:@nx/typescript","next/core-web-vitals",
+      "plugin:@typescript-eslint/recommended"],
+      "rules": {
+        "@typescript-eslint/no-unused-vars": "error",
+        "@typescript-eslint/no-explicit-any": "error"
+      }
     },
     {
       "files": ["*.js", "*.jsx"],
@@ -37,6 +53,29 @@
         "jest": true
       },
       "rules": {}
+    },
+    {
+      "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
+      "plugins": ["unused-imports", "simple-import-sort","unused-imports"],
+      "rules": {
+        "no-unused-vars": "off",
+        "@typescript-eslint/no-unused-vars":"off",
+        "unused-imports/no-unused-imports": "error",
+        "unused-imports/no-unused-vars": [
+          "error",
+          {
+            "vars": "all",
+            "varsIgnorePattern": "^_",
+            "args": "after-used",
+            "argsIgnorePattern": "^_",
+            "caughtErrorsIgnorePattern": "^_"
+          }
+        ],
+        "simple-import-sort/imports": "error",
+        "simple-import-sort/exports": "error",
+        "no-multiple-empty-lines": [2, {"max": 1, "maxEOF": 0}],
+        "padded-blocks": ["error", { "classes": "always","blocks": "never"}]
+      }
     }
   ]
 }
