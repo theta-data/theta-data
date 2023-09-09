@@ -5,6 +5,10 @@
   "scripts": {
     "preinstall": "npx only-allow pnpm"
   },
+  "engines": {
+    "node": "18.16.0",
+    "pnpm":"8.7.1"
+  },
   "private": true,
   "devDependencies": {
     "@antfu/eslint-config": "^0.41.0",

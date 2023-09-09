@@ -13,4 +13,4 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
 # RUN su node -c "source /usr/local/share/nvm/nvm.sh && nvm install ${EXTRA_NODE_VERSION}"
 
 # To install more global node packages
-RUN su node -c "npm install -g pnpm@8 ts-node"
+RUN su node -c "npm install -g pnpm@8.7.1 ts-node"

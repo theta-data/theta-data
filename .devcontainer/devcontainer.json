@@ -9,6 +9,7 @@
       "VARIANT": "18"
     }
   },
+  "postCreateCommand":"pnpm i --frozen-lockfile --strict-peer-dependencies && pnpm audit fix",
   // Set *default* container specific settings.json values on container create.
   "settings": {
     "telemetry.enableTelemetry": false,
