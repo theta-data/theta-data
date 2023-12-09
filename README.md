@@ -168,14 +168,9 @@ After running the graphql api server.You can then open your web browser and navi
 ![avatar](https://github.com/larryro/image/blob/main/playground_20211101112605.png?raw=true)
 
 
-## Links
-* Playground - [Playground](http://playground.thetadata.io/)
-* Official Website - [thetadata.io](https://www.thetadata.io/)
-
 
 ## Contact
-
-contact@thetadata.io
+[https://twitter.com/larry38184614](https://twitter.com/larry38184614)
 
 ## License
 
